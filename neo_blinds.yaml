@@ -1,0 +1,36 @@
+cover:
+  - platform: neosmartblinds
+    host: 192.168.50.43
+    port: 8838
+    name: "Office Window"
+    hub: T528pztNXkmyFdFAuG_Fvw
+    blind_code: "078.001-00"
+    close_time: 52
+    protocol: http
+    motor_code: k1
+    rail: 0
+    device_class: shade
+
+  - platform: neosmartblinds
+    host: 192.168.50.43
+    port: 8838
+    name: "Guest Bedroom Blackout"
+    hub: T528pztNXkmyFdFAuG_Fvw
+    blind_code: "115.000-00"
+    close_time: 45
+    protocol: http
+    motor_code: k1
+    rail: 0
+    device_class: shade
+
+  - platform: neosmartblinds
+    host: 192.168.50.43
+    port: 8838
+    name: "Guest Bedroom Window"
+    hub: T528pztNXkmyFdFAuG_Fvw
+    blind_code: "115.000-01"
+    close_time: 61
+    protocol: http
+    motor_code: k1
+    rail: 0
+    device_class: shade
