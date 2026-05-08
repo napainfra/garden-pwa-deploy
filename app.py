@@ -65,6 +65,11 @@ SOLAR_PANEL_PEAK_W = 366.0  # IQ7A nameplate, used as denominator for % full sun
 
 # Camera (Eufy via eufy-security-ws + go2rtc bridge)
 E_CAMERA   = "camera.veg_garden"
+# The veg-garden physical camera (T8114-Z) was added before the bridge
+# migration, so its eufy_security image entity ended up with the slug
+# image.backyard_event_image but is actually pointed at the veg garden.
+# Verified visually 2026-05-08: that JPEG returns the tarp/garden frame.
+E_IMAGE    = "image.backyard_event_image"
 GO2RTC_URL = os.environ.get("GO2RTC_URL", "http://homeassistant.local.hass.io:1984")
 GO2RTC_SRC = os.environ.get("GO2RTC_SRC", "veg_garden")
 
@@ -648,48 +653,35 @@ def _ensure_streaming(force_p2p: bool = False) -> bool:
         return False
 
 def _grab_snapshot_jpeg(timeout: float = 12.0):
-    """Get a JPEG frame for camera.veg_garden.
+    """Return the latest JPEG frame for camera.veg_garden.
 
-    Strategy (in order):
-      1. /api/camera_proxy/<entity_id>  -- HA's built-in JPEG endpoint.
-         For an Eufy camera in state=streaming this returns a fresh frame
-         from the live HLS stream. Cheap, no ffmpeg, no WS.
-      2. If that fails AND we have an HLS path cached, fall back to ffmpeg
-         grabbing one frame off the playlist.
+    Strategy:
+      1. Read image.backyard_event_image (the eufy_security image entity for
+         this physical cam) via /api/image_proxy. This entity only updates on
+         motion events, but it ALWAYS works — unlike camera_proxy which
+         returns 500 for Eufy battery cams when not actively streaming.
+      2. As a best-effort freshness boost, fire-and-forget a generate_image
+         call so the next snapshot is newer. We do NOT block on it because
+         the bridge can be slow (10–20 s) waking battery cams.
+
     Returns bytes or None.
     """
-    # Make sure the camera is awake
-    _ensure_streaming()
+    # Best-effort: nudge the bridge to refresh the image (non-blocking).
+    try:
+        threading.Thread(
+            target=lambda: call_service(
+                "eufy_security", "generate_image", {"entity_id": E_CAMERA}),
+            daemon=True,
+        ).start()
+    except Exception:
+        pass
 
-    # Path 1: camera_proxy
-    proxy_path = f"/api/camera_proxy/{E_CAMERA}"
-    status, body, ctype = _ha_get_bytes(proxy_path, timeout=int(timeout))
+    # Read the image entity via image_proxy (Bearer auth works here).
+    status, body, ctype = _ha_get_bytes(
+        f"/api/image_proxy/{E_IMAGE}", timeout=int(timeout))
     if status == 200 and body and ("image" in ctype or body[:3] == b"\xff\xd8\xff"):
         return body
-    print(f"[cam] camera_proxy status={status} ctype={ctype} len={len(body)}", flush=True)
-
-    # Path 2: ffmpeg off HLS playlist
-    hls_path = _CAM_STATE.get("hls_path")
-    if not hls_path:
-        return None
-    full = f"{HA_URL}{hls_path}" if hls_path.startswith("/api") else f"{HA_URL}/api{hls_path}"
-    cmd = [
-        "ffmpeg", "-y",
-        "-headers", f"Authorization: Bearer {HA_TOKEN}\r\n",
-        "-i", full,
-        "-frames:v", "1",
-        "-q:v", "4",
-        "-f", "image2pipe",
-        "-vcodec", "mjpeg",
-        "pipe:1",
-    ]
-    try:
-        proc = subprocess.run(cmd, capture_output=True, timeout=timeout)
-        if proc.returncode == 0 and proc.stdout:
-            return proc.stdout
-        print(f"[cam] ffmpeg rc={proc.returncode} stderr={proc.stderr[-300:]!r}", flush=True)
-    except Exception as e:
-        print(f"[cam] ffmpeg error: {e}", flush=True)
+    print(f"[cam] image_proxy status={status} ctype={ctype} len={len(body)}", flush=True)
     return None
 
 @app.get("/api/cam/snapshot")
