@@ -70,6 +70,9 @@ E_CAMERA   = "camera.veg_garden"
 # image.backyard_event_image but is actually pointed at the veg garden.
 # Verified visually 2026-05-08: that JPEG returns the tarp/garden frame.
 E_IMAGE    = "image.backyard_event_image"
+E_DEBUG    = "binary_sensor.backyard_debug_device"  # carries rtspStreamUrl
+# Default fallback if rtspStreamUrl can't be read (cam IP can change on DHCP):
+RTSP_URL_DEFAULT = os.environ.get("VEG_RTSP_URL", "rtsp://192.168.50.99/live3")
 GO2RTC_URL = os.environ.get("GO2RTC_URL", "http://homeassistant.local.hass.io:1984")
 GO2RTC_SRC = os.environ.get("GO2RTC_SRC", "veg_garden")
 
@@ -660,31 +663,69 @@ def _ensure_streaming(force: bool = False) -> bool:
             _CAM_STATE["hls_path_at"] = now
         return True  # snapshot path doesn't need HLS
 
-def _grab_snapshot_jpeg(timeout: float = 14.0):
-    """Return a fresh JPEG frame for camera.veg_garden.
+def _veg_rtsp_url():
+    """Pull the live LAN RTSP URL from the eufy_security debug sensor.
 
-    Strategy (in order):
-      1. Ensure RTSP livestream is running (1–3 s on this cam).
-         Once streaming, /api/camera_proxy/<entity_id> returns a live JPEG.
-      2. Fall back to /api/image_proxy/image.backyard_event_image
-         (last motion-triggered frame; always-on but stale).
-
-    Returns bytes or None.
+    The cam exposes an unauthenticated RTSP stream on its LAN IP whenever
+    'rtsp_stream' is on. The URL is in binary_sensor.backyard_debug_device
+    attributes -> properties.rtspStreamUrl (e.g. rtsp://192.168.50.99/live3).
+    Falling back to the env-overridable default keeps things working if
+    the integration ever moves that field.
     """
-    if _ensure_streaming():
-        status, body, ctype = _ha_get_bytes(
-            f"/api/camera_proxy/{E_CAMERA}", timeout=int(timeout))
-        if status == 200 and body and ("image" in ctype or body[:3] == b"\xff\xd8\xff"):
-            return body
-        print(f"[cam] camera_proxy status={status} ctype={ctype} len={len(body)}", flush=True)
+    try:
+        st = get_state(E_DEBUG) or {}
+        url = (st.get("attributes", {}) or {}).get("properties", {}).get("rtspStreamUrl")
+        if url and url.startswith("rtsp"):
+            return url
+    except Exception as e:
+        print(f"[cam] rtspStreamUrl lookup failed: {e}", flush=True)
+    return RTSP_URL_DEFAULT
 
-    # Fallback: stale motion-event image. Always succeeds.
+def _grab_snapshot_jpeg(timeout: float = 8.0):
+    """Pull a fresh JPEG frame straight off the camera's LAN RTSP feed.
+
+    Why not HA?
+      - /api/camera_proxy returns 500 for this Eufy battery cam even when
+        state=streaming (verified live 2026-05-08).
+      - camera.snapshot service writes 0 bytes (same root cause).
+      - HLS playlist is fine for the live modal but slow for one-frame grabs.
+
+    The Eufy cam itself runs an RTSP server on its LAN IP whenever
+    switch.backyard_rtsp_stream is on (it currently is). ffmpeg pulls
+    a single frame off that stream in well under a second from inside
+    the addon's network. No HA intermediary, no bridge wake-up dance.
+    """
+    rtsp = _veg_rtsp_url()
+    cmd = [
+        "ffmpeg", "-y",
+        "-rtsp_transport", "tcp",   # more reliable than UDP through bridges
+        "-stimeout", "4000000",     # 4s socket timeout
+        "-i", rtsp,
+        "-frames:v", "1",
+        "-q:v", "4",
+        "-f", "image2pipe",
+        "-vcodec", "mjpeg",
+        "pipe:1",
+    ]
+    try:
+        proc = subprocess.run(cmd, capture_output=True, timeout=timeout)
+        if proc.returncode == 0 and proc.stdout and proc.stdout[:3] == b"\xff\xd8\xff":
+            print(f"[cam] rtsp grab ok ({len(proc.stdout)} bytes from {rtsp})", flush=True)
+            return proc.stdout
+        print(f"[cam] rtsp grab failed rc={proc.returncode} stderr={proc.stderr[-200:]!r}", flush=True)
+    except subprocess.TimeoutExpired:
+        print(f"[cam] rtsp grab timed out from {rtsp}", flush=True)
+    except Exception as e:
+        print(f"[cam] rtsp grab error: {e}", flush=True)
+
+    # Last-resort fallback: the stale motion-event image. Always works,
+    # but might be hours old (and might literally show you walking past
+    # the camera). Better than a blank tile.
     status, body, ctype = _ha_get_bytes(
         f"/api/image_proxy/{E_IMAGE}", timeout=int(timeout))
     if status == 200 and body and ("image" in ctype or body[:3] == b"\xff\xd8\xff"):
         print("[cam] using stale image_proxy fallback", flush=True)
         return body
-    print(f"[cam] image_proxy fallback failed status={status} len={len(body)}", flush=True)
     return None
 
 @app.get("/api/cam/snapshot")
