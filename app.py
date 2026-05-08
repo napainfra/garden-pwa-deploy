@@ -553,14 +553,13 @@ def api_history(request: Request, hours: int = 24):
         "rain_last_age": humanize_age(last_rain_iso) if last_rain_iso else None,
     }
 
-# ===== camera (P2P livestream + HA-native HLS) =====
+# ===== camera (RTSP livestream + HA-native HLS) =====
 # Path overview:
-#   1. start_p2p_livestream  -> camera enters state=streaming
-#   2. WS "camera/stream" returns /api/hls/<hash>/master_playlist.m3u8
-#   3. PWA proxies the HLS playlist + segments through itself (Bearer-auth
-#      added server-side so the iPhone <video> tag doesn't need a token)
-#   4. Snapshot = grab the first segment, run ffmpeg -frames:v 1 -> JPEG
-#   5. modal close -> stop_p2p_livestream so battery cam can sleep
+#   1. start_rtsp_livestream -> camera enters state=streaming (1–3 s)
+#      (P2P consistently fails on T8114-Z; RTSP is reliable.)
+#   2. /api/camera_proxy/<entity> returns a fresh JPEG (snapshot path)
+#   3. WS "camera/stream" returns /api/hls/<hash>/master_playlist.m3u8 (live modal)
+#   4. modal close -> stop_*_livestream so battery cam can sleep
 #
 # State is per-process. Multi-worker uvicorn would need a shared cache.
 _CAM_STATE = {
@@ -616,21 +615,30 @@ def _ha_get_bytes(path: str, timeout: int = 10):
     except URLError:
         return 502, b"", "text/plain"
 
-def _ensure_streaming(force_p2p: bool = False) -> bool:
-    """Make sure P2P livestream is running and we have a current HLS path.
-    Returns True if HLS path is ready."""
+def _ensure_streaming(force: bool = False) -> bool:
+    """Make sure RTSP livestream is running and we have a current HLS path.
+
+    On a Eufy T8114-Z (the veg garden camera), start_p2p_livestream
+    consistently fails (HTTP 500 or asyncio.Event timeout) but
+    start_rtsp_livestream succeeds in <2s and lights up:
+      - state -> streaming
+      - /api/camera_proxy/camera.veg_garden -> live JPEG
+      - WS camera/stream -> /api/hls/<hash>/master_playlist.m3u8 (works)
+
+    Verified live 2026-05-08. Reverify if Eufy firmware changes.
+    """
     now = time.time()
     with _CAM_STATE["lock"]:
-        # Check camera state
         st = get_state(E_CAMERA) or {}
         is_streaming = (st.get("state") == "streaming")
-        if not is_streaming or force_p2p:
+        if not is_streaming or force:
             try:
-                call_service("eufy_security", "start_p2p_livestream",
+                call_service("eufy_security", "start_rtsp_livestream",
                              {"entity_id": E_CAMERA})
+                print("[cam] start_rtsp_livestream issued", flush=True)
             except Exception as e:
-                print(f"[cam] start_p2p_livestream failed: {e}", flush=True)
-            # Battery cams need 3–10 s to wake. Poll briefly.
+                print(f"[cam] start_rtsp_livestream failed: {e}", flush=True)
+            # RTSP comes up in 1–3 s on this camera; allow up to 8 s.
             for _ in range(8):
                 time.sleep(1.0)
                 st = get_state(E_CAMERA) or {}
@@ -639,49 +647,44 @@ def _ensure_streaming(force_p2p: bool = False) -> bool:
                     break
         _CAM_STATE["streaming"] = is_streaming
         if not is_streaming:
+            print(f"[cam] could not get camera into streaming state, last={st.get('state')}", flush=True)
             return False
         # Reuse cached HLS path if fresh
         if (_CAM_STATE["hls_path"] and
                 now - _CAM_STATE["hls_path_at"] < HLS_TTL):
             return True
-        # Get a new HLS path from HA
+        # Get a new HLS path from HA WebSocket (used by live modal)
         path = _ws_camera_stream_url(E_CAMERA)
         if path:
             _CAM_STATE["hls_path"] = path
             _CAM_STATE["hls_path_at"] = now
-            return True
-        return False
+        return True  # snapshot path doesn't need HLS
 
-def _grab_snapshot_jpeg(timeout: float = 12.0):
-    """Return the latest JPEG frame for camera.veg_garden.
+def _grab_snapshot_jpeg(timeout: float = 14.0):
+    """Return a fresh JPEG frame for camera.veg_garden.
 
-    Strategy:
-      1. Read image.backyard_event_image (the eufy_security image entity for
-         this physical cam) via /api/image_proxy. This entity only updates on
-         motion events, but it ALWAYS works — unlike camera_proxy which
-         returns 500 for Eufy battery cams when not actively streaming.
-      2. As a best-effort freshness boost, fire-and-forget a generate_image
-         call so the next snapshot is newer. We do NOT block on it because
-         the bridge can be slow (10–20 s) waking battery cams.
+    Strategy (in order):
+      1. Ensure RTSP livestream is running (1–3 s on this cam).
+         Once streaming, /api/camera_proxy/<entity_id> returns a live JPEG.
+      2. Fall back to /api/image_proxy/image.backyard_event_image
+         (last motion-triggered frame; always-on but stale).
 
     Returns bytes or None.
     """
-    # Best-effort: nudge the bridge to refresh the image (non-blocking).
-    try:
-        threading.Thread(
-            target=lambda: call_service(
-                "eufy_security", "generate_image", {"entity_id": E_CAMERA}),
-            daemon=True,
-        ).start()
-    except Exception:
-        pass
+    if _ensure_streaming():
+        status, body, ctype = _ha_get_bytes(
+            f"/api/camera_proxy/{E_CAMERA}", timeout=int(timeout))
+        if status == 200 and body and ("image" in ctype or body[:3] == b"\xff\xd8\xff"):
+            return body
+        print(f"[cam] camera_proxy status={status} ctype={ctype} len={len(body)}", flush=True)
 
-    # Read the image entity via image_proxy (Bearer auth works here).
+    # Fallback: stale motion-event image. Always succeeds.
     status, body, ctype = _ha_get_bytes(
         f"/api/image_proxy/{E_IMAGE}", timeout=int(timeout))
     if status == 200 and body and ("image" in ctype or body[:3] == b"\xff\xd8\xff"):
+        print("[cam] using stale image_proxy fallback", flush=True)
         return body
-    print(f"[cam] image_proxy status={status} ctype={ctype} len={len(body)}", flush=True)
+    print(f"[cam] image_proxy fallback failed status={status} len={len(body)}", flush=True)
     return None
 
 @app.get("/api/cam/snapshot")
