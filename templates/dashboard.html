@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Masha's Garden">
+<meta name="theme-color" content="#0b1117">
+<link rel="manifest" href="/garden/manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="/garden/static/icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/garden/static/icon-192.png">
+<title>Masha's Garden</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
+  html,body{height:100%;width:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+    color:#fff;min-height:100vh;position:relative;overflow-x:hidden;
+    padding:env(safe-area-inset-top) 18px env(safe-area-inset-bottom);
+    background:radial-gradient(ellipse at top,#1a2530 0%,#0b1117 60%);
+    transition:background 1.2s ease;
+  }
+  /* ===== weather backgrounds — POSTCARD intensity ===== */
+  body[data-cond="sunny"][data-daypart="day"]         { background: radial-gradient(ellipse 90% 60% at 50% -5%, #8a5a28 0%, #3a2810 30%, #14110a 65%, #0b1117 90%); }
+  body[data-cond="clear-night"], body[data-cond="sunny"][data-daypart="night"]
+                                                       { background: radial-gradient(ellipse 90% 60% at 50% -5%, #2a3066 0%, #131a3a 35%, #070a18 75%, #060814 95%); }
+  body[data-cond="partlycloudy"][data-daypart="day"]  { background: radial-gradient(ellipse 90% 60% at 50% -5%, #3d556e 0%, #1a2638 45%, #0b1117 85%); }
+  body[data-cond="partlycloudy"][data-daypart="night"]{ background: radial-gradient(ellipse 90% 60% at 50% -5%, #283356 0%, #121a2e 45%, #060810 85%); }
+  body[data-cond="cloudy"]                            { background: radial-gradient(ellipse 90% 60% at 50% -5%, #4a5560 0%, #1d2228 45%, #0a0c10 90%); }
+  body[data-cond="rainy"], body[data-cond="pouring"]  { background: radial-gradient(ellipse 90% 60% at 50% -5%, #2c5870 0%, #122838 45%, #060c10 90%); }
+  body[data-cond="snowy"], body[data-cond="snowy-rainy"]{ background: radial-gradient(ellipse 90% 60% at 50% -5%, #4a5a82 0%, #1a2138 45%, #07090f 90%); }
+  body[data-cond="lightning"], body[data-cond="lightning-rainy"]
+                                                       { background: radial-gradient(ellipse 90% 60% at 50% -5%, #463468 0%, #1a132e 45%, #060410 90%); }
+  body[data-cond="fog"]                               { background: radial-gradient(ellipse 90% 60% at 50% -5%, #4a5058 0%, #1c2026 50%, #0a0c0e 95%); }
+  body[data-cond="windy"]                             { background: radial-gradient(ellipse 90% 60% at 50% -5%, #355a6c 0%, #142632 45%, #06090c 90%); }
+  /* ===== animated weather layer ===== */
+  .wx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .wx svg{width:100%;height:100%;display:block}
+  /* sun rays sweep — POSTCARD */
+  @keyframes sunsweep { 0%,100%{opacity:.55;transform:rotate(0deg)} 50%{opacity:.85;transform:rotate(8deg)} }
+  .wx .sun{transform-origin:50% 0%;animation:sunsweep 8s ease-in-out infinite}
+  /* moon glow */
+  @keyframes moonpulse { 0%,100%{opacity:.85} 50%{opacity:1} }
+  .wx .moon{animation:moonpulse 6s ease-in-out infinite}
+  /* drifting clouds */
+  @keyframes clouddriftA { from{transform:translateX(-30%)} to{transform:translateX(130%)} }
+  @keyframes clouddriftB { from{transform:translateX(130%)} to{transform:translateX(-30%)} }
+  .wx .cloudA{animation:clouddriftA 70s linear infinite;opacity:.42}
+  .wx .cloudB{animation:clouddriftB 95s linear infinite;opacity:.32}
+  /* rain streaks */
+  @keyframes rainfall { from{transform:translateY(-20%)} to{transform:translateY(120%)} }
+  .wx .drop{animation:rainfall linear infinite}
+  /* snowflakes */
+  @keyframes snowfall { 0%{transform:translate(0,-20%);opacity:0} 10%{opacity:.85} 90%{opacity:.85} 100%{transform:translate(var(--dx,0),120%);opacity:0} }
+  .wx .flake{animation:snowfall linear infinite}
+  /* lightning flash */
+  @keyframes flash { 0%,93%,100%{opacity:0} 94%{opacity:.6} 95%{opacity:0} 96%{opacity:.4} 97%{opacity:0} }
+  .wx .flash{position:absolute;inset:0;background:radial-gradient(ellipse at 70% 30%,rgba(220,220,255,.6),transparent 50%);animation:flash 9s linear infinite}
+  /* ===== camera card ===== */
+  .cam-card{
+    margin-top:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;padding:0;overflow:hidden;cursor:pointer;
+    transition:transform .15s ease;
+    -webkit-tap-highlight-color:rgba(255,255,255,.08);
+  }
+  .cam-card:active{transform:scale(.985)}
+  .cam-img{display:block;width:100%;height:auto;background:#000;min-height:180px}
+  .cam-meta{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#8a96a3}
+  .cam-meta .live-dot{width:6px;height:6px;border-radius:50%;background:#5fd17e;display:inline-block;margin-right:6px;box-shadow:0 0 6px #5fd17e}
+  .cam-meta .age{color:#5e6a78}
+  /* ===== modal (camera live + weather full) ===== */
+  .modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.92);display:none;flex-direction:column;
+         padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);overflow-y:auto}
+  .modal.open{display:flex}
+  .modal .top{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;
+              background:rgba(11,17,23,.8);backdrop-filter:blur(14px);position:sticky;top:0;z-index:1}
+  .modal .top h2{font-size:18px;font-weight:600}
+  .modal .close{background:rgba(255,255,255,.08);border:0;color:#fff;width:36px;height:36px;border-radius:50%;
+                font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .modal .body{flex:1;padding:0 18px 24px;display:flex;flex-direction:column;gap:14px}
+  .modal .stream-box{width:100%;background:#000;border-radius:14px;overflow:hidden;min-height:240px;
+                     display:flex;align-items:center;justify-content:center}
+  .modal .stream-box img,.modal .stream-box video{width:100%;height:auto;display:block}
+  .modal .stream-msg{color:#8a96a3;font-size:13px;text-align:center;padding:30px}
+  .modal .stream-msg .spinner{width:24px;height:24px;border:3px solid rgba(255,255,255,.15);
+                              border-top-color:#63b3ed;border-radius:50%;
+                              animation:spin 1s linear infinite;margin:0 auto 12px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  /* weather modal layout */
+  .wx-day{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
+          border-radius:14px;padding:14px;display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center}
+  .wx-day .ico{font-size:28px;text-align:center}
+  .wx-day .nm{font-weight:600;font-size:14px}
+  .wx-day .desc{font-size:12px;color:#8a96a3;margin-top:2px}
+  .wx-day .hilo{text-align:right;font-size:14px}
+  .wx-day .hi{color:#f0e0a0;font-weight:600}
+  .wx-day .lo{color:#8ab4ff}
+  .wx-day .rain{font-size:11px;color:#8ecbff;text-align:right;margin-top:2px}
+  .wx-now{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+          border-radius:14px;padding:18px;display:grid;grid-template-columns:1fr auto;gap:12px}
+  .wx-now .big{font-size:48px;line-height:1;font-weight:700;margin-bottom:4px}
+  .wx-now .cond{font-size:14px;color:#cfd6e0;margin-bottom:10px}
+  .wx-now .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+  .wx-now .grid .it .lab{font-size:11px;color:#7d8a9d;text-transform:uppercase;letter-spacing:.5px}
+  .wx-now .grid .it .vl{font-size:14px;font-weight:600;margin-top:2px}
+  .wx-now .ico-big{font-size:64px;align-self:center}
+  .now-card{cursor:pointer;-webkit-tap-highlight-color:rgba(255,255,255,.08);transition:transform .15s ease}
+  .now-card:active{transform:scale(.985)}
+  /* fog wash */
+  @keyframes fogdrift { 0%,100%{transform:translateX(-5%)} 50%{transform:translateX(5%)} }
+  .wx .fog{animation:fogdrift 14s ease-in-out infinite;opacity:.35}
+  .wrap{position:relative;z-index:1}
+  .wrap{max-width:440px;margin:0 auto;padding:18px 0 32px}
+  .tile{cursor:pointer;transition:transform .15s ease}
+  .tile.tappable:active{transform:scale(.97)}
+  .tile .tap-hint{font-size:10px;color:#5e6a78;margin-top:2px;letter-spacing:.4px}
+  /* ===== zoom modal ===== */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    display:none;align-items:flex-end;justify-content:center;z-index:50;animation:fadein .2s ease}
+  .modal-bg.show{display:flex}
+  @keyframes fadein{from{opacity:0}to{opacity:1}}
+  @keyframes slideup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .modal{width:100%;max-width:480px;background:#0b1117;border-top-left-radius:24px;border-top-right-radius:24px;
+    border:1px solid rgba(255,255,255,.08);border-bottom:0;padding:18px 18px 28px;
+    animation:slideup .25s cubic-bezier(.2,.8,.3,1);max-height:92vh;overflow-y:auto}
+  .modal .grab{width:38px;height:4px;background:rgba(255,255,255,.18);border-radius:2px;margin:0 auto 14px}
+  .modal .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .modal .top .ttl{font-size:18px;font-weight:600}
+  .modal .top .x{background:rgba(255,255,255,.08);border:0;color:#fff;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer}
+  .modal .sub{font-size:12px;color:#8a96a3;margin-bottom:14px}
+  .modal .pills{display:flex;gap:8px;margin-bottom:12px}
+  .modal .pills button{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#cfd6e0;
+    padding:10px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer}
+  .modal .pills button.on{background:rgba(99,179,237,.22);border-color:rgba(99,179,237,.5);color:#bcdcff}
+  .modal .chart-wrap{position:relative;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+    border-radius:14px;padding:10px 8px 18px;margin-bottom:14px}
+  .modal .chart-wrap svg{width:100%;height:240px;display:block;touch-action:pan-y}
+  .modal .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
+  .modal .stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px;text-align:center}
+  .modal .stat .lab{font-size:10px;color:#8a96a3;text-transform:uppercase;letter-spacing:.06em}
+  .modal .stat .val{font-size:18px;font-weight:600;margin-top:3px}
+  .modal .crosshair-readout{position:absolute;top:8px;right:10px;background:rgba(0,0,0,.55);
+    border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 8px;font-size:11px;color:#cfd6e0;
+    font-variant-numeric:tabular-nums;pointer-events:none;display:none}
+  .modal .crosshair-readout.show{display:block}
+  .hero-block{display:flex;flex-direction:column;align-items:center;text-align:center;padding:14px 0 8px}
+  .hero-img{width:160px;height:160px;object-fit:contain;filter:drop-shadow(0 14px 30px rgba(0,0,0,.5));margin-bottom:8px}
+  .hero-emoji{font-size:120px;line-height:1;filter:drop-shadow(0 12px 28px rgba(0,0,0,.5));margin-bottom:8px}
+  h1{font-size:26px;font-weight:600;margin-bottom:4px}
+  .pill{display:inline-block;font-size:14px;padding:6px 14px;border-radius:999px;margin-top:6px;
+        background:rgba(255,255,255,.08);color:#cfd6e0}
+  .pill.ok{background:rgba(76,175,80,.18);color:#9ed99e}
+  .pill.thirsty{background:rgba(255,152,0,.18);color:#ffd089}
+  .pill.watering{background:rgba(33,150,243,.2);color:#8ecbff}
+  .freeze{
+    margin:14px 0 0;background:linear-gradient(135deg,#4a1f1f,#2a0f0f);
+    border:1px solid rgba(255,82,82,.4);padding:14px;border-radius:16px;
+    display:flex;align-items:center;gap:12px;
+  }
+  .freeze .icon{font-size:28px}
+  .freeze .text{font-size:14px;color:#ffb3b3;line-height:1.3}
+  .freeze .text strong{color:#fff}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
+  .grid3 .tile{padding:14px 10px}
+  .grid3 .tile .label{font-size:10px;letter-spacing:.4px}
+  .grid3 .tile.big .value{font-size:30px}
+  .grid3 .tile .sub{font-size:11px}
+  .grid3 .tile .tap-hint{font-size:9px}
+  .tile{
+    background:rgba(15,20,28,.72);border:1px solid rgba(255,255,255,.08);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    border-radius:18px;padding:18px 16px;display:flex;flex-direction:column;gap:6px;
+  }
+  .tile .label{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#8a96a3}
+  .tile .value{font-size:32px;font-weight:600;line-height:1.1}
+  .tile .sub{font-size:12px;color:#8a96a3}
+  .tile.big .value{font-size:48px}
+  .tile-blue .value{color:#80c8ff}
+  .tile-orange .value{color:#ffb96b}
+  .tile-orange.cold .value{color:#7ad9ff}
+  .tile-orange.freeze .value{color:#ff8a8a}
+  .tile-yellow .value{color:#ffe16b}
+  .tile-yellow.dim .value{color:#cfb95a}
+  .tile-yellow.night .value{color:#7d8a9d}
+  .row{
+    display:flex;justify-content:space-between;gap:12px;margin-top:12px;
+    background:rgba(15,20,28,.72);border:1px solid rgba(255,255,255,.08);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    border-radius:18px;padding:14px 16px;
+  }
+  .row .item{flex:1;text-align:center}
+  .row .label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:#8a96a3;margin-bottom:4px}
+  .row .v{font-size:15px;font-weight:600}
+  .btns{margin-top:20px;display:flex;flex-direction:column;gap:10px}
+  button.btn{
+    width:100%;border:0;font-size:18px;font-weight:600;padding:18px;border-radius:18px;
+    color:#fff;cursor:pointer;-webkit-appearance:none;display:flex;align-items:center;justify-content:center;gap:10px;
+    transition:transform .08s ease;
+  }
+  button.btn:active{transform:scale(.98)}
+  .btn.start{background:linear-gradient(135deg,#1976d2,#0d47a1)}
+  .btn.stop{background:linear-gradient(135deg,#e53935,#b71c1c)}
+  .btn.disabled{opacity:.4;pointer-events:none}
+  .forecast{margin-top:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .now-card{background:linear-gradient(135deg,rgba(99,179,237,.18),rgba(99,179,237,.05));
+    border:1px solid rgba(99,179,237,.35);border-radius:14px;padding:14px;margin-top:18px}
+  .now-card .lbl{font-size:11px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em}
+  .now-card .row2{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+  .now-card .big{font-size:34px;font-weight:600}
+  .now-card .ico{font-size:42px}
+  .now-card .meta{font-size:12px;color:#8aa1c2;margin-top:4px;display:flex;gap:14px;flex-wrap:wrap}
+  .now-card .meta .rain-on{color:#63b3ed}
+  .now-card .meta .rain-off{color:#7d8a9d}
+  .zones{margin-top:18px}
+  .zones .head{font-size:11px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+  .zone{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;
+    border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+  .zone:last-child{border-bottom:none}
+  .zone.veg{background:rgba(99,179,237,.06);border-radius:8px;border-bottom:none;padding:10px 12px;margin:2px 0}
+  .zone .nm{flex:1}
+  .zone .st{font-size:11px;color:#7d8a9d;text-align:right}
+  .zone .st.scheduled{color:#9ee19e}
+  .zone .st.suspended{color:#e1a79e}
+  .zone .st.watering{color:#63b3ed;font-weight:600}
+  .zone .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#7d8a9d;margin-right:8px;vertical-align:middle}
+  .zone .dot.scheduled{background:#9ee19e}
+  .zone .dot.suspended{background:#e1a79e}
+  .zone .dot.watering{background:#63b3ed;box-shadow:0 0 8px #63b3ed}
+  .fc{
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
+    border-radius:14px;padding:12px 8px;text-align:center;
+  }
+  .fc .day{font-size:12px;color:#8a96a3;margin-bottom:4px}
+  .fc .ico{font-size:22px;line-height:1.1}
+  .fc .hilo{font-size:13px;margin-top:4px;color:#cfd6e0}
+  .fc .rain{font-size:11px;color:#8ecbff;margin-top:2px;min-height:14px}
+  .h24{margin-top:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
+       border-radius:18px;padding:16px}
+  .h24 .head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .h24 .head .ttl{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:#8a96a3}
+  .h24 .head .sub{font-size:11px;color:#5e6a78}
+  .h24 .line{display:flex;justify-content:space-between;align-items:center;
+             padding:8px 0;border-top:1px solid rgba(255,255,255,.05);font-size:13px}
+  .h24 .line:first-of-type{border-top:0}
+  .h24 .line .lab{color:#8a96a3}
+  .h24 .line .val{color:#cfd6e0;font-weight:500}
+  .h24 .line .val .arrow{margin-left:4px;font-size:11px;opacity:.7}
+  .h24 .line .val.up{color:#9ed99e}
+  .h24 .line .val.down{color:#ffb96b}
+  .spark{margin-top:6px;height:80px;width:100%;display:block}
+  .spark-legend{display:flex;justify-content:space-between;font-size:10px;color:#5e6a78;margin-top:2px;letter-spacing:.4px}
+  .spark-legend .lg{display:inline-flex;align-items:center;gap:4px}
+  .spark-legend .dot{width:8px;height:8px;border-radius:2px}
+  .spark-legend .dot.bar{background:rgba(128,200,255,.55)}
+  .spark-legend .dot.line{background:#ffb96b}
+  .footer{text-align:center;color:#5e6a78;font-size:11px;margin-top:24px}
+  .small{font-size:12px;color:#8a96a3}
+  .pulse{animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+</style>
+</head>
+<body>
+<!-- animated weather backdrop -->
+<div class="wx" id="wx"></div>
+<div class="wrap" id="app">
+  <div class="hero-block">
+    <img class="hero-img" src="/garden/static/hero.png" alt="" onerror="this.style.display='none';document.getElementById('emoji').style.display='block'">
+    <div class="hero-emoji" id="emoji" style="display:none">🍅🥒</div>
+    <h1>Masha's Garden</h1>
+    <div class="pill" id="status">Loading…</div>
+  </div>
+
+  <div id="freeze" class="freeze" style="display:none">
+    <div class="icon">❄️</div>
+    <div class="text"><strong>Freeze warning.</strong> Soil at <span id="freeze-temp">?</span>°C — protect tomatoes.</div>
+  </div>
+
+  <div class="grid3">
+    <div class="tile big tile-blue tappable" onclick="openChart('moisture')">
+      <div class="label">💧 Moisture</div>
+      <div class="value"><span id="moist">--</span>%</div>
+      <div class="sub">Soil sensor</div>
+      <div class="tap-hint">Tap →</div>
+    </div>
+    <div class="tile big tile-orange tappable" id="temp-tile" onclick="openChart('temperature')">
+      <div class="label">🌡️ Soil</div>
+      <div class="value"><span id="temp">--</span>°</div>
+      <div class="sub" id="temp-sub">Greenhouse</div>
+      <div class="tap-hint">Tap →</div>
+    </div>
+    <div class="tile big tile-yellow tappable" id="solar-tile" onclick="openChart('solar')">
+      <div class="label">☀️ Sun</div>
+      <div class="value"><span id="solar-pct">--</span>%</div>
+      <div class="sub" id="solar-sub">Roof proxy</div>
+      <div class="tap-hint">Tap →</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="item"><div class="label">Last watered</div><div class="v" id="last">—</div></div>
+    <div class="item"><div class="label">Valve</div><div class="v" id="valve">—</div></div>
+    <div class="item"><div class="label">Battery</div><div class="v" id="bat">—</div></div>
+  </div>
+
+  <div class="btns">
+    <button class="btn start" id="btn-start" onclick="confirmStart()">💧 Start drip 5 min</button>
+    <button class="btn stop disabled" id="btn-stop" onclick="doStop()">🛑 Stop watering</button>
+  </div>
+
+  <!-- Live camera card (tap = live stream) -->
+  <div class="cam-card" id="cam-card" onclick="openCamModal()" style="display:none">
+    <img id="cam-img" class="cam-img" alt="Garden camera">
+    <div class="cam-meta">
+      <div><span class="live-dot"></span>Garden camera — tap for live</div>
+      <div class="age" id="cam-age">just now</div>
+    </div>
+  </div>
+
+  <!-- Current conditions card (tap for full forecast) -->
+  <div class="now-card" id="now-card" onclick="openWxModal()">
+    <div class="lbl">Right now — outdoor</div>
+    <div class="row2">
+      <div>
+        <div class="big"><span id="now-temp">--</span>°C</div>
+        <div class="meta">
+          <span id="now-cond-text">—</span>
+          <span id="now-humidity"></span>
+          <span id="now-rain" class="rain-off">No rain detected</span>
+        </div>
+      </div>
+      <div class="ico" id="now-ico">⋯</div>
+    </div>
+  </div>
+
+  <div class="forecast" id="forecast"></div>
+
+  <!-- Hydrawise zones -->
+  <div class="zones" id="zones-block">
+    <div class="head">Hydrawise zones</div>
+    <div id="zones-list"></div>
+  </div>
+
+  <!-- Weather full-forecast modal -->
+  <div class="modal" id="wx-modal">
+    <div class="top">
+      <h2>7-day forecast</h2>
+      <button class="close" onclick="closeWxModal()">×</button>
+    </div>
+    <div class="body" id="wx-modal-body">
+      <div class="stream-msg"><div class="spinner"></div>Loading forecast…</div>
+    </div>
+  </div>
+
+  <!-- Camera live-stream modal -->
+  <div class="modal" id="cam-modal">
+    <div class="top">
+      <h2>Live garden</h2>
+      <button class="close" onclick="closeCamModal()">×</button>
+    </div>
+    <div class="body">
+      <div class="stream-box" id="stream-box">
+        <div class="stream-msg"><div class="spinner"></div>Starting live stream…</div>
+      </div>
+      <div class="cam-meta" style="padding:0 4px">
+        <span id="stream-status">Connecting…</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="h24" id="h24" style="display:none">
+    <div class="head"><div class="ttl">📈 Last 24 hours</div><div class="sub" id="h24-count"></div></div>
+    <svg class="spark" id="spark-combo" viewBox="0 0 100 80" preserveAspectRatio="none"></svg>
+    <div class="spark-legend">
+      <span class="lg"><span class="dot bar"></span>Moisture %</span>
+      <span id="spark-range"></span>
+      <span class="lg"><span class="dot line"></span>Soil temp °C</span>
+    </div>
+    <div class="line"><span class="lab">Moisture</span><span class="val" id="h24-moist">—</span></div>
+    <div class="line"><span class="lab">Temp</span><span class="val" id="h24-temp">—</span></div>
+    <div class="line"><span class="lab">Watered</span><span class="val" id="h24-water">—</span></div>
+    <div class="line"><span class="lab">Rain</span><span class="val" id="h24-rain">—</span></div>
+  </div>
+
+  <div class="footer small">Pull down to refresh • <span id="updated">--</span></div>
+</div>
+
+<!-- ===== zoom modal ===== -->
+<div class="modal-bg" id="modal-bg" onclick="if(event.target.id==='modal-bg')closeChart()">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="grab"></div>
+    <div class="top">
+      <div class="ttl" id="m-title">Moisture</div>
+      <button class="x" onclick="closeChart()">×</button>
+    </div>
+    <div class="sub" id="m-sub">Last 48 hours</div>
+    <div class="pills">
+      <button data-h="24" onclick="setRange(24)">24h</button>
+      <button data-h="48" class="on" onclick="setRange(48)">48h</button>
+      <button data-h="168" onclick="setRange(168)">7d</button>
+    </div>
+    <div class="chart-wrap">
+      <svg id="big-chart" viewBox="0 0 400 240" preserveAspectRatio="none"></svg>
+      <div class="crosshair-readout" id="xh-readout"></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="lab">Min</div><div class="val" id="m-min">—</div></div>
+      <div class="stat"><div class="lab">Max</div><div class="val" id="m-max">—</div></div>
+      <div class="stat"><div class="lab">Now</div><div class="val" id="m-now">—</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const ICONS = {
+    "sunny":"☀️","clear-night":"🌙","partlycloudy":"⛅","cloudy":"☁️","fog":"🌫️",
+    "rainy":"🌧️","pouring":"🌧️","snowy":"❄️","snowy-rainy":"🌨️","lightning":"⛈️",
+    "lightning-rainy":"⛈️","windy":"💨","windy-variant":"💨","exceptional":"⚠️",
+  };
+  // ===== weather backdrop =====
+  function renderWx(cond, daypart){
+    const wx = $("wx"); wx.innerHTML = "";
+    const isNight = daypart === "night";
+    const drops = (cond === "rainy" || cond === "pouring" || cond === "lightning-rainy" || cond === "snowy-rainy") ? (cond === "pouring" ? 60 : 40) : 0;
+    const flakes = (cond === "snowy" || cond === "snowy-rainy") ? 55 : 0;
+    const showSun = (cond === "sunny" && !isNight);
+    const showMoon = (cond === "clear-night" || (cond === "sunny" && isNight));
+    const showClouds = ["partlycloudy","cloudy","rainy","pouring","snowy","snowy-rainy","lightning","lightning-rainy","windy"].includes(cond);
+    const showLightning = (cond === "lightning" || cond === "lightning-rainy");
+    const showFog = (cond === "fog");
+    let svg = '<svg viewBox="0 0 100 200" preserveAspectRatio="xMidYMid slice">';
+    if(showSun){
+      // bright disc + halo + 8 rays
+      svg += '<defs><radialGradient id="sg-halo" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffd27a" stop-opacity=".9"/><stop offset="40%" stop-color="#ffb347" stop-opacity=".4"/><stop offset="100%" stop-color="#ff8c1a" stop-opacity="0"/></radialGradient><radialGradient id="sg-disc" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffe9b0"/><stop offset="70%" stop-color="#ffc26b"/><stop offset="100%" stop-color="#ff8c1a"/></radialGradient></defs>';
+      let raysSvg = '';
+      for(let r=0;r<8;r++){
+        const a = (r*45) * Math.PI/180;
+        const x1 = 70 + Math.cos(a)*16, y1 = 22 + Math.sin(a)*16;
+        const x2 = 70 + Math.cos(a)*30, y2 = 22 + Math.sin(a)*30;
+        raysSvg += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#ffd27a" stroke-width=".8" stroke-linecap="round" opacity=".55"/>`;
+      }
+      svg += `<g class="sun"><circle cx="70" cy="22" r="42" fill="url(#sg-halo)"/>${raysSvg}<circle cx="70" cy="22" r="11" fill="url(#sg-disc)"/></g>`;
+    }
+    if(showMoon){
+      svg += '<defs><radialGradient id="mg-halo" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#cfd9f2" stop-opacity=".75"/><stop offset="100%" stop-color="#cfd9f2" stop-opacity="0"/></radialGradient><radialGradient id="mg-disc" cx="40%" cy="40%" r="60%"><stop offset="0%" stop-color="#f4f6ff"/><stop offset="100%" stop-color="#aab8d8"/></radialGradient></defs>';
+      svg += '<g class="moon"><circle cx="72" cy="24" r="34" fill="url(#mg-halo)"/><circle cx="72" cy="24" r="8" fill="url(#mg-disc)"/><circle cx="75" cy="22" r="6.5" fill="#0e1426" opacity=".55"/></g>';
+      // stars (denser, brighter)
+      for(let i=0;i<55;i++){
+        const cx=Math.random()*100, cy=Math.random()*80;
+        const r=(Math.random()*0.7+0.25).toFixed(2);
+        svg += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r}" fill="#ffffff" opacity="${(Math.random()*0.6+0.4).toFixed(2)}"/>`;
+      }
+    }
+    if(showClouds){
+      // 3 cloud groups, bigger and softer-edged
+      svg += '<g class="cloudA"><ellipse cx="22" cy="24" rx="16" ry="7" fill="#e5ebf3"/><ellipse cx="36" cy="22" rx="22" ry="9" fill="#e5ebf3"/><ellipse cx="52" cy="24" rx="14" ry="7" fill="#e5ebf3"/></g>';
+      svg += '<g class="cloudB"><ellipse cx="55" cy="55" rx="20" ry="8" fill="#cfd6e0"/><ellipse cx="75" cy="52" rx="24" ry="9" fill="#cfd6e0"/><ellipse cx="95" cy="56" rx="16" ry="7" fill="#cfd6e0"/></g>';
+      svg += '<g class="cloudA" style="animation-duration:130s;opacity:.22"><ellipse cx="15" cy="75" rx="18" ry="6" fill="#aab4c2"/><ellipse cx="32" cy="73" rx="22" ry="7" fill="#aab4c2"/></g>';
+    }
+    // rain drops — longer streaks, more visible
+    for(let i=0;i<drops;i++){
+      const x = (Math.random()*100).toFixed(1);
+      const dur = (0.5 + Math.random()*0.7).toFixed(2);
+      const delay = (Math.random()*-2).toFixed(2);
+      const op = (0.55 + Math.random()*0.4).toFixed(2);
+      svg += `<line class="drop" x1="${x}" y1="0" x2="${x}" y2="10" stroke="#a8d8ff" stroke-width=".5" stroke-linecap="round" opacity="${op}" style="animation-duration:${dur}s;animation-delay:${delay}s"/>`;
+    }
+    // snowflakes — bigger, brighter
+    for(let i=0;i<flakes;i++){
+      const x = (Math.random()*100).toFixed(1);
+      const dur = (5 + Math.random()*5).toFixed(2);
+      const delay = (Math.random()*-5).toFixed(2);
+      const dx = (-6 + Math.random()*12).toFixed(1);
+      const r = (0.5 + Math.random()*0.6).toFixed(2);
+      svg += `<circle class="flake" cx="${x}" cy="0" r="${r}" fill="#ffffff" style="--dx:${dx}px;animation-duration:${dur}s;animation-delay:${delay}s"/>`;
+    }
+    if(showFog){
+      for(let i=0;i<5;i++){
+        const y = 25 + i*22;
+        svg += `<g class="fog"><rect x="-10" y="${y}" width="120" height="6" fill="#cfd6e0" opacity=".15" style="animation-delay:${(-i*1.6).toFixed(2)}s"/></g>`;
+      }
+    }
+    svg += '</svg>';
+    if(showLightning){
+      wx.innerHTML = svg + '<div class="flash"></div>';
+    } else {
+      wx.innerHTML = svg;
+    }
+  }
+  function applyBackdrop(d){
+    const cond = (d.weather_now && d.weather_now.condition) || "partlycloudy";
+    const daypart = d.sun_above ? "day" : "night";
+    document.body.dataset.cond = cond;
+    document.body.dataset.daypart = daypart;
+    renderWx(cond, daypart);
+  }
+  // dayLabel removed — server now provides timezone-safe weekday in forecast.weekday
+  async function load(){
+    try{
+      const r = await fetch("/garden/api/state",{credentials:"same-origin"});
+      if(r.status===401){ location.href="/garden/pin"; return; }
+      const d = await r.json();
+      $("moist").textContent = d.moisture.toFixed(1);
+      $("temp").textContent  = d.temperature.toFixed(1);
+      $("bat").textContent   = d.battery + "%";
+      $("valve").textContent = d.valve === "open" ? "Open" : (d.valve === "closed" ? "Closed" : d.valve);
+
+      const pill = $("status");
+      pill.textContent = d.status_text;
+      pill.className = "pill " + d.status_kind;
+
+      // Freeze warning
+      if(d.freeze_alert){
+        $("freeze").style.display = "flex";
+        $("freeze-temp").textContent = d.temperature.toFixed(1);
+        $("temp-tile").className = "tile big tile-orange freeze";
+        $("temp-sub").textContent = "⚠️ Below " + d.freeze_threshold + "°C";
+      }else{
+        $("freeze").style.display = "none";
+        $("temp-tile").className = d.temperature < 10 ? "tile big tile-orange cold" : "tile big tile-orange";
+        $("temp-sub").textContent = "Greenhouse";
+      }
+
+      // Solar exposure tile
+      const solarPct = (d.solar_pct != null) ? d.solar_pct : 0;
+      $("solar-pct").textContent = solarPct;
+      const bandMap = {
+        "full":    {label:"Full sun",  cls:""},
+        "partial": {label:"Partial",   cls:""},
+        "dim":     {label:"Dim",       cls:"dim"},
+        "shaded":  {label:"Shaded",    cls:"dim"},
+        "night":   {label:"Night",     cls:"night"}
+      };
+      const band = bandMap[d.solar_band] || bandMap.partial;
+      const kwh = d.solar_kwh_today != null ? d.solar_kwh_today : 0;
+      $("solar-sub").textContent = `${band.label} • ${kwh.toFixed(1)}kWh`;
+      $("solar-tile").className = "tile big tile-yellow tappable" + (band.cls ? " "+band.cls : "");
+
+      // Last watered (now uses combined valve + binary_sensor signals)
+      $("last").textContent = d.last_watered_age || "never";
+
+      // Current conditions card
+      const wn = d.weather_now || {};
+      $("now-temp").textContent = wn.temperature != null ? Number(wn.temperature).toFixed(1) : "--";
+      $("now-ico").textContent = ICONS[wn.condition] || "⋯";
+      $("now-cond-text").textContent = (wn.condition || "—").replace(/-/g," ");
+      $("now-humidity").textContent = wn.humidity != null ? `💧 ${wn.humidity}%` : "";
+      const rainEl = $("now-rain");
+      if(d.rain_outdoor_now){
+        rainEl.textContent = "☔ Rain detected";
+        rainEl.className = "rain-on";
+      }else{
+        rainEl.textContent = "No rain detected";
+        rainEl.className = "rain-off";
+      }
+
+      // Buttons
+      $("btn-start").classList.toggle("disabled", d.is_watering);
+      $("btn-stop").classList.toggle("disabled", !d.is_watering);
+
+      // Apply weather backdrop
+      applyBackdrop(d);
+
+      // Forecast — skip today (shown in current conditions card above), show next 3 days
+      const fc = $("forecast"); fc.innerHTML = "";
+      const todayStr = d.today_local || new Date().toLocaleDateString("en-CA");  // server-side, Toronto
+      const future = (d.forecast || []).filter(f => f.date > todayStr).slice(0,3);
+      future.forEach((f) => {
+        const ico = ICONS[f.cond] || "•";
+        const lbl = f.weekday || "";  // server-side, timezone-safe
+        const rain = (f.precip_prob != null) ? `${f.precip_prob}%` : (f.precip ? `${f.precip}mm` : "");
+        fc.insertAdjacentHTML("beforeend",
+          `<div class="fc"><div class="day">${lbl}</div><div class="ico">${ico}</div>
+           <div class="hilo">${f.high ?? "?"}° / ${f.low ?? "?"}°</div>
+           <div class="rain">${rain ? "☔ "+rain : ""}</div></div>`);
+      });
+
+      // Hydrawise zones
+      const zl = $("zones-list"); zl.innerHTML = "";
+      (d.zones || []).forEach(z => {
+        let st, stCls;
+        if(z.watering){ st = "watering now"; stCls = "watering"; }
+        else if(z.schedule === "suspended"){ st = "suspended"; stCls = "suspended"; }
+        else if(z.schedule_when){ st = "next: " + z.schedule_when; stCls = "scheduled"; }
+        else{ st = "scheduled"; stCls = "scheduled"; }
+        const veg = z.is_veg ? " veg" : "";
+        zl.insertAdjacentHTML("beforeend",
+          `<div class="zone${veg}"><span class="nm"><span class="dot ${stCls}"></span>${z.name}${z.is_veg ? " ✨" : ""}</span><span class="st ${stCls}">${st}</span></div>`);
+      });
+
+      const t = new Date();
+      $("updated").textContent = "updated " + t.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+    }catch(e){
+      console.error(e);
+      $("status").textContent = "Connection issue";
+    }
+  }
+  async function doStart(){
+    $("btn-start").classList.add("disabled");
+    await fetch("/garden/api/start",{method:"POST",credentials:"same-origin"});
+    setTimeout(load, 800);
+  }
+  async function doStop(){
+    $("btn-stop").classList.add("disabled");
+    await fetch("/garden/api/stop",{method:"POST",credentials:"same-origin"});
+    setTimeout(load, 800);
+  }
+  function confirmStart(){
+    if(confirm("Start watering veg garden for 5 minutes?")) doStart();
+  }
+  function drawCombo(svgEl, moistPts, tempPts){
+    const w=100, h=80, padX=2, padTop=8, padBot=10;
+    const plotH=h-padTop-padBot;
+    let html="";
+    // X-axis baseline
+    html += '<line x1="'+padX+'" y1="'+(h-padBot)+'" x2="'+(w-padX)+'" y2="'+(h-padBot)+'" stroke="rgba(255,255,255,.08)" stroke-width=".5"/>';
+    // Time tick labels (24h ago, 12h, now)
+    html += '<text x="'+padX+'" y="'+(h-1)+'" font-size="5" fill="#5e6a78">-24h</text>';
+    html += '<text x="'+(w/2)+'" y="'+(h-1)+'" font-size="5" fill="#5e6a78" text-anchor="middle">-12h</text>';
+    html += '<text x="'+(w-padX)+'" y="'+(h-1)+'" font-size="5" fill="#5e6a78" text-anchor="end">now</text>';
+
+    // Moisture as bars (auto-scale, but force min span of 5% so flat looks flat)
+    if(moistPts && moistPts.length){
+      let lo=Math.min(...moistPts), hi=Math.max(...moistPts);
+      if(hi-lo < 5){ const c=(hi+lo)/2; lo=c-2.5; hi=c+2.5; }
+      const span=hi-lo;
+      const n=moistPts.length;
+      const barW=Math.max(1,(w-padX*2)/n - 0.4);
+      moistPts.forEach((v,i)=>{
+        const x=padX+i*((w-padX*2)/n);
+        const y=padTop+plotH-((v-lo)/span)*plotH;
+        const bh=(h-padBot)-y;
+        html += '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+Math.max(1,bh).toFixed(1)+'" fill="rgba(128,200,255,.55)" rx="0.5"/>';
+      });
+      // Y-axis labels for moisture (left)
+      html += '<text x="'+padX+'" y="'+(padTop+3)+'" font-size="5" fill="#80c8ff">'+hi.toFixed(0)+'%</text>';
+      html += '<text x="'+padX+'" y="'+(h-padBot-1)+'" font-size="5" fill="#80c8ff">'+lo.toFixed(0)+'%</text>';
+      $("spark-range").textContent = lo.toFixed(0)+"–"+hi.toFixed(0)+"% • "+moistPts.length+" pts";
+    }
+
+    // Temperature as line (separate auto-scale, force min span of 4°)
+    if(tempPts && tempPts.length>=2){
+      let lo=Math.min(...tempPts), hi=Math.max(...tempPts);
+      if(hi-lo < 4){ const c=(hi+lo)/2; lo=c-2; hi=c+2; }
+      const span=hi-lo;
+      const step=(w-padX*2)/(tempPts.length-1);
+      const pts=tempPts.map((v,i)=>{
+        const x=padX+i*step;
+        const y=padTop+plotH-((v-lo)/span)*plotH;
+        return x.toFixed(1)+","+y.toFixed(1);
+      }).join(" ");
+      html += '<polyline fill="none" stroke="#ffb96b" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" points="'+pts+'"/>';
+      // Y-axis labels for temp (right)
+      html += '<text x="'+(w-padX)+'" y="'+(padTop+3)+'" font-size="5" fill="#ffb96b" text-anchor="end">'+hi.toFixed(0)+'°</text>';
+      html += '<text x="'+(w-padX)+'" y="'+(h-padBot-1)+'" font-size="5" fill="#ffb96b" text-anchor="end">'+lo.toFixed(0)+'°</text>';
+    }
+    svgEl.innerHTML = html;
+  }
+  async function loadHistory(){
+    try{
+      const r = await fetch("/garden/api/history",{credentials:"same-origin"});
+      if(!r.ok) return;
+      const h = await r.json();
+      const m=h.moisture, t=h.temperature, w=h.watering;
+      $("h24").style.display="block";
+      $("h24-count").textContent = (m.count||0)+" readings";
+      const arrow = tr => tr==="up"?"↑":tr==="down"?"↓":"→";
+      if(m.first!=null){
+        $("h24-moist").innerHTML = m.first+"% → "+m.last+"% <span class=\"arrow\">"+arrow(m.trend)+"</span>";
+        $("h24-moist").className = "val "+m.trend;
+      }
+      if(t.min!=null){
+        $("h24-temp").textContent = t.min+"° → "+t.max+"°";
+      }
+      if(w.total_minutes>0){
+        $("h24-water").textContent = w.total_minutes.toFixed(0)+" min ( "+w.events+" event"+(w.events===1?"":"s")+" )";
+      }else{
+        $("h24-water").textContent = "none";
+      }
+      // Rain in 24h: report current + age-of-last
+      let rainText;
+      if(h.rain_now){ rainText = "☔ raining now"; }
+      else if(h.rain_last_24h){ rainText = `last detected ${h.rain_last_age}`; }
+      else{ rainText = "none in 24h"; }
+      $("h24-rain").textContent = rainText;
+      drawCombo($("spark-combo"), m.points, t.points);
+    }catch(e){ console.error("history", e); }
+  }
+  // ===== zoom modal =====
+  let _modalMetric = null; // "moisture" | "temperature"
+  let _modalHours = 48;
+  let _modalData = null;
+  function openChart(metric){
+    _modalMetric = metric;
+    _modalHours = 48;
+    document.querySelectorAll(".modal .pills button").forEach(b => b.classList.toggle("on", Number(b.dataset.h)===48));
+    $("m-title").textContent = metric === "moisture" ? "💧 Moisture"
+                              : metric === "temperature" ? "🌡️ Soil temperature"
+                              : "☀️ Solar exposure";
+    $("modal-bg").classList.add("show");
+    document.body.style.overflow = "hidden";
+    fetchModalData();
+  }
+  function closeChart(){
+    $("modal-bg").classList.remove("show");
+    document.body.style.overflow = "";
+    _modalMetric = null;
+  }
+  function setRange(h){
+    _modalHours = h;
+    document.querySelectorAll(".modal .pills button").forEach(b => b.classList.toggle("on", Number(b.dataset.h)===h));
+    fetchModalData();
+  }
+  async function fetchModalData(){
+    $("m-sub").textContent = "Loading…";
+    const r = await fetch(`/garden/api/history?hours=${_modalHours}`,{credentials:"same-origin"});
+    if(!r.ok){ $("m-sub").textContent = "Error loading"; return; }
+    _modalData = await r.json();
+    drawModal();
+  }
+  function drawModal(){
+    if(!_modalData || !_modalMetric) return;
+    const series = (_modalData[_modalMetric] && _modalData[_modalMetric].series) || [];
+    const m = _modalData[_modalMetric] || {};
+    const unit = _modalMetric === "moisture" ? "%"
+               : _modalMetric === "temperature" ? "°"
+               : "W";
+    $("m-min").textContent = m.min != null ? m.min + unit : "—";
+    $("m-max").textContent = m.max != null ? m.max + unit : "—";
+    $("m-now").textContent = m.last != null ? m.last + unit : "—";
+    const label = _modalHours === 24 ? "Last 24 hours" : _modalHours === 48 ? "Last 48 hours" : "Last 7 days";
+    $("m-sub").textContent = `${label} • ${m.count || 0} readings`;
+    drawBigChart(series, _modalMetric);
+  }
+  function drawBigChart(series, metric){
+    const svg = $("big-chart");
+    const w=400, h=240, padL=34, padR=14, padT=14, padB=28;
+    const plotW=w-padL-padR, plotH=h-padT-padB;
+    if(!series || series.length < 2){ svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#5e6a78" font-size="13">Not enough data</text>'; return; }
+    const tMin = series[0][0], tMax = series[series.length-1][0];
+    const tSpan = Math.max(1, tMax - tMin);
+    let lo = Math.min(...series.map(p=>p[1])), hi = Math.max(...series.map(p=>p[1]));
+    const minSpan = metric === "moisture" ? 8 : metric === "temperature" ? 6 : 30;
+    if(hi-lo < minSpan){ const c=(hi+lo)/2; lo=c-minSpan/2; hi=c+minSpan/2; }
+    const span = hi-lo;
+    const X = t => padL + ((t - tMin)/tSpan) * plotW;
+    const Y = v => padT + plotH - ((v - lo)/span) * plotH;
+    const color = metric === "moisture" ? "#80c8ff"
+                : metric === "temperature" ? "#ffb96b"
+                : "#ffe16b";
+    const fillC = metric === "moisture" ? "rgba(128,200,255,.18)"
+                : metric === "temperature" ? "rgba(255,185,107,.16)"
+                : "rgba(255,225,107,.16)";
+    let html = "";
+    // grid
+    for(let i=0;i<=4;i++){
+      const y = padT + (plotH * i/4);
+      const v = hi - (span * i/4);
+      html += `<line x1="${padL}" y1="${y}" x2="${w-padR}" y2="${y}" stroke="rgba(255,255,255,.05)" stroke-width=".5"/>`;
+      const yUnit = metric==="moisture"?"%":metric==="temperature"?"°":"W";
+      html += `<text x="${padL-4}" y="${y+3}" font-size="9" fill="#5e6a78" text-anchor="end">${v.toFixed(0)}${yUnit}</text>`;
+    }
+    // x-axis time labels
+    const t0 = new Date(tMin), tn = new Date(tMax);
+    const fmt = (d) => {
+      if(_modalHours >= 168) return d.toLocaleDateString([], {month:"short", day:"numeric"});
+      if(_modalHours >= 48)  return d.toLocaleDateString([], {weekday:"short"}) + " " + d.toLocaleTimeString([], {hour:"numeric"});
+      return d.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+    };
+    html += `<text x="${padL}" y="${h-8}" font-size="9" fill="#8a96a3">${fmt(t0)}</text>`;
+    html += `<text x="${w-padR}" y="${h-8}" font-size="9" fill="#8a96a3" text-anchor="end">${fmt(tn)}</text>`;
+    if(_modalHours >= 48){
+      const tMid = new Date((tMin+tMax)/2);
+      html += `<text x="${(padL+w-padR)/2}" y="${h-8}" font-size="9" fill="#8a96a3" text-anchor="middle">${fmt(tMid)}</text>`;
+    }
+    // area + line
+    let path = `M ${X(series[0][0]).toFixed(1)},${Y(series[0][1]).toFixed(1)}`;
+    series.forEach(p => { path += ` L ${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`; });
+    const area = path + ` L ${X(tMax).toFixed(1)},${(padT+plotH).toFixed(1)} L ${X(tMin).toFixed(1)},${(padT+plotH).toFixed(1)} Z`;
+    html += `<path d="${area}" fill="${fillC}"/>`;
+    html += `<path d="${path}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`;
+    // crosshair group (hidden until hover)
+    html += `<g id="xh" style="display:none"><line id="xh-line" y1="${padT}" y2="${padT+plotH}" stroke="rgba(255,255,255,.5)" stroke-width=".7" stroke-dasharray="2 2"/><circle id="xh-dot" r="3" fill="${color}" stroke="#0b1117" stroke-width="1"/></g>`;
+    svg.innerHTML = html;
+    // crosshair handlers
+    const setCrosshair = (clientX) => {
+      const rect = svg.getBoundingClientRect();
+      const xVB = ((clientX - rect.left) / rect.width) * w;
+      if(xVB < padL || xVB > w-padR){ hideCrosshair(); return; }
+      // find nearest point
+      let nearest = series[0], bestD = Infinity;
+      series.forEach(p => { const px = X(p[0]); const d = Math.abs(px - xVB); if(d<bestD){bestD=d; nearest=p;} });
+      const px = X(nearest[0]), py = Y(nearest[1]);
+      const xh = document.getElementById("xh");
+      const line = document.getElementById("xh-line");
+      const dot = document.getElementById("xh-dot");
+      if(!xh) return;
+      xh.style.display = "block";
+      line.setAttribute("x1", px.toFixed(1));
+      line.setAttribute("x2", px.toFixed(1));
+      dot.setAttribute("cx", px.toFixed(1));
+      dot.setAttribute("cy", py.toFixed(1));
+      const tStr = new Date(nearest[0]).toLocaleString([], {weekday:"short", hour:"numeric", minute:"2-digit"});
+      const ro = $("xh-readout");
+      const xhUnit = metric==="moisture"?"%":metric==="temperature"?"°":"W";
+      ro.textContent = `${tStr} • ${nearest[1]}${xhUnit}`;
+      ro.classList.add("show");
+    };
+    const hideCrosshair = () => {
+      const xh = document.getElementById("xh");
+      if(xh) xh.style.display = "none";
+      $("xh-readout").classList.remove("show");
+    };
+    svg.onmousemove = e => setCrosshair(e.clientX);
+    svg.onmouseleave = hideCrosshair;
+    svg.ontouchstart = e => { e.preventDefault(); setCrosshair(e.touches[0].clientX); };
+    svg.ontouchmove = e => { e.preventDefault(); setCrosshair(e.touches[0].clientX); };
+    svg.ontouchend = hideCrosshair;
+  }
+  // close modal on back gesture
+  document.addEventListener("keydown", e => { if(e.key === "Escape") closeChart(); });
+
+  load();
+  loadHistory();
+  // ===== camera snapshot card =====
+  let camLastLoaded = 0;
+  function loadCamSnapshot(){
+    const card = $("cam-card");
+    const img = $("cam-img");
+    const age = $("cam-age");
+    if(!card || !img) return;
+    // Ask backend to force the camera to capture a fresh frame, THEN load it.
+    // refresh=1 makes the backend call eufy_security.generate_image and wait
+    // for the new JPEG. Without this, Eufy battery cams cache stale frames
+    // for hours between livestream sessions.
+    const t = Date.now();
+    const newSrc = "/garden/api/cam/snapshot?refresh=1&t=" + t;
+    // Pre-load into a hidden Image so the visible card never flickers to broken
+    const probe = new Image();
+    probe.onload = () => {
+      img.src = newSrc;
+      camLastLoaded = t;
+      card.style.display = "block";
+      age.textContent = "just now";
+    };
+    probe.onerror = () => {
+      // first attempt failed (e.g., generate_image timed out) — try cached frame
+      const fallback = "/garden/api/cam/snapshot?t=" + t;
+      const probe2 = new Image();
+      probe2.onload = () => {
+        img.src = fallback;
+        camLastLoaded = t;
+        card.style.display = "block";
+      };
+      probe2.onerror = () => { card.style.display = "none"; };
+      probe2.src = fallback;
+    };
+    probe.src = newSrc;
+  }
+  function tickCamAge(){
+    const age = $("cam-age");
+    if(!age || !camLastLoaded) return;
+    const s = Math.floor((Date.now() - camLastLoaded)/1000);
+    if(s < 60) age.textContent = s + "s ago";
+    else age.textContent = Math.floor(s/60) + "m ago";
+  }
+
+  // ===== camera live-stream modal =====
+  // Strategy: kick off snapshot fallback IMMEDIATELY so the user always sees
+  // moving frames within ~1 s. In parallel, ask the backend to start the RTSP
+  // livestream and probe go2rtc HLS. If HLS comes up cleanly, swap the <video>
+  // in; otherwise we keep the snapshot loop. This guarantees the modal never
+  // hangs on "Connecting…".
+  let snapFallbackTimer = null;
+  let _streamUpgraded = false;
+  function openCamModal(){
+    const m = $("cam-modal");
+    const status = $("stream-status");
+    m.classList.add("open");
+    _streamUpgraded = false;
+    status.textContent = "Loading live frames…";
+    // 1) Snapshot fallback starts now — user sees something fast
+    startSnapshotFallback();
+    // 2) In parallel, try to upgrade to HLS
+    fetch("/garden/api/cam/stream/start", {method:"POST"})
+      .then(r => r.json())
+      .then(d => {
+        if(_streamUpgraded) return;
+        if(d && d.url && d.type === "hls"){
+          // Probe the playlist before swapping in the video element
+          fetch(d.url, {credentials:"same-origin"}).then(r => {
+            if(r.ok && !_streamUpgraded){
+              const box = $("stream-box");
+              if(snapFallbackTimer){ clearInterval(snapFallbackTimer); snapFallbackTimer = null; }
+              box.innerHTML = '<video id="live-video" autoplay playsinline muted controls></video>';
+              const v = document.getElementById("live-video");
+              v.src = d.url;
+              v.play().catch(()=>{});
+              status.textContent = "Live · HLS";
+              _streamUpgraded = true;
+            } else {
+              status.textContent = "Live · snapshot mode";
+            }
+          }).catch(() => { status.textContent = "Live · snapshot mode"; });
+        } else {
+          status.textContent = "Live · snapshot mode";
+        }
+      })
+      .catch(() => { status.textContent = "Live · snapshot mode"; });
+  }
+  function startSnapshotFallback(){
+    const box = $("stream-box");
+    // Initial frame: ask backend to refresh once so we don't show stale image
+    box.innerHTML = '<img id="live-snap" alt="" src="/garden/api/cam/snapshot?refresh=1&t=' + Date.now() + '">';
+    if(snapFallbackTimer){ clearInterval(snapFallbackTimer); }
+    snapFallbackTimer = setInterval(() => {
+      const i = document.getElementById("live-snap");
+      if(i) i.src = "/garden/api/cam/snapshot?t=" + Date.now();
+    }, 1500);
+  }
+  function closeCamModal(){
+    const m = $("cam-modal");
+    m.classList.remove("open");
+    fetch("/garden/api/cam/stream/stop", {method:"POST"}).catch(()=>{});
+    if(snapFallbackTimer){ clearInterval(snapFallbackTimer); snapFallbackTimer = null; }
+    _streamUpgraded = false;
+    $("stream-box").innerHTML = '<div class="stream-msg"><div class="spinner"></div>Starting live stream…</div>';
+  }
+
+  // ===== weather full-forecast modal =====
+  const WX_ICONS = {
+    sunny:"☀\ufe0f", clear:"☀\ufe0f", "clear-night":"🌙",
+    partlycloudy:"⛅", cloudy:"☁\ufe0f", fog:"🌫\ufe0f",
+    rainy:"🌧\ufe0f", pouring:"🌦\ufe0f",
+    snowy:"🌨\ufe0f", "snowy-rainy":"🌨\ufe0f",
+    lightning:"⛈\ufe0f", "lightning-rainy":"⛈\ufe0f",
+    windy:"💨", hail:"🥶"
+  };
+  function wxIco(c){ return WX_ICONS[c] || "⛅"; }
+  function openWxModal(){
+    const m = $("wx-modal");
+    const body = $("wx-modal-body");
+    m.classList.add("open");
+    body.innerHTML = '<div class="stream-msg"><div class="spinner"></div>Loading forecast…</div>';
+    fetch("/garden/api/weather/full")
+      .then(r => r.json())
+      .then(d => {
+        if(d.error){ body.innerHTML = '<div class="stream-msg">'+d.error+'</div>'; return; }
+        const now = d.now || {};
+        const days = d.daily || [];
+        let html = '';
+        // Right-now hero
+        html += '<div class="wx-now"><div>';
+        html += '<div class="big">'+(now.temperature ?? "--")+'°C</div>';
+        html += '<div class="cond">'+(now.condition || "—")+'</div>';
+        html += '<div class="grid">';
+        if(now.humidity != null) html += '<div class="it"><div class="lab">Humidity</div><div class="vl">'+now.humidity+'%</div></div>';
+        if(now.wind_speed != null) html += '<div class="it"><div class="lab">Wind</div><div class="vl">'+now.wind_speed+' km/h</div></div>';
+        if(now.pressure != null) html += '<div class="it"><div class="lab">Pressure</div><div class="vl">'+now.pressure+' hPa</div></div>';
+        if(d.sunrise) html += '<div class="it"><div class="lab">Sunrise</div><div class="vl">'+d.sunrise+'</div></div>';
+        if(d.sunset) html += '<div class="it"><div class="lab">Sunset</div><div class="vl">'+d.sunset+'</div></div>';
+        html += '</div></div>';
+        html += '<div class="ico-big">'+wxIco(now.condition)+'</div></div>';
+        // 7-day forecast
+        days.forEach(day => {
+          html += '<div class="wx-day">';
+          html += '<div class="ico">'+wxIco(day.condition)+'</div>';
+          html += '<div><div class="nm">'+day.weekday+'</div><div class="desc">'+(day.condition || "—")+'</div></div>';
+          html += '<div><div class="hilo"><span class="hi">'+day.high+'°</span> / <span class="lo">'+day.low+'°</span></div>';
+          if(day.precipitation && day.precipitation > 0) html += '<div class="rain">'+day.precipitation+'mm</div>';
+          html += '</div></div>';
+        });
+        body.innerHTML = html;
+      })
+      .catch(e => { body.innerHTML = '<div class="stream-msg">Forecast error: '+e.message+'</div>'; });
+  }
+  function closeWxModal(){ $("wx-modal").classList.remove("open"); }
+
+  // Initial load + intervals
+  loadCamSnapshot();
+  setInterval(loadCamSnapshot, 30000);  // refresh snapshot every 30 s
+  setInterval(tickCamAge, 1000);         // tick age display
+
+  setInterval(load, 15000);
+  setInterval(loadHistory, 120000);
+  // Pull to refresh hint: refresh on visibility
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden) load(); });
+</script>
+</body>
+</html>

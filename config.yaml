@@ -1,0 +1,30 @@
+name: Masha's Garden PWA
+version: "1.0.10"
+slug: garden_pwa
+description: Public no-login PWA dashboard for Masha's garden (PIN gate, freeze alerts, drip control, live camera, full forecast).
+arch:
+  - amd64
+  - aarch64
+init: false
+hassio_api: true
+hassio_role: default
+homeassistant_api: true
+auth_api: false
+ports:
+  8090/tcp: 8090
+ports_description:
+  8090/tcp: Garden PWA HTTP
+options:
+  pin: "8899"
+  freeze_at: 1.0
+  cookie_secret: ""
+  ha_url: "http://homeassistant.local.hass.io:8123"
+  ha_token: ""
+schema:
+  pin: str
+  freeze_at: float
+  cookie_secret: str
+  ha_url: str
+  ha_token: str
+panel_icon: mdi:sprout
+url: https://ha.napa.solutions/garden
