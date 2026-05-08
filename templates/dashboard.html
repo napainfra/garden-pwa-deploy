@@ -69,15 +69,25 @@
   .cam-meta{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#8a96a3}
   .cam-meta .live-dot{width:6px;height:6px;border-radius:50%;background:#5fd17e;display:inline-block;margin-right:6px;box-shadow:0 0 6px #5fd17e}
   .cam-meta .age{color:#5e6a78}
-  /* ===== modal (camera live + weather full) ===== */
-  .modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.92);display:none;flex-direction:column;
-         padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);overflow-y:auto}
-  .modal.open{display:flex}
-  .modal .top{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;
-              background:rgba(11,17,23,.8);backdrop-filter:blur(14px);position:sticky;top:0;z-index:1}
-  .modal .top h2{font-size:18px;font-weight:600}
-  .modal .close{background:rgba(255,255,255,.08);border:0;color:#fff;width:36px;height:36px;border-radius:50%;
-                font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  /* ===== fullscreen modal (camera live + weather full) =====
+     IDs are used for higher specificity — a later .modal block exists for
+     the chart bottom-sheet and would otherwise clobber padding/background.
+     Dynamic Island fix: env(safe-area-inset-top) + 14px breathing room and
+     a 48×48 close hit-target (Apple HIG ≥ 44). */
+  #cam-modal,#wx-modal{position:fixed !important;inset:0 !important;z-index:100;background:rgba(0,0,0,.94) !important;
+         display:none !important;flex-direction:column !important;max-width:none !important;border:0 !important;
+         border-radius:0 !important;animation:none !important;
+         padding:calc(env(safe-area-inset-top) + 14px) 0 env(safe-area-inset-bottom) !important;
+         overflow-y:auto !important;max-height:none !important}
+  #cam-modal.open,#wx-modal.open{display:flex !important}
+  #cam-modal .top,#wx-modal .top{display:flex;justify-content:space-between;align-items:center;
+              padding:10px 14px 12px 18px;background:rgba(11,17,23,.8);backdrop-filter:blur(14px);
+              -webkit-backdrop-filter:blur(14px);position:sticky;top:0;z-index:1;min-height:56px;margin:0}
+  #cam-modal .top h2,#wx-modal .top h2{font-size:18px;font-weight:600;margin:0}
+  #cam-modal .close,#wx-modal .close{background:rgba(255,255,255,.14);border:0;color:#fff;width:48px;height:48px;
+                border-radius:50%;font-size:26px;line-height:1;cursor:pointer;display:flex;align-items:center;
+                justify-content:center;-webkit-tap-highlight-color:transparent;flex-shrink:0;margin-left:8px;padding:0}
+  #cam-modal .close:active,#wx-modal .close:active{background:rgba(255,255,255,.24);transform:scale(.94)}
   .modal .body{flex:1;padding:0 18px 24px;display:flex;flex-direction:column;gap:14px}
   .modal .stream-box{width:100%;background:#000;border-radius:14px;overflow:hidden;min-height:240px;
                      display:flex;align-items:center;justify-content:center}
@@ -309,12 +319,15 @@
     <button class="btn stop disabled" id="btn-stop" onclick="doStop()">🛑 Stop watering</button>
   </div>
 
-  <!-- Live camera card (tap = live stream) -->
-  <div class="cam-card" id="cam-card" onclick="openCamModal()" style="display:none">
-    <img id="cam-img" class="cam-img" alt="Garden camera">
+  <!-- Live camera card (tap = live stream).
+       Visible immediately with a placeholder so the user always sees it,
+       even while the first snapshot is loading or the bridge is waking up. -->
+  <div class="cam-card" id="cam-card" onclick="openCamModal()">
+    <img id="cam-img" class="cam-img" alt="Garden camera"
+         src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'><rect width='16' height='9' fill='%23070b10'/></svg>">
     <div class="cam-meta">
       <div><span class="live-dot"></span>Garden camera — tap for live</div>
-      <div class="age" id="cam-age">just now</div>
+      <div class="age" id="cam-age">loading…</div>
     </div>
   </div>
 
@@ -825,39 +838,27 @@
   load();
   loadHistory();
   // ===== camera snapshot card =====
+  // Card is always visible; the image and age field update in place.
+  // On error we show "camera offline" rather than hiding — hiding made it
+  // impossible to tell whether the bug was the bridge or the rendering.
   let camLastLoaded = 0;
   function loadCamSnapshot(){
-    const card = $("cam-card");
     const img = $("cam-img");
     const age = $("cam-age");
-    if(!card || !img) return;
-    // Ask backend to force the camera to capture a fresh frame, THEN load it.
-    // refresh=1 makes the backend call eufy_security.generate_image and wait
-    // for the new JPEG. Without this, Eufy battery cams cache stale frames
-    // for hours between livestream sessions.
+    if(!img) return;
     const t = Date.now();
-    const newSrc = "/garden/api/cam/snapshot?refresh=1&t=" + t;
-    // Pre-load into a hidden Image so the visible card never flickers to broken
+    const fresh = "/garden/api/cam/snapshot?refresh=1&t=" + t;
     const probe = new Image();
-    probe.onload = () => {
-      img.src = newSrc;
-      camLastLoaded = t;
-      card.style.display = "block";
-      age.textContent = "just now";
-    };
+    probe.onload = () => { img.src = fresh; camLastLoaded = t; age.textContent = "just now"; };
     probe.onerror = () => {
-      // first attempt failed (e.g., generate_image timed out) — try cached frame
-      const fallback = "/garden/api/cam/snapshot?t=" + t;
+      // try cached frame (no refresh)
+      const cached = "/garden/api/cam/snapshot?t=" + t;
       const probe2 = new Image();
-      probe2.onload = () => {
-        img.src = fallback;
-        camLastLoaded = t;
-        card.style.display = "block";
-      };
-      probe2.onerror = () => { card.style.display = "none"; };
-      probe2.src = fallback;
+      probe2.onload  = () => { img.src = cached; camLastLoaded = t; age.textContent = "cached"; };
+      probe2.onerror = () => { age.textContent = "camera waking…"; };
+      probe2.src = cached;
     };
-    probe.src = newSrc;
+    probe.src = fresh;
   }
   function tickCamAge(){
     const age = $("cam-age");

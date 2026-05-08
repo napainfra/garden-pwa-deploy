@@ -573,7 +573,8 @@ def _ws_camera_stream_url(entity_id: str, timeout: float = 8.0):
     """Ask HA for an HLS URL for entity_id. Returns path or None."""
     if websocket is None:
         return None
-    ws_url = HA_URL.replace("http://", "ws://").replace("https://", "wss://") + "/websocket"
+    # HA WebSocket lives at /api/websocket — NOT /websocket
+    ws_url = HA_URL.replace("http://", "ws://").replace("https://", "wss://") + "/api/websocket"
     try:
         ws = websocket.create_connection(ws_url, timeout=timeout,
                                          sslopt={"cert_reqs": ssl.CERT_NONE})
@@ -582,6 +583,7 @@ def _ws_camera_stream_url(entity_id: str, timeout: float = 8.0):
         auth = json.loads(ws.recv())
         if auth.get("type") != "auth_ok":
             ws.close()
+            print(f"[cam] ws auth failed: {auth}", flush=True)
             return None
         ws.send(json.dumps({"id": 1, "type": "camera/stream",
                             "entity_id": entity_id, "format": "hls"}))
@@ -589,8 +591,9 @@ def _ws_camera_stream_url(entity_id: str, timeout: float = 8.0):
         ws.close()
         if r.get("success") and r.get("result", {}).get("url"):
             return r["result"]["url"]
-    except Exception:
-        pass
+        print(f"[cam] ws camera/stream resp: {r}", flush=True)
+    except Exception as e:
+        print(f"[cam] ws error ({ws_url}): {e}", flush=True)
     return None
 
 def _ha_get_bytes(path: str, timeout: int = 10):
@@ -620,8 +623,8 @@ def _ensure_streaming(force_p2p: bool = False) -> bool:
             try:
                 call_service("eufy_security", "start_p2p_livestream",
                              {"entity_id": E_CAMERA})
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"[cam] start_p2p_livestream failed: {e}", flush=True)
             # Battery cams need 3–10 s to wake. Poll briefly.
             for _ in range(8):
                 time.sleep(1.0)
@@ -645,15 +648,31 @@ def _ensure_streaming(force_p2p: bool = False) -> bool:
         return False
 
 def _grab_snapshot_jpeg(timeout: float = 12.0):
-    """Grab a single JPEG frame from the live HLS stream via ffmpeg.
-    Returns bytes or None."""
-    if not _ensure_streaming():
-        return None
-    hls_path = _CAM_STATE["hls_path"]
+    """Get a JPEG frame for camera.veg_garden.
+
+    Strategy (in order):
+      1. /api/camera_proxy/<entity_id>  -- HA's built-in JPEG endpoint.
+         For an Eufy camera in state=streaming this returns a fresh frame
+         from the live HLS stream. Cheap, no ffmpeg, no WS.
+      2. If that fails AND we have an HLS path cached, fall back to ffmpeg
+         grabbing one frame off the playlist.
+    Returns bytes or None.
+    """
+    # Make sure the camera is awake
+    _ensure_streaming()
+
+    # Path 1: camera_proxy
+    proxy_path = f"/api/camera_proxy/{E_CAMERA}"
+    status, body, ctype = _ha_get_bytes(proxy_path, timeout=int(timeout))
+    if status == 200 and body and ("image" in ctype or body[:3] == b"\xff\xd8\xff"):
+        return body
+    print(f"[cam] camera_proxy status={status} ctype={ctype} len={len(body)}", flush=True)
+
+    # Path 2: ffmpeg off HLS playlist
+    hls_path = _CAM_STATE.get("hls_path")
     if not hls_path:
         return None
     full = f"{HA_URL}{hls_path}" if hls_path.startswith("/api") else f"{HA_URL}/api{hls_path}"
-    # ffmpeg can read HLS over HTTPS; pass Bearer via headers option
     cmd = [
         "ffmpeg", "-y",
         "-headers", f"Authorization: Bearer {HA_TOKEN}\r\n",
@@ -668,8 +687,9 @@ def _grab_snapshot_jpeg(timeout: float = 12.0):
         proc = subprocess.run(cmd, capture_output=True, timeout=timeout)
         if proc.returncode == 0 and proc.stdout:
             return proc.stdout
-    except Exception:
-        pass
+        print(f"[cam] ffmpeg rc={proc.returncode} stderr={proc.stderr[-300:]!r}", flush=True)
+    except Exception as e:
+        print(f"[cam] ffmpeg error: {e}", flush=True)
     return None
 
 @app.get("/api/cam/snapshot")

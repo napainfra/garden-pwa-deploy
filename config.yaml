@@ -1,5 +1,5 @@
 name: Masha's Garden PWA
-version: "1.0.10"
+version: "1.0.11"
 slug: garden_pwa
 description: Public no-login PWA dashboard for Masha's garden (PIN gate, freeze alerts, drip control, live camera, full forecast).
 arch:
