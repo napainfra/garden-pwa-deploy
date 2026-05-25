@@ -63,6 +63,42 @@ E_SUN    = "sun.sun"
 E_SOLAR_PANEL = "sensor.inverter_202228046476"
 SOLAR_PANEL_PEAK_W = 366.0  # IQ7A nameplate, used as denominator for % full sun
 
+# ===== Ecowitt HP2564 (PRIMARY sensors — v1.3.0) =====
+# Verified entity names from _live_entities.json 2026-05-25
+
+# Ecowitt soil (PRIMARY)
+# CH1 = Tomato (WN34S with temp sensor), CH2 = Cucumber (plain WH51, no temp)
+E_SOIL_T_TOMATO   = "sensor.hp2564bu_pro_v2_1_1_soil_temperature_1"
+E_SOIL_M_TOMATO   = "sensor.hp2564bu_pro_v2_1_1_soil_moisture_1"
+E_SOIL_B_TOMATO   = "sensor.hp2564bu_pro_v2_1_1_soil_battery_1"
+E_SOIL_M_CUCUMBER = "sensor.hp2564bu_pro_v2_1_1_soil_moisture_2"
+E_SOIL_B_CUCUMBER = "sensor.hp2564bu_pro_v2_1_1_soil_battery_2"
+# Note: CH2 has no temperature sensor (plain WH51, not WN34S)
+
+# Ecowitt weather (PRIMARY)
+# wind_speed / wind_gust are in m/s from HA integration — multiply by 3.6 for km/h
+E_OUTDOOR_T  = "sensor.hp2564bu_pro_v2_1_1_outdoor_temperature"
+E_OUTDOOR_H  = "sensor.hp2564bu_pro_v2_1_1_humidity"
+E_WIND_SPEED = "sensor.hp2564bu_pro_v2_1_1_wind_speed"
+E_WIND_GUST  = "sensor.hp2564bu_pro_v2_1_1_wind_gust"
+E_WIND_DIR   = "sensor.hp2564bu_pro_v2_1_1_wind_direction"
+E_UV         = "sensor.hp2564bu_pro_v2_1_1_uv_index"
+E_LUX        = "sensor.hp2564bu_pro_v2_1_1_solar_lux"
+E_RADIATION  = "sensor.hp2564bu_pro_v2_1_1_solar_radiation"
+# Rain: WH40 tipping-bucket ONLY (piezo is mis-calibrated — ignore *_piezo entities)
+E_RAIN_DAILY   = "sensor.hp2564bu_pro_v2_1_1_daily_rain"
+E_RAIN_WEEKLY  = "sensor.hp2564bu_pro_v2_1_1_weekly_rain"
+E_RAIN_MONTHLY = "sensor.hp2564bu_pro_v2_1_1_monthly_rain"
+E_RAIN_RATE    = "sensor.hp2564bu_pro_v2_1_1_rain_rate"
+E_RAIN_24H     = "sensor.hp2564bu_pro_v2_1_1_24h_rain"
+
+# HP10 camera
+E_GARDEN_CAM = "camera.192_168_50_52"
+
+# Old Zigbee (deprecated, kept for back-compat in API only — sensor was pulled)
+E_MOIST_OLD = "sensor.veg_soil_moisture"
+E_TEMP_OLD  = "sensor.veg_soil_temperature"
+
 # Camera (Eufy via eufy-security-ws + go2rtc bridge)
 E_CAMERA   = "camera.veg_garden"
 # The veg-garden physical camera (T8114-Z) was added before the bridge
@@ -214,6 +250,41 @@ def api_state(request: Request):
     weather= get_state(E_WEATHER) or {}
     sun    = get_state(E_SUN) or {}
     panel  = get_state(E_SOLAR_PANEL) or {}
+
+    # --- v1.3.0: Ecowitt primary sensors ---
+    def _f(eid):
+        s = get_state(eid) or {}
+        try: return float(s.get("state"))
+        except (TypeError, ValueError): return None
+
+    e_soil_t1 = _f(E_SOIL_T_TOMATO)
+    e_soil_m1 = _f(E_SOIL_M_TOMATO)
+    e_soil_b1 = _f(E_SOIL_B_TOMATO)
+    e_soil_m2 = _f(E_SOIL_M_CUCUMBER)
+    e_soil_b2 = _f(E_SOIL_B_CUCUMBER)
+    e_out_t   = _f(E_OUTDOOR_T)
+    e_out_h   = _f(E_OUTDOOR_H)
+    e_wind_ms = _f(E_WIND_SPEED)
+    e_gust_ms = _f(E_WIND_GUST)
+    e_wind_dir= _f(E_WIND_DIR)
+    e_lux     = _f(E_LUX)
+    e_uv      = _f(E_UV)
+    e_rad     = _f(E_RADIATION)
+    e_rain_d  = _f(E_RAIN_DAILY)
+    e_rain_w  = _f(E_RAIN_WEEKLY)
+    e_rain_m  = _f(E_RAIN_MONTHLY)
+    e_rain_r  = _f(E_RAIN_RATE)
+    e_rain_24 = _f(E_RAIN_24H)
+
+    e_wind_kmh = round(e_wind_ms * 3.6, 1) if e_wind_ms is not None else None
+    e_gust_kmh = round(e_gust_ms * 3.6, 1) if e_gust_ms is not None else None
+    e_wind_compass = _deg_to_compass(e_wind_dir) if e_wind_dir is not None else None
+
+    greenhouse_on = (get_state("input_boolean.greenhouse_plastic_on") or {}).get("state") == "on"
+    wind_alert = bool(e_gust_kmh and e_gust_kmh > 25 and greenhouse_on)
+
+    crop_tom = (get_state("input_boolean.crop_tomatoes_planted") or {}).get("state") == "on"
+    crop_cuc = (get_state("input_boolean.crop_cucumbers_planted") or {}).get("state") == "on"
 
     # Last watered: use the LOGBOOK endpoint (more reliable than /history/period
     # which requires end_time and silently returns [] without it). Combine two signals:
@@ -367,7 +438,57 @@ def api_state(request: Request):
             "is_veg": valve_eid == E_VALVE,
         })
 
+    # v1.3.1: single soil temp probe sits between tomato + cucumber rows (~30cm from each),
+    # so we use CH1 temp for BOTH zones. Per-crop moisture bands research-backed:
+    # - Turkish heirloom tomatoes: drought-tolerant, prefer 45-65%, water <40%, too wet >75%
+    # - Ukrainian пупырчатые (Nezhinsky pickling cucumbers): thirsty, prefer 65-85%, water <60%
+    def _tomato_status(m):
+        if m is None: return (None, None, None)
+        if m < 40:  return ("water",     "Water now — too dry",      "Полить — слишком сухо")
+        if m < 45:  return ("low",       "Getting dry",              "Подсыхает")
+        if m <= 65: return ("ok",        "Ideal",                    "Идеально")
+        if m <= 75: return ("high",      "Damp — let it breathe",    "Влажновато — пусть подсохнет")
+        return ("wet",                   "Too wet — risk of rot",    "Слишком мокро — риск гнили")
+    def _cucumber_status(m):
+        if m is None: return (None, None, None)
+        if m < 60:  return ("water",     "Water now — cucumbers thirsty", "Полить — огурцам жажда")
+        if m < 65:  return ("low",       "Getting dry for cucumbers",     "Подсыхает для огурцов")
+        if m <= 85: return ("ok",        "Ideal for пупырчатые",          "Идеально для пупырчатых")
+        if m <= 92: return ("high",      "Very damp",                     "Очень влажно")
+        return ("wet",                   "Waterlogged",                   "Заболочено")
+    _tom_st = _tomato_status(e_soil_m1)
+    _cuc_st = _cucumber_status(e_soil_m2)
+
     return {
+        "version": "1.3.1",
+        "soil_zones": [
+            {"key":"tomato",   "name":"Tomato",  "name_ru":"Помидоры", "moisture": e_soil_m1, "temp_c": e_soil_t1, "battery_v": e_soil_b1, "planted": crop_tom,
+             "status": _tom_st[0], "status_msg": _tom_st[1], "status_msg_ru": _tom_st[2],
+             "ideal_min": 45, "ideal_max": 65, "variety": "Turkish heirloom"},
+            {"key":"cucumber", "name":"Cucumber","name_ru":"Огурцы",   "moisture": e_soil_m2, "temp_c": e_soil_t1, "battery_v": e_soil_b2, "planted": crop_cuc,
+             "status": _cuc_st[0], "status_msg": _cuc_st[1], "status_msg_ru": _cuc_st[2],
+             "ideal_min": 65, "ideal_max": 85, "variety": "Ukrainian пупырчатые"},
+        ],
+        "wind": {
+            "speed_kmh": e_wind_kmh,
+            "gust_kmh":  e_gust_kmh,
+            "direction": e_wind_compass,
+            "alert":     wind_alert,
+            "alert_msg":    "Gusty winds — check greenhouse plastic" if wind_alert else None,
+            "alert_msg_ru": "Сильный ветер — проверьте плёнку теплицы" if wind_alert else None,
+        },
+        "rain": {
+            "today_mm":   round(e_rain_d, 2) if e_rain_d is not None else None,
+            "week_mm":    round(e_rain_w, 2) if e_rain_w is not None else None,
+            "month_mm":   round(e_rain_m, 2) if e_rain_m is not None else None,
+            "rate_mm_h":  round(e_rain_r, 2) if e_rain_r is not None else None,
+            "last_24h_mm":round(e_rain_24,2) if e_rain_24 is not None else None,
+        },
+        "lux": int(e_lux) if e_lux is not None else None,
+        "uv_index": e_uv,
+        "solar_radiation_w_m2": e_rad,
+        "outdoor_temp_c": e_out_t,
+        "outdoor_humidity": e_out_h,
         "moisture": round(moist_v, 1),
         "temperature": round(temp_v, 1),
         "battery": int(float(bat.get("state") or 0)),
@@ -682,50 +803,25 @@ def _veg_rtsp_url():
     return RTSP_URL_DEFAULT
 
 def _grab_snapshot_jpeg(timeout: float = 8.0):
-    """Pull a fresh JPEG frame straight off the camera's LAN RTSP feed.
+    """Return latest motion-event JPEG from HA's image entity.
 
-    Why not HA?
-      - /api/camera_proxy returns 500 for this Eufy battery cam even when
-        state=streaming (verified live 2026-05-08).
-      - camera.snapshot service writes 0 bytes (same root cause).
-      - HLS playlist is fine for the live modal but slow for one-frame grabs.
+    Why not direct cam RTSP / HA HLS / camera_proxy?
+      - Direct RTSP rtsp://<cam_ip>/live3: cam refuses TCP. Verified 2026-05-08.
+      - HA /api/camera_proxy: returns 500 even while streaming. Eufy plugin bug.
+      - HA HLS via supervisor: ffmpeg times out. HLS infra unreliable for grabs.
+      - eufy_security.start_*_livestream: doesn't make snapshot endpoints work.
 
-    The Eufy cam itself runs an RTSP server on its LAN IP whenever
-    switch.backyard_rtsp_stream is on (it currently is). ffmpeg pulls
-    a single frame off that stream in well under a second from inside
-    the addon's network. No HA intermediary, no bridge wake-up dance.
+    Final answer (2026-05-08): use image.backyard_event_image. Updates whenever
+    motion is detected (Pavel walking by, the cat passing, garden activity).
+    Stale by minutes-to-hours, but the right tradeoff vs. a perpetually-broken
+    "live" snapshot. The card's tap action launches the Eufy iOS app for
+    actual live viewing.
     """
-    rtsp = _veg_rtsp_url()
-    cmd = [
-        "ffmpeg", "-y",
-        "-rtsp_transport", "tcp",   # more reliable than UDP through bridges
-        "-stimeout", "4000000",     # 4s socket timeout
-        "-i", rtsp,
-        "-frames:v", "1",
-        "-q:v", "4",
-        "-f", "image2pipe",
-        "-vcodec", "mjpeg",
-        "pipe:1",
-    ]
-    try:
-        proc = subprocess.run(cmd, capture_output=True, timeout=timeout)
-        if proc.returncode == 0 and proc.stdout and proc.stdout[:3] == b"\xff\xd8\xff":
-            print(f"[cam] rtsp grab ok ({len(proc.stdout)} bytes from {rtsp})", flush=True)
-            return proc.stdout
-        print(f"[cam] rtsp grab failed rc={proc.returncode} stderr={proc.stderr[-200:]!r}", flush=True)
-    except subprocess.TimeoutExpired:
-        print(f"[cam] rtsp grab timed out from {rtsp}", flush=True)
-    except Exception as e:
-        print(f"[cam] rtsp grab error: {e}", flush=True)
-
-    # Last-resort fallback: the stale motion-event image. Always works,
-    # but might be hours old (and might literally show you walking past
-    # the camera). Better than a blank tile.
     status, body, ctype = _ha_get_bytes(
         f"/api/image_proxy/{E_IMAGE}", timeout=int(timeout))
     if status == 200 and body and ("image" in ctype or body[:3] == b"\xff\xd8\xff"):
-        print("[cam] using stale image_proxy fallback", flush=True)
         return body
+    print(f"[cam] image_proxy failed status={status} ctype={ctype}", flush=True)
     return None
 
 @app.get("/api/cam/snapshot")
@@ -753,7 +849,7 @@ def api_cam_snapshot(request: Request, refresh: int = 0):
 def api_cam_stream_start(request: Request):
     if not is_authed(request):
         raise HTTPException(401)
-    ok = _ensure_streaming(force_p2p=False)
+    ok = _ensure_streaming()
     if ok:
         return {"type": "hls", "url": "/garden/api/cam/hls.m3u8"}
     return {"type": "snapshot", "hint": "camera waking, retry shortly"}
@@ -901,6 +997,325 @@ def api_weather_full(request: Request):
         "sunrise": _fmt_sun(s_attrs.get("next_rising")),
         "sunset":  _fmt_sun(s_attrs.get("next_setting")),
     }
+
+# ===== Wind direction helper =====
+def _deg_to_compass(deg):
+    """Convert wind direction degrees to 16-point compass string."""
+    try:
+        deg = float(deg)
+    except (TypeError, ValueError):
+        return "N/A"
+    dirs = ["N","NNE","NE","ENE","E","ESE","SE","SSE",
+            "S","SSW","SW","WSW","W","WNW","NW","NNW"]
+    idx = round(deg / 22.5) % 16
+    return dirs[idx]
+
+def _uv_level(index):
+    """Return (level_en, level_ru) for UV index."""
+    try:
+        v = float(index)
+    except (TypeError, ValueError):
+        return ("Unknown", "Неизвестно")
+    if v < 3:   return ("Low",       "Низкий")
+    if v < 6:   return ("Moderate",  "Умеренный")
+    if v < 8:   return ("High",      "Высокий")
+    if v < 11:  return ("Very High", "Очень высокий")
+    return         ("Extreme",    "Экстремальный")
+
+# ===== Solar Literacy — /api/sun_summary =====
+# Returns 7-day daily kWh stats, crop/greenhouse states, soil readings, and
+# tomorrow's solar forecast. Frontend uses this to drive the Sun modal
+# (section 1-4) and to update the solar tile stars + one-liner every 60 s.
+@app.get("/api/sun_summary")
+def api_sun_summary(request: Request):
+    if not is_authed(request):
+        raise HTTPException(401)
+
+    # --- 1. Clear-day baseline ---
+    def _float_state(eid):
+        s = get_state(eid) or {}
+        try:
+            return float(s.get("state") or 0)
+        except (TypeError, ValueError):
+            return None
+
+    baseline = None
+    for bid in ("input_number.solar_clear_day_baseline_kwh",
+                "sensor.solar_clear_day_baseline_kwh"):
+        v = _float_state(bid)
+        if v and v > 0:
+            baseline = v
+            break
+    if not baseline:
+        baseline = 92.0
+
+    # --- 2. Instantaneous solar % (from existing panel sensor) ---
+    panel = get_state(E_SOLAR_PANEL) or {}
+    try:
+        panel_w_now = float(panel.get("state") or 0)
+    except (TypeError, ValueError):
+        panel_w_now = 0.0
+    now_solar_pct = round(max(0.0, min(100.0, panel_w_now / SOLAR_PANEL_PEAK_W * 100.0)))
+
+    # --- 3. Sun above horizon ---
+    sun_st = get_state(E_SUN) or {}
+    sun_above = sun_st.get("state") == "above_horizon"
+
+    # Helper (must be defined before use)
+    def _bool_state(eid):
+        s = get_state(eid) or {}
+        return s.get("state") == "on"
+
+    # --- 4. Soil sensors (Ecowitt PRIMARY) ---
+    # CH1 = Tomato (WN34S has temp), CH2 = Cucumber (plain WH51, no temp)
+    soil_t_tomato  = _float_state(E_SOIL_T_TOMATO)
+    soil_m_tomato  = _float_state(E_SOIL_M_TOMATO)
+    soil_b_tomato  = _float_state(E_SOIL_B_TOMATO)
+    soil_m_cuc     = _float_state(E_SOIL_M_CUCUMBER)
+    soil_b_cuc     = _float_state(E_SOIL_B_CUCUMBER)
+    # Check planted flags
+    tomatoPlanted  = _bool_state("input_boolean.crop_tomatoes_planted")
+    cucumberPlanted= _bool_state("input_boolean.crop_cucumbers_planted")
+    # v1.3.1: shared temp probe between zones (30cm each side); per-crop moisture bands
+    def _zone_status(m, lo, hi, crop):
+        if m is None: return (None, None, None)
+        water_thr = lo - 5
+        if m < water_thr: return ("water", f"Water now — too dry",
+                                  "Полить — слишком сухо")
+        if m < lo:        return ("low",   "Getting dry",      "Подсыхает")
+        if m <= hi:       return ("ok",    "Ideal",            "Идеально")
+        if m <= hi + 10:  return ("high",  "Damp",             "Влажновато")
+        return ("wet", "Too wet — risk of rot", "Слишком мокро")
+    _tom_lo, _tom_hi = 45, 65   # Turkish heirloom tomatoes
+    _cuc_lo, _cuc_hi = 65, 85   # Ukrainian пупырчатые pickling cucumbers
+    _tst = _zone_status(soil_m_tomato, _tom_lo, _tom_hi, "tomato")
+    _cst = _zone_status(soil_m_cuc,    _cuc_lo, _cuc_hi, "cucumber")
+    soil_zones = [
+        {
+            "name": "Tomato", "name_ru": "Помидоры",
+            "moisture": round(soil_m_tomato, 1) if soil_m_tomato is not None else None,
+            "temp_c":   round(soil_t_tomato, 1) if soil_t_tomato is not None else None,
+            "battery":  round(soil_b_tomato, 2) if soil_b_tomato is not None else None,
+            "planted":  tomatoPlanted,
+            "status": _tst[0], "status_msg": _tst[1], "status_msg_ru": _tst[2],
+            "ideal_min": _tom_lo, "ideal_max": _tom_hi, "variety": "Turkish heirloom",
+        },
+        {
+            "name": "Cucumber", "name_ru": "Огурцы",
+            "moisture": round(soil_m_cuc, 1) if soil_m_cuc is not None else None,
+            "temp_c":   round(soil_t_tomato, 1) if soil_t_tomato is not None else None,  # shared probe (30cm from cucumber row)
+            "battery":  round(soil_b_cuc, 2) if soil_b_cuc is not None else None,
+            "planted":  cucumberPlanted,
+            "status": _cst[0], "status_msg": _cst[1], "status_msg_ru": _cst[2],
+            "ideal_min": _cuc_lo, "ideal_max": _cuc_hi, "variety": "Ukrainian пупырчатые",
+        },
+    ]
+    # Back-compat: legacy single soil reading (use CH1/Tomato as primary)
+    soil_temp_c    = soil_t_tomato
+    soil_moist_pct = soil_m_tomato
+
+    # --- 4b. Ecowitt weather + UV + wind + rain ---
+    outdoor_temp_c = _float_state(E_OUTDOOR_T)
+    outdoor_hum    = _float_state(E_OUTDOOR_H)
+    # Wind: HA Ecowitt integration reports m/s; convert to km/h
+    wind_ms   = _float_state(E_WIND_SPEED)
+    gust_ms   = _float_state(E_WIND_GUST)
+    wind_kmh  = round(wind_ms * 3.6, 1) if wind_ms is not None else None
+    gust_kmh  = round(gust_ms * 3.6, 1) if gust_ms is not None else None
+    wind_dir_deg = _float_state(E_WIND_DIR)
+    wind_dir_str = _deg_to_compass(wind_dir_deg) if wind_dir_deg is not None else "N/A"
+    # Wind alert: gust > 25 km/h AND greenhouse plastic is on
+    greenhouse_on  = _bool_state("input_boolean.greenhouse_plastic_on")
+    wind_alert = bool(gust_kmh and gust_kmh > 25 and greenhouse_on)
+    wind_alert_msg    = "Gusty winds — check greenhouse plastic" if wind_alert else None
+    wind_alert_msg_ru = "Сильный ветер — проверьте плёнку теплицы" if wind_alert else None
+    uv_raw     = _float_state(E_UV)
+    uv_lv_en, uv_lv_ru = _uv_level(uv_raw)
+    lux_val    = _float_state(E_LUX)
+    rad_val    = _float_state(E_RADIATION)
+    rain_today  = _float_state(E_RAIN_DAILY)
+    rain_week   = _float_state(E_RAIN_WEEKLY)
+    rain_month  = _float_state(E_RAIN_MONTHLY)
+    rain_rate   = _float_state(E_RAIN_RATE)
+    rain_24h    = _float_state(E_RAIN_24H)
+
+    # --- 5. Tomorrow's solar forecast ---
+    tomorrow_kwh = _float_state("sensor.solar_forecast_tomorrow")
+    if tomorrow_kwh is None:
+        tomorrow_kwh = 0.0
+    tomorrow_pct = round(tomorrow_kwh / baseline * 100) if baseline else 0
+
+    # --- 6. Today's accumulated kWh ---
+    # Use the whole-system Riemann sensor (covers all roof panels), NOT the single
+    # IQ7A panel proxy used for instantaneous %. Falls back to single-panel
+    # integration if Riemann sensor is missing/unavailable.
+    today_kwh = _float_state("sensor.solar_riemann_daily")
+    if today_kwh is None or today_kwh <= 0:
+        today_kwh = _panel_kwh_today(E_SOLAR_PANEL)
+    today_pct = round(today_kwh / baseline * 100) if baseline else 0
+
+    # --- 7. Crop / greenhouse booleans ---
+    crops = {
+        "tomatoes": _bool_state("input_boolean.crop_tomatoes_planted"),
+        "cucumbers": _bool_state("input_boolean.crop_cucumbers_planted"),
+        "peppers":   _bool_state("input_boolean.crop_peppers_planted"),
+        "lettuce":   _bool_state("input_boolean.crop_lettuce_planted"),
+    }
+
+    # --- 8. 7-day daily kWh via HA WebSocket recorder ---
+    week_entries = []
+    week_avg_kwh = None
+    week_avg_pct = None
+    ws_error = None
+    try:
+        if websocket is None:
+            raise RuntimeError("websocket-client not installed")
+        import json as _json, ssl as _ssl
+        ws_url = HA_URL.replace("http://", "ws://").replace("https://", "wss://") + "/api/websocket"
+        ws = websocket.create_connection(ws_url, timeout=8.0,
+                                         sslopt={"cert_reqs": _ssl.CERT_NONE})
+        ws.recv()  # auth_required
+        ws.send(_json.dumps({"type": "auth", "access_token": HA_TOKEN}))
+        auth_resp = _json.loads(ws.recv())
+        if auth_resp.get("type") != "auth_ok":
+            raise RuntimeError(f"ws auth failed: {auth_resp}")
+        start_dt = (dt.datetime.now(LOCAL_TZ) - dt.timedelta(days=7)).replace(
+            hour=0, minute=0, second=0, microsecond=0)
+        end_dt = dt.datetime.now(LOCAL_TZ)
+        ws.send(_json.dumps({
+            "id": 1,
+            "type": "recorder/statistics_during_period",
+            "start_time": start_dt.astimezone(dt.timezone.utc).isoformat(),
+            "end_time":   end_dt.astimezone(dt.timezone.utc).isoformat(),
+            "statistic_ids": ["sensor.solar_riemann_daily"],
+            "period": "day",
+            "types": ["change"],
+            "units": {"energy": "kWh"},
+        }))
+        stat_resp = _json.loads(ws.recv())
+        ws.close()
+        entries_raw = []
+        if stat_resp.get("success"):
+            res = stat_resp.get("result") or {}
+            entries_raw = res.get("sensor.solar_riemann_daily") or []
+        for entry in entries_raw:
+            kwh = entry.get("change") or 0.0
+            try:
+                kwh = float(kwh)
+            except (TypeError, ValueError):
+                kwh = 0.0
+            # 'start' may be epoch ms (int/float) or UTC ISO string depending on HA version
+            start_raw = entry.get("start")
+            tdt = None
+            try:
+                if isinstance(start_raw, (int, float)):
+                    tdt = dt.datetime.fromtimestamp(float(start_raw) / 1000.0, tz=dt.timezone.utc).astimezone(LOCAL_TZ)
+                elif isinstance(start_raw, str) and start_raw:
+                    tdt = dt.datetime.fromisoformat(start_raw.replace("Z", "+00:00")).astimezone(LOCAL_TZ)
+            except Exception:
+                tdt = None
+            if tdt is not None:
+                date_str = tdt.strftime("%Y-%m-%d")
+                weekday_str = tdt.strftime("%a")
+            else:
+                date_str = str(start_raw)[:10] if start_raw else ""
+                weekday_str = ""
+            pct = round(kwh / baseline * 100) if baseline else 0
+            week_entries.append({
+                "date": date_str,
+                "weekday": weekday_str,
+                "kwh": round(kwh, 2),
+                "pct": pct,
+            })
+        # Sort oldest→newest, keep last 7
+        week_entries.sort(key=lambda x: x["date"])
+        week_entries = week_entries[-7:]
+        if week_entries:
+            avg_kwh = sum(e["kwh"] for e in week_entries) / len(week_entries)
+            week_avg_kwh = round(avg_kwh, 2)
+            week_avg_pct = round(avg_kwh / baseline * 100) if baseline else 0
+    except Exception as ex:
+        ws_error = str(ex)
+        print(f"[sun_summary] ws error: {ex}", flush=True)
+
+    return {
+        "week": week_entries,
+        "week_avg_kwh": week_avg_kwh,
+        "week_avg_pct": week_avg_pct,
+        "today_kwh": round(today_kwh, 2),
+        "today_pct": today_pct,
+        "tomorrow_kwh": round(tomorrow_kwh, 2),
+        "tomorrow_pct": tomorrow_pct,
+        "clear_day_baseline_kwh": round(baseline, 2),
+        "soil_temp_c": round(soil_temp_c, 1) if soil_temp_c is not None else None,
+        "soil_moisture_pct": round(soil_moist_pct, 1) if soil_moist_pct is not None else None,
+        "greenhouse_plastic_on": greenhouse_on,
+        "crops": crops,
+        "now_solar_pct": now_solar_pct,
+        "sun_above": sun_above,
+        # v1.3.0 Ecowitt extensions
+        "soil_zones": soil_zones,
+        "wind": {
+            "speed_kmh": wind_kmh,
+            "gust_kmh":  gust_kmh,
+            "direction": wind_dir_str,
+            "alert":     wind_alert,
+            "alert_msg":    wind_alert_msg,
+            "alert_msg_ru": wind_alert_msg_ru,
+        },
+        "rain": {
+            "today_mm":   round(rain_today,  2) if rain_today  is not None else None,
+            "week_mm":    round(rain_week,   2) if rain_week   is not None else None,
+            "month_mm":   round(rain_month,  2) if rain_month  is not None else None,
+            "rate_mm_h":  round(rain_rate,   2) if rain_rate   is not None else None,
+            "last_24h_mm":round(rain_24h,    2) if rain_24h    is not None else None,
+        },
+        "uv": {
+            "index":    round(uv_raw, 1) if uv_raw is not None else None,
+            "level":    uv_lv_en,
+            "level_ru": uv_lv_ru,
+        },
+        "lux":                  round(lux_val, 1) if lux_val is not None else None,
+        "solar_radiation_w_m2": round(rad_val, 2) if rad_val is not None else None,
+        "outdoor_temp_c":       round(outdoor_temp_c, 1) if outdoor_temp_c is not None else None,
+        "outdoor_humidity":     round(outdoor_hum, 1) if outdoor_hum is not None else None,
+        **(({"_ws_error": ws_error}) if ws_error else {}),
+    }
+
+
+# ===== v1.3.0 new endpoints =====
+
+@app.get("/api/cam/garden.jpg")
+def api_cam_garden(request: Request):
+    """Proxy HP10 snapshot from HA camera_proxy. ?t=<timestamp> for cache-bust."""
+    if not is_authed(request):
+        raise HTTPException(401)
+    sc, body, ctype = _ha_get_bytes(f"/api/camera_proxy/{E_GARDEN_CAM}", timeout=10)
+    if sc == 200 and body:
+        return Response(content=body, media_type="image/jpeg", headers={
+            "Cache-Control": "no-store, no-cache, must-revalidate",
+            "Pragma": "no-cache",
+        })
+    return Response(status_code=sc or 502, content=b"", media_type="image/jpeg")
+
+
+@app.get("/api/timelapse/today.mp4")
+def api_timelapse_today(request: Request):
+    """Stream most recent timelapse mp4 from /media/garden_timelapse/.
+    Returns 404 with JSON if no mp4 exists yet."""
+    if not is_authed(request):
+        raise HTTPException(401)
+    import glob as _glob
+    pattern = "/media/garden_timelapse/*.mp4"
+    files = sorted(_glob.glob(pattern))
+    if not files:
+        return JSONResponse(
+            status_code=404,
+            content={"error": "No timelapse available yet", "hint": "Timelapse renders nightly at 23:00"},
+        )
+    latest = files[-1]
+    return FileResponse(latest, media_type="video/mp4", filename=os.path.basename(latest))
+
 
 @app.post("/api/start")
 def api_start(request: Request):

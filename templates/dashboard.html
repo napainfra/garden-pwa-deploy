@@ -10,7 +10,7 @@
 <link rel="manifest" href="/garden/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/garden/static/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/garden/static/icon-192.png">
-<title>Masha's Garden</title>
+<title>Masha's Garden · v1.3.1</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
   html,body{height:100%;width:100%}
@@ -269,6 +269,124 @@
   .small{font-size:12px;color:#8a96a3}
   .pulse{animation:pulse 1.6s infinite}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+  /* ===== Solar Literacy v1.2.0 ===== */
+  .tile #sun-stars{font-size:26px;letter-spacing:2px;line-height:1.1;margin:4px 0 2px;color:#ffe16b}
+  /* Sun modal — full-screen overlay, same pattern as cam-modal/wx-modal */
+  #sun-modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.94);
+    display:none;flex-direction:column;
+    padding:calc(env(safe-area-inset-top) + 14px) 0 env(safe-area-inset-bottom)}
+  #sun-modal.open{display:flex}
+  #sun-modal .top{display:flex;justify-content:space-between;align-items:center;
+    padding:10px 14px 12px 18px;background:rgba(11,17,23,.8);backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);position:sticky;top:0;z-index:1;min-height:56px;margin:0;
+    border-bottom:1px solid rgba(255,255,255,.06)}
+  #sun-modal .top h2{font-size:18px;font-weight:600;margin:0}
+  #sun-modal .close{background:rgba(255,255,255,.14);border:0;color:#fff;width:48px;height:48px;
+    border-radius:50%;font-size:26px;line-height:1;cursor:pointer;display:flex;align-items:center;
+    justify-content:center;-webkit-tap-highlight-color:transparent;flex-shrink:0;padding:0}
+  #sun-modal .close:active{background:rgba(255,255,255,.24);transform:scale(.94)}
+  #sun-modal .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 18px 32px}
+  /* Lang toggle */
+  .lang-toggle{display:flex;background:rgba(255,255,255,.06);border-radius:18px;padding:2px;
+    border:1px solid rgba(255,255,255,.08)}
+  .lang-btn{background:transparent;border:0;color:#8a96a3;padding:5px 12px;border-radius:14px;
+    font-size:11px;font-weight:600;cursor:pointer;letter-spacing:.05em}
+  .lang-btn.on{background:rgba(255,225,107,.18);color:#ffe16b}
+  /* Section cards */
+  .sun-section{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
+    border-radius:16px;padding:16px;margin-bottom:12px}
+  .sun-section h3{margin:0 0 12px;font-size:12px;font-weight:600;color:#8a96a3;
+    text-transform:uppercase;letter-spacing:.06em}
+  /* Section 1 — Right now ring */
+  .sun-now-circle{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+  .sun-now-circle .ring{width:80px;height:80px;border-radius:50%;display:flex;
+    align-items:center;justify-content:center;font-size:20px;font-weight:700;
+    background:conic-gradient(#ffe16b var(--p,0%),rgba(255,255,255,.08) 0);
+    position:relative;flex-shrink:0}
+  .sun-now-circle .ring::before{content:"";position:absolute;inset:6px;
+    background:#0b1117;border-radius:50%}
+  .sun-now-circle .ring span{position:relative;z-index:1;font-size:16px}
+  .sun-now-circle .meta{flex:1;font-size:13px;color:#cfd6e0;line-height:1.6}
+  .sun-stat-row{display:flex;justify-content:space-between;padding:7px 0;
+    font-size:13px;border-top:1px solid rgba(255,255,255,.05)}
+  .sun-stat-row .lab{color:#8a96a3}
+  .sun-stat-row .val{color:#cfd6e0;font-weight:600}
+  /* Section 3 — Week bars */
+  .week-bars{display:flex;gap:5px;align-items:flex-end;height:120px;margin:8px 0 12px}
+  .week-bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+  .week-bar .bar-wrap{flex:1;width:100%;display:flex;align-items:flex-end}
+  .week-bar .bar{width:100%;border-radius:4px 4px 0 0;background:rgba(255,225,107,.45);
+    min-height:2px;transition:all .3s}
+  .week-bar.today .bar{background:#ffe16b;box-shadow:0 0 12px rgba(255,225,107,.4)}
+  .week-bar .day{font-size:10px;color:#5e6a78;font-weight:600}
+  .week-bar .pct{font-size:9px;color:#8a96a3}
+  .week-bar.today .day,.week-bar.today .pct{color:#ffe16b}
+  /* Section 4 — Crop cards */
+  .crop-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+    border-radius:14px;padding:14px;margin-bottom:10px}
+  .crop-card .head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .crop-card .ico{font-size:24px}
+  .crop-card .name{font-size:15px;font-weight:600;color:#cfd6e0;flex:1}
+  .crop-card .pill{font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;
+    text-transform:uppercase;letter-spacing:.04em}
+  .crop-card .pill.happy{background:rgba(123,255,150,.18);color:#7bff96}
+  .crop-card .pill.border{background:rgba(255,225,107,.18);color:#ffe16b}
+  .crop-card .pill.dim{background:rgba(255,123,123,.18);color:#ff7b7b}
+  .crop-card .gh-tag{display:inline-block;font-size:10px;background:rgba(99,179,237,.16);
+    color:#bcdcff;padding:2px 8px;border-radius:8px;margin-left:5px}
+  .crop-card .cstats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+  .crop-card .cstat{background:rgba(0,0,0,.2);border-radius:8px;padding:8px;text-align:center}
+  .crop-card .cstat .lab{font-size:9px;color:#5e6a78;text-transform:uppercase;letter-spacing:.04em}
+  .crop-card .cstat .val{font-size:14px;font-weight:600;color:#cfd6e0;margin-top:2px}
+  .crop-card .verdict{font-size:12px;color:#8a96a3;line-height:1.5;font-style:italic;margin-top:6px}
+  .coming-soon{font-size:12px;color:#5e6a78;text-align:center;margin-top:8px;padding:10px;
+    border-top:1px solid rgba(255,255,255,.05)}
+  /* Today hero text */
+  .sun-today-big{font-size:22px;font-weight:700;color:#ffe16b;margin:4px 0 8px;line-height:1.2}
+  .sun-tomorrow{font-size:13px;color:#cfd6e0;padding:8px 10px;background:rgba(255,255,255,.04);
+    border-radius:10px;margin-top:8px}
+  /* ===== v1.3.0 new tiles ===== */
+  .soil-zones{display:flex;flex-direction:column;gap:4px;margin-top:2px}
+  .soil-zone-row{display:flex;justify-content:space-between;align-items:baseline;font-size:12px}
+  .soil-zone-row .z-name{color:#cfd6e0;font-weight:600;min-width:80px}
+  .soil-zone-row .z-moist{font-size:16px;font-weight:700;color:#80c8ff}
+  .soil-zone-row .z-temp{font-size:11px;color:#ffb96b;margin-left:4px}
+  .wind-alert{background:linear-gradient(135deg,rgba(255,82,82,.18),rgba(180,30,30,.12));
+    border:1px solid rgba(255,82,82,.4);border-radius:10px;padding:6px 10px;
+    font-size:11px;color:#ffb3b3;margin-top:4px;line-height:1.3}
+  /* HP10 cam card */
+  .hp10-card{margin-top:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;padding:0;overflow:hidden;cursor:pointer;
+    transition:transform .15s ease;-webkit-tap-highlight-color:rgba(255,255,255,.08)}
+  .hp10-card:active{transform:scale(.985)}
+  .hp10-img{display:block;width:100%;height:auto;background:#000;min-height:180px;object-fit:cover}
+  .hp10-meta{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;
+    font-size:12px;color:#8a96a3}
+  .hp10-meta .live-dot{width:6px;height:6px;border-radius:50%;background:#5fd17e;
+    display:inline-block;margin-right:6px;box-shadow:0 0 6px #5fd17e}
+  /* HP10 fullscreen modal */
+  #hp10-modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.96);
+    display:none;flex-direction:column;
+    padding:calc(env(safe-area-inset-top)+14px) 0 env(safe-area-inset-bottom)}
+  #hp10-modal.open{display:flex}
+  #hp10-modal .top{display:flex;justify-content:space-between;align-items:center;
+    padding:10px 14px 12px 18px;background:rgba(11,17,23,.8);backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);position:sticky;top:0;z-index:1;min-height:56px;
+    border-bottom:1px solid rgba(255,255,255,.06)}
+  #hp10-modal .top h2{font-size:18px;font-weight:600;margin:0}
+  #hp10-modal .close{background:rgba(255,255,255,.14);border:0;color:#fff;width:48px;height:48px;
+    border-radius:50%;font-size:26px;line-height:1;cursor:pointer;display:flex;align-items:center;
+    justify-content:center;-webkit-tap-highlight-color:transparent;flex-shrink:0;padding:0}
+  #hp10-modal .close:active{background:rgba(255,255,255,.24);transform:scale(.94)}
+  #hp10-modal .body{flex:1;overflow-y:auto;padding:16px 18px 32px;display:flex;flex-direction:column;gap:14px}
+  #hp10-modal .full-img{width:100%;border-radius:14px;display:block}
+  .timelapse-btn{width:100%;border:0;background:linear-gradient(135deg,rgba(99,179,237,.25),rgba(99,179,237,.1));
+    border:1px solid rgba(99,179,237,.35);color:#bcdcff;font-size:16px;font-weight:600;
+    padding:16px;border-radius:14px;cursor:pointer;display:flex;align-items:center;
+    justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent}
+  .timelapse-btn:active{transform:scale(.97)}
+  #hp10-timelapse-wrap{display:none}
+  #hp10-timelapse-wrap video{width:100%;border-radius:12px;display:block;margin-top:12px}
 </style>
 </head>
 <body>
@@ -287,24 +405,53 @@
     <div class="text"><strong>Freeze warning.</strong> Soil at <span id="freeze-temp">?</span>°C — protect tomatoes.</div>
   </div>
 
-  <div class="grid3">
-    <div class="tile big tile-blue tappable" onclick="openChart('moisture')">
-      <div class="label">💧 Moisture</div>
-      <div class="value"><span id="moist">--</span>%</div>
-      <div class="sub">Soil sensor</div>
-      <div class="tap-hint">Tap →</div>
+  <!-- Soil 2-zone tile + Sun tile -->
+  <div class="grid2">
+    <!-- SOIL: 2-zone card (tap = chart for CH1/Tomato) -->
+    <div class="tile tappable" onclick="openChart('moisture')">
+      <div class="label">🌱 Soil</div>
+      <div class="soil-zones">
+        <div class="soil-zone-row">
+          <span class="z-name">🍅 Tomato</span>
+          <span class="z-moist"><span id="moist-tomato">--</span>%</span>
+          <span class="z-temp"><span id="temp-tomato">--</span>°C</span>
+          <span class="z-badge" id="badge-tomato"></span>
+        </div>
+        <div class="soil-zone-row">
+          <span class="z-name">🥒 Cucumber</span>
+          <span class="z-moist"><span id="moist-cuc">--</span>%</span>
+          <span class="z-temp"><span id="temp-cuc">--</span>°C</span>
+          <span class="z-badge" id="badge-cuc"></span>
+        </div>
+      </div>
+      <div class="tap-hint">Tap → chart</div>
     </div>
-    <div class="tile big tile-orange tappable" id="temp-tile" onclick="openChart('temperature')">
-      <div class="label">🌡️ Soil</div>
-      <div class="value"><span id="temp">--</span>°</div>
-      <div class="sub" id="temp-sub">Greenhouse</div>
-      <div class="tap-hint">Tap →</div>
+    <!-- SUN tile -->
+    <div class="tile tile-yellow tappable" id="solar-tile" onclick="openSunModal()">
+      <div class="label" id="sun-label">☀️ Sun</div>
+      <div class="stars" id="sun-stars">★★★☆☆</div>
+      <div class="sub" id="solar-sub">—</div>
+      <div class="tap-hint" id="sun-tap-hint">Tap →</div>
     </div>
-    <div class="tile big tile-yellow tappable" id="solar-tile" onclick="openChart('solar')">
-      <div class="label">☀️ Sun</div>
-      <div class="value"><span id="solar-pct">--</span>%</div>
-      <div class="sub" id="solar-sub">Roof proxy</div>
-      <div class="tap-hint">Tap →</div>
+  </div>
+
+  <!-- WIND + RAIN tiles -->
+  <div class="grid2" style="margin-top:12px">
+    <!-- WIND tile -->
+    <div class="tile tappable" id="wind-tile">
+      <div class="label">💨 Wind</div>
+      <div class="value" id="wind-speed" style="font-size:28px">--</div>
+      <div class="sub" id="wind-dir">—</div>
+      <div class="sub" id="wind-gust" style="font-size:11px">Gust —</div>
+      <div id="wind-alert-banner" class="wind-alert" style="display:none"></div>
+    </div>
+    <!-- RAIN tile -->
+    <div class="tile" id="rain-tile">
+      <div class="label">🌧️ Rain</div>
+      <div class="value" id="rain-today" style="font-size:28px">--</div>
+      <div class="sub" id="rain-today-lbl" style="font-size:11px">today mm</div>
+      <div class="sub" id="rain-week" style="font-size:11px">Week —</div>
+      <div class="sub" id="rain-rate" style="font-size:11px">Rate —</div>
     </div>
   </div>
 
@@ -319,15 +466,30 @@
     <button class="btn stop disabled" id="btn-stop" onclick="doStop()">🛑 Stop watering</button>
   </div>
 
-  <!-- Live camera card (tap = live stream).
-       Visible immediately with a placeholder so the user always sees it,
-       even while the first snapshot is loading or the bridge is waking up. -->
-  <div class="cam-card" id="cam-card" onclick="openCamModal()">
-    <img id="cam-img" class="cam-img" alt="Garden camera"
+  <!-- HP10 garden camera tile (NEW v1.3.0) - replaces removed Eufy cam-card -->
+  <div class="hp10-card" id="hp10-card" onclick="openHp10Modal()">
+    <img id="hp10-img" class="hp10-img" alt="Garden view (HP10)"
          src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'><rect width='16' height='9' fill='%23070b10'/></svg>">
-    <div class="cam-meta">
-      <div><span class="live-dot"></span>Garden camera — tap for live</div>
-      <div class="age" id="cam-age">loading…</div>
+    <div class="hp10-meta">
+      <div><span class="live-dot"></span>📷 Garden cam · HP10 <span id="hp10-age" style="color:#5e6a78">loading…</span></div>
+      <div id="hp10-badge" style="font-size:11px;color:#8a96a3"></div>
+    </div>
+  </div>
+
+  <!-- HP10 fullscreen modal -->
+  <div id="hp10-modal">
+    <div class="top">
+      <h2 id="hp10-modal-title">📷 Garden</h2>
+      <button class="close" onclick="closeHp10Modal()">×</button>
+    </div>
+    <div class="body">
+      <img id="hp10-modal-img" class="full-img" alt="Garden full view" src="">
+      <button class="timelapse-btn" id="hp10-tl-btn" onclick="loadTimelapse()">
+        🎬 <span id="hp10-tl-label">Today's timelapse</span>
+      </button>
+      <div id="hp10-timelapse-wrap">
+        <video controls playsinline id="hp10-video"></video>
+      </div>
     </div>
   </div>
 
@@ -382,6 +544,23 @@
     </div>
   </div>
 
+  <!-- Sun explainer modal (Solar Literacy v1.2.0) -->
+  <div id="sun-modal">
+    <div class="top">
+      <h2 id="sun-modal-title">☀️ Sun &amp; garden</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="lang-toggle">
+          <button class="lang-btn" data-lang="en" id="lang-en" onclick="setLang('en')">EN</button>
+          <button class="lang-btn" data-lang="ru" id="lang-ru" onclick="setLang('ru')">RU</button>
+        </div>
+        <button class="close" onclick="closeSunModal()">×</button>
+      </div>
+    </div>
+    <div class="body" id="sun-modal-body">
+      <div style="color:#8a96a3;text-align:center;padding:40px 0">Loading…</div>
+    </div>
+  </div>
+
   <div class="h24" id="h24" style="display:none">
     <div class="head"><div class="ttl">📈 Last 24 hours</div><div class="sub" id="h24-count"></div></div>
     <svg class="spark" id="spark-combo" viewBox="0 0 100 80" preserveAspectRatio="none"></svg>
@@ -396,7 +575,7 @@
     <div class="line"><span class="lab">Rain</span><span class="val" id="h24-rain">—</span></div>
   </div>
 
-  <div class="footer small">Pull down to refresh • <span id="updated">--</span></div>
+  <div class="footer small">v1.3.1 · Pull down to refresh · <span id="updated">--</span></div>
 </div>
 
 <!-- ===== zoom modal ===== -->
@@ -515,8 +694,8 @@
       const r = await fetch("/garden/api/state",{credentials:"same-origin"});
       if(r.status===401){ location.href="/garden/pin"; return; }
       const d = await r.json();
-      $("moist").textContent = d.moisture.toFixed(1);
-      $("temp").textContent  = d.temperature.toFixed(1);
+      // Legacy fields (used by history chart)
+      // $("moist") and $("temp") elements removed from grid — chart modal still works
       $("bat").textContent   = d.battery + "%";
       $("valve").textContent = d.valve === "open" ? "Open" : (d.valve === "closed" ? "Closed" : d.valve);
 
@@ -536,20 +715,9 @@
         $("temp-sub").textContent = "Greenhouse";
       }
 
-      // Solar exposure tile
-      const solarPct = (d.solar_pct != null) ? d.solar_pct : 0;
-      $("solar-pct").textContent = solarPct;
-      const bandMap = {
-        "full":    {label:"Full sun",  cls:""},
-        "partial": {label:"Partial",   cls:""},
-        "dim":     {label:"Dim",       cls:"dim"},
-        "shaded":  {label:"Shaded",    cls:"dim"},
-        "night":   {label:"Night",     cls:"night"}
-      };
-      const band = bandMap[d.solar_band] || bandMap.partial;
-      const kwh = d.solar_kwh_today != null ? d.solar_kwh_today : 0;
-      $("solar-sub").textContent = `${band.label} • ${kwh.toFixed(1)}kWh`;
-      $("solar-tile").className = "tile big tile-yellow tappable" + (band.cls ? " "+band.cls : "");
+      // Solar tile is now driven by refreshSunTile() / sun_summary.
+      // Forward sun_above from state so the tile night class stays accurate.
+      if(_sunData) { _sunData.sun_above = d.sun_above; renderSunTile(_sunData); }
 
       // Last watered (now uses combined valve + binary_sensor signals)
       $("last").textContent = d.last_watered_age || "never";
@@ -868,7 +1036,9 @@
     else age.textContent = Math.floor(s/60) + "m ago";
   }
 
-  // ===== camera live-stream modal =====
+  // ===== Eufy removed in v1.3.0 — HP10 is the only camera now =====
+
+  // ===== legacy in-PWA stream modal (kept for now, unused by tile) =====
   // Strategy: kick off snapshot fallback IMMEDIATELY so the user always sees
   // moving frames within ~1 s. In parallel, ask the backend to start the RTSP
   // livestream and probe go2rtc HLS. If HLS comes up cleanly, swap the <video>
@@ -988,6 +1158,667 @@
   setInterval(loadHistory, 120000);
   // Pull to refresh hint: refresh on visibility
   document.addEventListener("visibilitychange",()=>{ if(!document.hidden) load(); });
+
+  // ===== Solar Literacy v1.2.0 =====
+
+  // --- i18n table ---
+  const SLANG = {
+    en: {
+      sun_label: "\u2600\ufe0f Sun",
+      tap_hint: "Tap \u2192",
+      modal_title: "\u2600\ufe0f Sun & garden",
+      brilliant: "Brilliant week",
+      strong: "Strong week",
+      mixed: "Mixed week",
+      cloudy_week: "Cloudy week",
+      dim_week: "Dim week",
+      tom_happy: "Tomatoes happy",
+      tom_border: "Tomatoes borderline",
+      tom_dim: "Tomatoes dim",
+      cuc_happy: "Cucumbers happy",
+      cuc_border: "Cucumbers borderline",
+      cuc_dim: "Cucumbers dim",
+      pep_happy: "Peppers happy",
+      pep_border: "Peppers borderline",
+      let_happy: "Lettuce happy",
+      let_border: "Lettuce borderline",
+      all_happy: "All crops happy",
+      all_dim: "All crops dim \u2014 needs more sun",
+      sec1: "Right now",
+      sec2: "Today",
+      sec3: "This week",
+      sec4: "Your crops",
+      coming_soon: "\ud83d\udd50 Coming soon",
+      soil_temp: "Soil temperature",
+      soil_moist: "Soil moisture",
+      greenhouse: "Greenhouse",
+      heater: "Avalon Nano keeping +3\u20134\u00b0C",
+      bright_now: "Bright sun right now",
+      light_dimming: "Light dimming",
+      night: "Night",
+      tomorrow_bright: "Tomorrow looks bright",
+      tomorrow_cloudy: "Tomorrow cloudy",
+      of_perfect: "of a perfect sunny day so far",
+      week_avg: "7-day avg",
+      tomatoes: "Tomatoes",
+      cucumbers: "Cucumbers",
+      peppers: "Peppers",
+      lettuce: "Lettuce",
+      happy: "\u2713 Happy",
+      borderline: "\u26a0\ufe0f Borderline",
+      dim: "\u274c Dim",
+      khw_expected: "kWh expected",
+      sun_stat: "Sun (week)",
+      mixed_crops: function(a, b){ return a+" happy, "+b+" borderline"; },
+      verdict_growing: "Growing steadily — keep it up",
+      verdict_slow: "Growing slowly, picking up as forecast brightens",
+      verdict_dim: "Needs more sun to thrive",
+      // v1.3.0 new strings
+      wind_label: "💨 Wind",
+      rain_label: "🌧️ Rain",
+      cam_label: "📷 Garden",
+      todays_timelapse: "Today's timelapse",
+      light_breeze: "Light breeze",
+      gusty_winds: "Gusty winds — check greenhouse plastic",
+      tomato: "Tomato",
+      cucumber: "Cucumber",
+      moisture_buried: "buried",
+      uv_low: "Low",
+      uv_moderate: "Moderate",
+      uv_high: "High",
+      uv_very_high: "Very High",
+      uv_extreme: "Extreme",
+    },
+    ru: {
+      sun_label: "\u2600\ufe0f \u0421\u043e\u043b\u043d\u0446\u0435",
+      tap_hint: "\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u2192",
+      modal_title: "\u2600\ufe0f \u0421\u043e\u043b\u043d\u0446\u0435 & \u0441\u0430\u0434",
+      brilliant: "\u041e\u0442\u043b\u0438\u0447\u043d\u0430\u044f \u043d\u0435\u0434\u0435\u043b\u044f",
+      strong: "\u0425\u043e\u0440\u043e\u0448\u0430\u044f \u043d\u0435\u0434\u0435\u043b\u044f",
+      mixed: "\u0421\u043c\u0435\u0448\u0430\u043d\u043d\u0430\u044f \u043d\u0435\u0434\u0435\u043b\u044f",
+      cloudy_week: "\u041f\u0430\u0441\u043c\u0443\u0440\u043d\u0430\u044f \u043d\u0435\u0434\u0435\u043b\u044f",
+      dim_week: "\u0422\u0451\u043c\u043d\u0430\u044f \u043d\u0435\u0434\u0435\u043b\u044f",
+      tom_happy: "\u0422\u043e\u043c\u0430\u0442\u0430\u043c \u0445\u043e\u0440\u043e\u0448\u043e",
+      tom_border: "\u0422\u043e\u043c\u0430\u0442\u0430\u043c \u043d\u0430 \u0433\u0440\u0430\u043d\u0438",
+      tom_dim: "\u0422\u043e\u043c\u0430\u0442\u0430\u043c \u043c\u0430\u043b\u043e \u0441\u043e\u043b\u043d\u0446\u0430",
+      cuc_happy: "\u041e\u0433\u0443\u0440\u0446\u0430\u043c \u043e\u0442\u043b\u0438\u0447\u043d\u043e",
+      cuc_border: "\u041e\u0433\u0443\u0440\u0446\u0430\u043c \u043d\u0430 \u0433\u0440\u0430\u043d\u0438",
+      cuc_dim: "\u041e\u0433\u0443\u0440\u0446\u0430\u043c \u0442\u0435\u043c\u043d\u043e",
+      pep_happy: "\u041f\u0435\u0440\u0446\u0430\u043c \u0445\u043e\u0440\u043e\u0448\u043e",
+      pep_border: "\u041f\u0435\u0440\u0446\u0430\u043c \u043d\u0430 \u0433\u0440\u0430\u043d\u0438",
+      let_happy: "\u0421\u0430\u043b\u0430\u0442\u0443 \u043e\u0442\u043b\u0438\u0447\u043d\u043e",
+      let_border: "\u0421\u0430\u043b\u0430\u0442\u0443 \u043d\u0430 \u0433\u0440\u0430\u043d\u0438",
+      all_happy: "\u0412\u0441\u0435 \u0440\u0430\u0441\u0442\u0435\u043d\u0438\u044f \u0434\u043e\u0432\u043e\u043b\u044c\u043d\u044b",
+      all_dim: "\u0412\u0441\u0435\u043c \u043c\u0430\u043b\u043e \u0441\u043e\u043b\u043d\u0446\u0430",
+      sec1: "\u0421\u0435\u0439\u0447\u0430\u0441",
+      sec2: "\u0421\u0435\u0433\u043e\u0434\u043d\u044f",
+      sec3: "\u0417\u0430 \u043d\u0435\u0434\u0435\u043b\u044e",
+      sec4: "\u0412\u0430\u0448\u0438 \u0440\u0430\u0441\u0442\u0435\u043d\u0438\u044f",
+      coming_soon: "\ud83d\udd50 \u0421\u043a\u043e\u0440\u043e",
+      soil_temp: "\u0422\u0435\u043c\u043f\u0435\u0440\u0430\u0442\u0443\u0440\u0430 \u043f\u043e\u0447\u0432\u044b",
+      soil_moist: "\u0412\u043b\u0430\u0436\u043d\u043e\u0441\u0442\u044c \u043f\u043e\u0447\u0432\u044b",
+      greenhouse: "\u0422\u0435\u043f\u043b\u0438\u0446\u0430",
+      heater: "Avalon Nano \u0434\u0435\u0440\u0436\u0438\u0442 +3\u20134\u00b0C",
+      bright_now: "\u0421\u0435\u0439\u0447\u0430\u0441 \u044f\u0440\u043a\u043e\u0435 \u0441\u043e\u043b\u043d\u0446\u0435",
+      light_dimming: "\u0421\u0432\u0435\u0442 \u0443\u0433\u0430\u0441\u0430\u0435\u0442",
+      night: "\u041d\u043e\u0447\u044c",
+      tomorrow_bright: "\u0417\u0430\u0432\u0442\u0440\u0430 \u044f\u0441\u043d\u043e",
+      tomorrow_cloudy: "\u0417\u0430\u0432\u0442\u0440\u0430 \u043f\u0430\u0441\u043c\u0443\u0440\u043d\u043e",
+      of_perfect: "\u043e\u0442 \u0438\u0434\u0435\u0430\u043b\u044c\u043d\u043e\u0433\u043e \u0441\u043e\u043b\u043d\u0435\u0447\u043d\u043e\u0433\u043e \u0434\u043d\u044f",
+      week_avg: "\u0421\u0440\u0435\u0434\u043d\u0435\u0435 \u0437\u0430 7 \u0434\u043d\u0435\u0439",
+      tomatoes: "\u0422\u043e\u043c\u0430\u0442\u044b",
+      cucumbers: "\u041e\u0433\u0443\u0440\u0446\u044b",
+      peppers: "\u041f\u0435\u0440\u0446\u044b",
+      lettuce: "\u0421\u0430\u043b\u0430\u0442",
+      happy: "\u2713 \u0425\u043e\u0440\u043e\u0448\u043e",
+      borderline: "\u26a0\ufe0f \u041d\u0430 \u0433\u0440\u0430\u043d\u0438",
+      dim: "\u274c \u041c\u0430\u043b\u043e \u0441\u043e\u043b\u043d\u0446\u0430",
+      khw_expected: "\u043a\u0412\u0442\u00b7\u0447 \u043e\u0436\u0438\u0434\u0430\u0435\u0442\u0441\u044f",
+      sun_stat: "\u0421\u043e\u043b\u043d\u0446\u0435 (\u043d\u0435\u0434.)",
+      mixed_crops: function(a, b){ return a+" \u043e\u0442\u043b\u0438\u0447\u043d\u043e, "+b+" \u043d\u0430 \u0433\u0440\u0430\u043d\u0438"; },
+      verdict_growing: "\u0420\u0430\u0441\u0442\u0451\u0442 \u0445\u043e\u0440\u043e\u0448\u043e \u2014 \u043f\u0440\u043e\u0434\u043e\u043b\u0436\u0430\u0439\u0442\u0435 \u0432 \u0442\u043e\u043c \u0436\u0435 \u0434\u0443\u0445\u0435",
+      verdict_slow: "\u0420\u0430\u0441\u0442\u0451\u0442 \u043c\u0435\u0434\u043b\u0435\u043d\u043d\u043e, \u043f\u043e \u043f\u0440\u043e\u0433\u043d\u043e\u0437\u0443 \u0441\u0442\u0430\u043d\u0435\u0442 \u0441\u0432\u0435\u0442\u043b\u0435\u0435",
+      verdict_dim: "\u041d\u0443\u0436\u043d\u043e \u0431\u043e\u043b\u044c\u0448\u0435 \u0441\u043e\u043b\u043d\u0446\u0430",
+      // v1.3.0 new strings
+      wind_label: "\u{1F4A8} \u0412\u0435\u0442\u0435\u0440",
+      rain_label: "\u{1F327}\uFE0F \u0414\u043e\u0436\u0434\u044c",
+      cam_label: "\u{1F4F7} \u0421\u0430\u0434",
+      todays_timelapse: "\u0422\u0430\u0439\u043c\u043b\u0430\u043f\u0441 \u0437\u0430 \u0441\u0435\u0433\u043e\u0434\u043d\u044f",
+      light_breeze: "\u041b\u0451\u0433\u043a\u0438\u0439 \u0432\u0435\u0442\u0435\u0440",
+      gusty_winds: "\u0421\u0438\u043b\u044c\u043d\u044b\u0439 \u0432\u0435\u0442\u0435\u0440 \u2014 \u043f\u0440\u043e\u0432\u0435\u0440\u044c\u0442\u0435 \u043f\u043b\u0451\u043d\u043a\u0443 \u0442\u0435\u043f\u043b\u0438\u0446\u044b",
+      tomato: "\u0422\u043e\u043c\u0430\u0442",
+      cucumber: "\u041e\u0433\u0443\u0440\u0435\u0446",
+      moisture_buried: "\u0437\u0430\u0440\u044b\u0442",
+      uv_low: "\u041d\u0438\u0437\u043a\u0438\u0439",
+      uv_moderate: "\u0423\u043c\u0435\u0440\u0435\u043d\u043d\u044b\u0439",
+      uv_high: "\u0412\u044b\u0441\u043e\u043a\u0438\u0439",
+      uv_very_high: "\u041e\u0447\u0435\u043d\u044c \u0432\u044b\u0441\u043e\u043a\u0438\u0439",
+      uv_extreme: "\u042d\u043a\u0441\u0442\u0440\u0435\u043c\u0430\u043b\u044c\u043d\u044b\u0439",
+    }
+  };
+
+  // --- Language helpers ---
+  function getLang(){
+    const stored = localStorage.getItem("garden_lang");
+    if(stored === "en" || stored === "ru") return stored;
+    return (navigator.language || "").startsWith("ru") ? "ru" : "en";
+  }
+  let _sunLang = getLang();
+  let _sunData = null;  // cached sun_summary response
+  let _sunDataTs = 0;   // timestamp of cache
+  const SUN_CACHE_MS = 60000;
+
+  function setLang(l){
+    _sunLang = l;
+    localStorage.setItem("garden_lang", l);
+    // Update toggle buttons
+    $("lang-en").classList.toggle("on", l === "en");
+    $("lang-ru").classList.toggle("on", l === "ru");
+    // Update tile text immediately
+    renderSunTile(_sunData);
+    // Re-render modal body if open
+    if(_sunData && $("sun-modal").classList.contains("open")){
+      renderSunModal(_sunData);
+    }
+  }
+
+  // --- Star builder ---
+  function starsFor(pct){
+    let n;
+    if(pct == null)       n = 0;
+    else if(pct >= 80)    n = 5;
+    else if(pct >= 60)    n = 4;
+    else if(pct >= 45)    n = 3;
+    else if(pct >= 30)    n = 2;
+    else                  n = 1;
+    return "\u2605".repeat(n) + "\u2606".repeat(5 - n);
+  }
+
+  function weekLabel(pct, L){
+    if(pct == null) return "";
+    if(pct >= 80) return L.brilliant;
+    if(pct >= 60) return L.strong;
+    if(pct >= 45) return L.mixed;
+    if(pct >= 30) return L.cloudy_week;
+    return L.dim_week;
+  }
+
+  // --- Crop one-liner for tile sub text ---
+  function cropOneLiner(data, L){
+    if(!data) return "";
+    const weekPct = data.week_avg_pct;
+    const crops = data.crops || {};
+    const ghOn  = data.greenhouse_plastic_on;
+
+    // Thresholds
+    const thresh = {
+      tomatoes: ghOn ? 35 : 50,
+      cucumbers: 42,
+      peppers:   50,
+      lettuce:   33,
+    };
+    const planted = Object.keys(crops).filter(k => crops[k]);
+    if(!planted.length) return weekLabel(weekPct, L);
+
+    const p = weekPct != null ? weekPct : 0;
+    const statuses = {};
+    planted.forEach(c => {
+      const t = thresh[c] || 50;
+      if(p >= t)             statuses[c] = "happy";
+      else if(p >= t * 0.7)  statuses[c] = "border";
+      else                   statuses[c] = "dim";
+    });
+
+    // Translate crop name
+    const cname = c => L[c] || c;
+
+    if(planted.length === 1){
+      const c = planted[0];
+      const s = statuses[c];
+      if(c === "tomatoes")  return s === "happy" ? L.tom_happy : s === "border" ? L.tom_border : L.tom_dim;
+      if(c === "cucumbers") return s === "happy" ? L.cuc_happy : s === "border" ? L.cuc_border : L.cuc_dim;
+      if(c === "peppers")   return s === "happy" ? L.pep_happy : s === "border" ? L.pep_border : L.cuc_dim;
+      if(c === "lettuce")   return s === "happy" ? L.let_happy : s === "border" ? L.let_border : L.cuc_dim;
+    }
+
+    const happyList  = planted.filter(c => statuses[c] === "happy");
+    const borderList = planted.filter(c => statuses[c] === "border");
+    const dimList    = planted.filter(c => statuses[c] === "dim");
+
+    if(dimList.length === planted.length) return L.all_dim;
+    if(happyList.length === planted.length) return L.all_happy;
+    if(happyList.length && borderList.length && !dimList.length){
+      return L.mixed_crops(happyList.map(cname).join(" & "), borderList.map(cname).join(" & "));
+    }
+    // Default
+    return weekLabel(weekPct, L);
+  }
+
+  // --- Render tile face (stars + one-liner) ---
+  function renderSunTile(data){
+    const L = SLANG[_sunLang];
+    $("sun-label").textContent = L.sun_label;
+    $("sun-tap-hint").textContent = L.tap_hint;
+    if(!data){
+      $("sun-stars").textContent = "\u2605\u2606\u2606\u2606\u2606";
+      $("solar-sub").textContent = "";
+      return;
+    }
+    const pct = data.week_avg_pct;
+    $("sun-stars").textContent = starsFor(pct);
+    $("solar-sub").textContent  = cropOneLiner(data, L);
+    // Tile colour class
+    const cls = data.sun_above
+      ? (pct != null && pct < 30 ? " dim" : "")
+      : " night";
+    $("solar-tile").className = "tile big tile-yellow tappable" + cls;
+  }
+
+  // --- Fetch sun summary (with 60 s cache) ---
+  async function fetchSunSummary(force){
+    const now = Date.now();
+    if(!force && _sunData && (now - _sunDataTs) < SUN_CACHE_MS) return _sunData;
+    try{
+      const r = await fetch("/garden/api/sun_summary", {credentials:"same-origin"});
+      if(!r.ok) return _sunData;
+      _sunData = await r.json();
+      _sunDataTs = Date.now();
+    }catch(e){ console.error("sun_summary", e); }
+    return _sunData;
+  }
+
+  // --- Periodic tile update (piggybacks on load() cadence) ---
+  async function refreshSunTile(){
+    const d = await fetchSunSummary();
+    renderSunTile(d);
+  }
+
+  // --- Modal: open / close ---
+  function openSunModal(){
+    const m = $("sun-modal");
+    m.classList.add("open");
+    document.body.style.overflow = "hidden";
+    // Apply language toggle state
+    $("lang-en").classList.toggle("on", _sunLang === "en");
+    $("lang-ru").classList.toggle("on", _sunLang === "ru");
+    // Render with cached data immediately, then refresh
+    if(_sunData) renderSunModal(_sunData);
+    fetchSunSummary(true).then(d => { if(d) renderSunModal(d); });
+  }
+
+  function closeSunModal(){
+    $("sun-modal").classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  // --- Modal: main renderer ---
+  function renderSunModal(data){
+    const L = SLANG[_sunLang];
+    const body = $("sun-modal-body");
+    $("sun-modal-title").textContent = L.modal_title;
+    let html = "";
+    html += renderSecNow(data, L);
+    html += renderSecToday(data, L);
+    html += renderSecWeek(data, L);
+    html += renderSecCrops(data, L);
+    body.innerHTML = html;
+    // Apply conic gradient for ring
+    const ring = body.querySelector(".ring");
+    if(ring){
+      const p = data.now_solar_pct || 0;
+      ring.style.setProperty("--p", p + "%");
+    }
+  }
+
+  // --- Section 1: Right now ---
+  function renderSecNow(d, L){
+    const pct = d.now_solar_pct || 0;
+    let nowText;
+    if(!d.sun_above)      nowText = L.night;
+    else if(pct >= 50)    nowText = L.bright_now;
+    else                  nowText = L.light_dimming;
+
+    let html = `<div class="sun-section"><h3>${L.sec1}</h3>`;
+    html += `<div class="sun-now-circle">`;
+    html += `<div class="ring" style="--p:${pct}%"><span>${pct}%</span></div>`;
+    html += `<div class="meta">${nowText}`;
+    // Lux + radiation from Ecowitt
+    if (d.lux != null) {
+      html += `<br><span style="color:#ffe16b;font-size:12px">${d.lux.toLocaleString()} lx</span>`;
+    }
+    if (d.solar_radiation_w_m2 != null) {
+      html += ` <span style="color:#8a96a3;font-size:11px">(${d.solar_radiation_w_m2} W/m²)</span>`;
+    }
+    html += `</div></div>`;
+    // Outdoor conditions
+    if (d.outdoor_temp_c != null) {
+      html += `<div class="sun-stat-row"><span class="lab">🌡️ Outdoor</span><span class="val">${d.outdoor_temp_c.toFixed(1)}°C`;
+      if (d.outdoor_humidity != null) html += ` · ${d.outdoor_humidity.toFixed(0)}%`;
+      html += `</span></div>`;
+    }
+    // UV
+    if (d.uv && d.uv.index != null) {
+      const uvLevel = _sunLang === "ru" ? (d.uv.level_ru || d.uv.level) : d.uv.level;
+      html += `<div class="sun-stat-row"><span class="lab">☀️ UV</span><span class="val">${d.uv.index} — ${uvLevel}</span></div>`;
+    }
+    // Soil zones — CH1 Tomato (with temp), CH2 Cucumber (no temp)
+    const zones = d.soil_zones || [];
+    zones.forEach(z => {
+      if (!z.planted) return;
+      const zName = _sunLang === "ru" ? z.name_ru : z.name;
+      const zMoist = z.moisture != null ? z.moisture + "%" : "--";
+      let tempIcon = "";
+      if (z.temp_c != null) {
+        if (z.temp_c >= 10) tempIcon = " ✓";
+        else if (z.temp_c >= 5) tempIcon = " ⚠️";
+        else tempIcon = " ❄️";
+      }
+      const zTemp = z.temp_c != null ? z.temp_c.toFixed(1) + "°C" + tempIcon : "—";
+      html += `<div class="sun-stat-row"><span class="lab">${z.name === "Tomato" ? "🍅" : "🥒"} ${zName} ${L.soil_moist}</span><span class="val">${zMoist}</span></div>`;
+      if (z.temp_c != null) {
+        html += `<div class="sun-stat-row"><span class="lab">${z.name === "Tomato" ? "🍅" : "🥒"} ${zName} ${L.soil_temp}</span><span class="val">${zTemp}</span></div>`;
+      }
+    });
+    if(d.greenhouse_plastic_on){
+      html += `<div class="sun-stat-row"><span class="lab">\uD83D\uDD25 ${L.greenhouse}</span><span class="val" style="color:#ffb96b;font-size:12px">${L.heater}</span></div>`;
+    }
+    html += `</div>`;
+    return html;
+  }
+
+  // --- Section 2: Today ---
+  function renderSecToday(d, L){
+    const todPct = d.today_pct != null ? d.today_pct : 0;
+    const todKwh = d.today_kwh != null ? d.today_kwh.toFixed(1) : "--";
+    const baseline = d.clear_day_baseline_kwh != null ? d.clear_day_baseline_kwh.toFixed(0) : "92";
+    const tomKwh   = d.tomorrow_kwh != null ? d.tomorrow_kwh.toFixed(0) : "--";
+    const tomPct   = d.tomorrow_pct != null ? d.tomorrow_pct : 0;
+    const tomText  = tomPct >= 60 ? L.tomorrow_bright : L.tomorrow_cloudy;
+    const tomColor = tomPct >= 60 ? "#7bff96" : "#8a96a3";
+
+    let html = `<div class="sun-section"><h3>${L.sec2}</h3>`;
+    html += `<div class="sun-today-big">${todPct}% ${L.of_perfect}</div>`;
+    html += `<div class="sun-stat-row"><span class="lab">${L.sec2}</span><span class="val">${todKwh} kWh / ${baseline} kWh</span></div>`;
+    html += `<div class="sun-tomorrow" style="color:${tomColor}">${tomText} (${tomKwh} ${L.khw_expected})</div>`;
+    html += `</div>`;
+    return html;
+  }
+
+  // --- Section 3: This week ---
+  function renderSecWeek(d, L){
+    const week = d.week || [];
+    const avgPct = d.week_avg_pct;
+    const avgKwh = d.week_avg_kwh;
+    const todayStr = new Date().toLocaleDateString("en-CA");
+
+    let html = `<div class="sun-section"><h3>${L.sec3}</h3>`;
+    if(week.length === 0){
+      html += `<div style="color:#5e6a78;font-size:13px;text-align:center;padding:12px 0">No data yet</div>`;
+    } else {
+      // Bar chart
+      html += `<div class="week-bars">`;
+      week.forEach(entry => {
+        const barH = Math.max(2, Math.min(100, entry.pct || 0));
+        const isToday = entry.date === todayStr;
+        html += `<div class="week-bar${isToday ? " today" : ""}">`;
+        html += `<div class="pct">${entry.pct || 0}%</div>`;
+        html += `<div class="bar-wrap"><div class="bar" style="height:${barH}%"></div></div>`;
+        html += `<div class="day">${entry.weekday || entry.date.slice(5)}</div>`;
+        html += `</div>`;
+      });
+      html += `</div>`;
+      // Summary line
+      const avgLabel = weekLabel(avgPct, L);
+      html += `<div class="sun-stat-row"><span class="lab">${L.week_avg}</span>`;
+      html += `<span class="val">${avgKwh != null ? avgKwh.toFixed(1) : "--"} kWh = ${avgPct != null ? avgPct : "--"}%</span></div>`;
+      html += `<div style="font-size:12px;color:#8a96a3;margin-top:4px">${avgLabel}</div>`;
+    }
+    html += `</div>`;
+    return html;
+  }
+
+  // --- Section 4: Your crops ---
+  function renderSecCrops(d, L){
+    const crops = d.crops || {};
+    const ghOn  = d.greenhouse_plastic_on;
+    const weekPct = d.week_avg_pct != null ? d.week_avg_pct : 0;
+    const tempC  = d.soil_temp_c;
+    const moistPct = d.soil_moisture_pct;
+
+    const CROP_META = {
+      tomatoes: { ico: "\uD83C\uDF45", thresh: ghOn ? 35 : 50 },
+      cucumbers:{ ico: "\uD83E\uDD52", thresh: 42 },
+      peppers:  { ico: "\uD83C\uDF36\uFE0F", thresh: 50 },
+      lettuce:  { ico: "\uD83E\uDD6C", thresh: 33 },
+    };
+
+    let html = `<div class="sun-section"><h3>${L.sec4}</h3>`;
+
+    const planted  = Object.keys(crops).filter(k => crops[k]);
+    const notPlanted = Object.keys(crops).filter(k => !crops[k]);
+
+    if(planted.length === 0){
+      html += `<div style="color:#5e6a78;font-size:13px;text-align:center;padding:8px 0">No crops planted yet</div>`;
+    } else {
+      planted.forEach(c => {
+        const meta  = CROP_META[c] || { ico: "\uD83C\uDF31", thresh: 50 };
+        const t = meta.thresh;
+        let status, pillCls;
+        if(weekPct >= t)               { status = L.happy;      pillCls = "happy"; }
+        else if(weekPct >= t * 0.7)    { status = L.borderline; pillCls = "border"; }
+        else                            { status = L.dim;        pillCls = "dim"; }
+
+        const cropName = L[c] || c;
+        const ghTag = (c === "tomatoes" && ghOn) ? `<span class="gh-tag">\uD83C\uDFE0 ${L.greenhouse}</span>` : "";
+
+        // Verdict
+        let verdict;
+        if(pillCls === "happy")        verdict = L.verdict_growing;
+        else if(pillCls === "border")  verdict = L.verdict_slow;
+        else                           verdict = L.verdict_dim;
+
+        // Per-crop soil data from soil_zones (CH1=Tomato, CH2=Cucumber; v1.3.1: shared temp probe)
+        const zones = d.soil_zones || [];
+        let zoneData = null;
+        if (c === "tomatoes")  zoneData = zones.find(z => z.name === "Tomato");
+        if (c === "cucumbers") zoneData = zones.find(z => z.name === "Cucumber");
+        const zMoist = zoneData && zoneData.moisture != null ? zoneData.moisture.toFixed(1) + "%" : (moistPct != null ? moistPct.toFixed(1) + "%" : "--");
+        const zTemp  = zoneData && zoneData.temp_c   != null ? zoneData.temp_c.toFixed(1) + "°C"  : (tempC != null ? tempC.toFixed(1) + "°C" : "--");
+        // v1.3.1: per-crop moisture status w/ ideal band + bilingual message
+        let zStatusLine = "";
+        if (zoneData && zoneData.status) {
+          const msg = _sunLang === "ru" ? (zoneData.status_msg_ru || zoneData.status_msg || "") : (zoneData.status_msg || "");
+          const statusColor = {
+            water: "#ff6b3d", low: "#ffb96b", ok: "#6bd16b", high: "#6bb4ff", wet: "#ff6b3d"
+          }[zoneData.status] || "#5e6a78";
+          const idealLabel = _sunLang === "ru" ? "идеал" : "ideal";
+          const varietyLabel = _sunLang === "ru"
+            ? (c === "tomatoes" ? "турецкие помидоры" : "украинские пупырчатые огурцы")
+            : (c === "tomatoes" ? "Turkish heirloom" : "Ukrainian пупырчатые");
+          zStatusLine = `<div class="crop-status-line" style="font-size:11px;color:${statusColor};margin-top:6px;font-weight:600">${msg}</div>` +
+                        `<div class="crop-variety-line" style="font-size:10px;color:#7a8794;margin-top:2px">${varietyLabel} · ${idealLabel} ${zoneData.ideal_min}–${zoneData.ideal_max}%</div>`;
+        }
+
+        const sunVal = d.week_avg_pct != null ? d.week_avg_pct + "% / " + t + "% target" : "--";
+
+        html += `<div class="crop-card">`;
+        html += `<div class="head">`;
+        html += `<div class="ico">${meta.ico}</div>`;
+        html += `<div class="name">${cropName}${ghTag}</div>`;
+        html += `<div class="pill ${pillCls}">${status}</div>`;
+        html += `</div>`;
+        html += `<div class="cstats">`;
+        html += `<div class="cstat"><div class="lab">${L.sun_stat}</div><div class="val" style="font-size:11px">${sunVal}</div></div>`;
+        html += `<div class="cstat"><div class="lab">${L.soil_temp}</div><div class="val">${zTemp}</div></div>`;
+        html += `<div class="cstat"><div class="lab">${L.soil_moist}</div><div class="val">${zMoist}</div></div>`;
+        html += `</div>`;
+        html += zStatusLine;
+        html += `<div class="verdict">${verdict}</div>`;
+        html += `</div>`;
+      });
+    }
+
+    if(notPlanted.length > 0){
+      const names = notPlanted.map(c => L[c] || c).join(", ");
+      html += `<div class="coming-soon">${L.coming_soon}: ${names}</div>`;
+    }
+
+    html += `</div>`;
+    return html;
+  }
+
+  // --- Close sun modal on Escape ---
+  document.addEventListener("keydown", e => {
+    if(e.key === "Escape") { closeSunModal(); }
+  });
+
+  // ===== v1.3.0: Wind + Rain + Soil tile rendering from sun_summary =====
+  function renderWindRainSoil(data) {
+    if (!data) return;
+    const L = SLANG[_sunLang];
+
+    // Soil tile — dual zone (v1.3.1: shared temp probe, per-crop status badges)
+    const zones = data.soil_zones || [];
+    const tom = zones.find(z => z.name === "Tomato") || {};
+    const cuc = zones.find(z => z.name === "Cucumber") || {};
+    if ($("moist-tomato")) $("moist-tomato").textContent = tom.moisture != null ? tom.moisture.toFixed(0) : "--";
+    if ($("temp-tomato"))  $("temp-tomato").textContent  = tom.temp_c   != null ? tom.temp_c.toFixed(1)   : "--";
+    if ($("moist-cuc"))    $("moist-cuc").textContent    = cuc.moisture != null ? cuc.moisture.toFixed(0) : "--";
+    if ($("temp-cuc"))     $("temp-cuc").textContent     = cuc.temp_c   != null ? cuc.temp_c.toFixed(1)   : "--";
+    function _statusBadge(status){
+      // returns {emoji, color} for moisture status
+      switch(status){
+        case "water": return {emoji:"💧", color:"#ff6b3d", label:"WATER"};
+        case "low":   return {emoji:"⚠️", color:"#ffb96b", label:"DRY"};
+        case "ok":    return {emoji:"✓",  color:"#6bd16b", label:"OK"};
+        case "high":  return {emoji:"💦", color:"#6bb4ff", label:"DAMP"};
+        case "wet":   return {emoji:"⚠️", color:"#ff6b3d", label:"WET"};
+        default:      return {emoji:"",   color:"#5e6a78", label:""};
+      }
+    }
+    if ($("badge-tomato")){
+      const b = _statusBadge(tom.status);
+      $("badge-tomato").innerHTML = b.label ? `<span style="color:${b.color};font-size:11px;font-weight:600">${b.emoji} ${b.label}</span>` : "";
+    }
+    if ($("badge-cuc")){
+      const b = _statusBadge(cuc.status);
+      $("badge-cuc").innerHTML = b.label ? `<span style="color:${b.color};font-size:11px;font-weight:600">${b.emoji} ${b.label}</span>` : "";
+    }
+
+    // Wind tile
+    const wind = data.wind || {};
+    const spd  = wind.speed_kmh != null ? wind.speed_kmh.toFixed(1) + " km/h" : "--";
+    const gust = wind.gust_kmh  != null ? "Gust " + wind.gust_kmh.toFixed(1) + " km/h" : "Gust —";
+    if ($("wind-speed")) $("wind-speed").textContent = spd;
+    if ($("wind-dir"))   $("wind-dir").textContent   = wind.direction || "—";
+    if ($("wind-gust"))  $("wind-gust").textContent  = gust;
+    const alertBanner = $("wind-alert-banner");
+    if (alertBanner) {
+      if (wind.alert) {
+        alertBanner.style.display = "block";
+        alertBanner.textContent = _sunLang === "ru"
+          ? (wind.alert_msg_ru || L.gusty_winds)
+          : (wind.alert_msg    || L.gusty_winds);
+      } else {
+        alertBanner.style.display = "none";
+      }
+    }
+
+    // Rain tile
+    const rain = data.rain || {};
+    if ($("rain-today"))      $("rain-today").textContent     = rain.today_mm  != null ? rain.today_mm.toFixed(1) : "--";
+    if ($("rain-today-lbl"))  $("rain-today-lbl").textContent = "today mm";
+    if ($("rain-week"))       $("rain-week").textContent      = "Week " + (rain.week_mm   != null ? rain.week_mm.toFixed(1)   + " mm" : "—");
+    if ($("rain-rate"))       $("rain-rate").textContent      = "Rate " + (rain.rate_mm_h != null ? rain.rate_mm_h.toFixed(1) + " mm/h" : "—");
+
+    // HP10 modal badge (UV + lux)
+    const uvEl = $("hp10-badge");
+    if (uvEl && data.uv) {
+      uvEl.textContent = "UV " + (data.uv.index || 0) + " · " + (data.uv.level || "");
+    }
+  }
+
+  // Hook renderWindRainSoil into the refreshSunTile pipeline.
+  // Wrap fetchSunSummary's caller (refreshSunTile) since duplicate
+  // function renderSunTile declarations break hoisting (v1.3.0 fix).
+  const _origRefreshSunTile = refreshSunTile;
+  refreshSunTile = async function(){
+    const d = await fetchSunSummary();
+    renderSunTile(d);
+    if (d) renderWindRainSoil(d);
+  };
+
+  // ===== HP10 Camera (garden.jpg) =====
+  let hp10LastLoaded = 0;
+  function loadHp10Snapshot() {
+    const img  = $("hp10-img");
+    const age  = $("hp10-age");
+    if (!img) return;
+    const t = Date.now();
+    img.onload  = () => { hp10LastLoaded = t; if (age) age.textContent = "just now"; };
+    img.onerror = () => { if (age) age.textContent = "offline"; };
+    img.src = "/garden/api/cam/garden.jpg?t=" + t;
+  }
+
+  function tickHp10Age() {
+    const age = $("hp10-age");
+    if (!age || !hp10LastLoaded) return;
+    const s = Math.floor((Date.now() - hp10LastLoaded) / 1000);
+    if (s < 60)  age.textContent = s + "s ago";
+    else         age.textContent = Math.floor(s / 60) + "m ago";
+  }
+
+  function openHp10Modal() {
+    const m = $("hp10-modal");
+    m.classList.add("open");
+    document.body.style.overflow = "hidden";
+    // Show full-res snapshot in modal
+    const t = Date.now();
+    const mimg = $("hp10-modal-img");
+    if (mimg) mimg.src = "/garden/api/cam/garden.jpg?t=" + t;
+    // Update timelapse button label based on lang
+    const L = SLANG[_sunLang];
+    const tlLabel = $("hp10-tl-label");
+    if (tlLabel) tlLabel.textContent = L.todays_timelapse || "Today's timelapse";
+    // Reset timelapse section
+    const wrap = $("hp10-timelapse-wrap");
+    if (wrap) { wrap.style.display = "none"; }
+    const vid = $("hp10-video");
+    if (vid) { vid.src = ""; }
+  }
+
+  function closeHp10Modal() {
+    $("hp10-modal").classList.remove("open");
+    document.body.style.overflow = "";
+    const vid = $("hp10-video");
+    if (vid) { vid.pause(); vid.src = ""; }
+    const wrap = $("hp10-timelapse-wrap");
+    if (wrap) wrap.style.display = "none";
+  }
+
+  function loadTimelapse() {
+    const wrap = $("hp10-timelapse-wrap");
+    const vid  = $("hp10-video");
+    if (!wrap || !vid) return;
+    wrap.style.display = "block";
+    vid.src = "/garden/api/timelapse/today.mp4?t=" + Date.now();
+    vid.play().catch(() => {});
+  }
+
+  // Start HP10 cam auto-refresh
+  loadHp10Snapshot();
+  setInterval(loadHp10Snapshot, 30000);
+  setInterval(tickHp10Age, 1000);
+
+  // Escape closes HP10 modal too
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") { closeHp10Modal(); closeSunModal(); }
+  });
+
+  // --- Kick off initial sun tile render ---
+  refreshSunTile();
+  // Re-render tile every 60 s (aligned with load() but independent)
+  setInterval(refreshSunTile, 60000);
 </script>
 </body>
 </html>
