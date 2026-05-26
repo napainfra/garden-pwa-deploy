@@ -10,7 +10,7 @@
 <link rel="manifest" href="/garden/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/garden/static/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/garden/static/icon-192.png">
-<title>Masha's Garden · v1.7.4</title>
+<title>Masha's Garden · v1.7.7</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
   html,body{height:100%;width:100%}
@@ -1500,23 +1500,14 @@
   body[data-bg-skin="pencil"][data-cond="windy"] .wcv-drift,
   body[data-bg-skin="pencil"][data-cond="windy-variant"] .wcv-drift{opacity:.6}
 
-  /* ===== INK BACKDROP v1.7.4 — ALL MOTION IN INK MEDIUM ===== */
+  /* ===== INK BACKDROP v1.7.7 — ALL MOTION IN INK MEDIUM ===== */
   /* Sun: PNG hidden; ray-ring renders the full ink sunburst (center disc + radiating lines) */
   body[data-bg-skin="ink"] .wcv-sun{
     display:none !important;
   }
   /* Ink ray-ring = full SVG sunburst (24 long + 24 short radiating lines + center stroked circle with face) */
-  body[data-bg-skin="ink"] .wcv-rays-ring{
-    width:70vw !important; max-width:480px !important;
-    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600'><g stroke='%231a1a1a' opacity='0.9' fill='none'><line x1='390.0' y1='300.0' x2='560.0' y2='300.0' stroke-width='2.5'/><line x1='386.9' y1='323.3' x2='512.5' y2='356.9' stroke-width='2.5'/><line x1='377.9' y1='345.0' x2='525.2' y2='430.0' stroke-width='2.5'/><line x1='363.6' y1='363.6' x2='455.6' y2='455.6' stroke-width='2.5'/><line x1='345.0' y1='377.9' x2='430.0' y2='525.2' stroke-width='2.5'/><line x1='323.3' y1='386.9' x2='356.9' y2='512.5' stroke-width='2.5'/><line x1='300.0' y1='390.0' x2='300.0' y2='560.0' stroke-width='2.5'/><line x1='276.7' y1='386.9' x2='243.1' y2='512.5' stroke-width='2.5'/><line x1='255.0' y1='377.9' x2='170.0' y2='525.2' stroke-width='2.5'/><line x1='236.4' y1='363.6' x2='144.4' y2='455.6' stroke-width='2.5'/><line x1='222.1' y1='345.0' x2='74.8' y2='430.0' stroke-width='2.5'/><line x1='213.1' y1='323.3' x2='87.5' y2='356.9' stroke-width='2.5'/><line x1='210.0' y1='300.0' x2='40.0' y2='300.0' stroke-width='2.5'/><line x1='213.1' y1='276.7' x2='87.5' y2='243.1' stroke-width='2.5'/><line x1='222.1' y1='255.0' x2='74.8' y2='170.0' stroke-width='2.5'/><line x1='236.4' y1='236.4' x2='144.4' y2='144.4' stroke-width='2.5'/><line x1='255.0' y1='222.1' x2='170.0' y2='74.8' stroke-width='2.5'/><line x1='276.7' y1='213.1' x2='243.1' y2='87.5' stroke-width='2.5'/><line x1='300.0' y1='210.0' x2='300.0' y2='40.0' stroke-width='2.5'/><line x1='323.3' y1='213.1' x2='356.9' y2='87.5' stroke-width='2.5'/><line x1='345.0' y1='222.1' x2='430.0' y2='74.8' stroke-width='2.5'/><line x1='363.6' y1='236.4' x2='455.6' y2='144.4' stroke-width='2.5'/><line x1='377.9' y1='255.0' x2='525.2' y2='170.0' stroke-width='2.5'/><line x1='386.9' y1='276.7' x2='512.5' y2='243.1' stroke-width='2.5'/><line x1='394.2' y1='312.4' x2='468.5' y2='322.2' stroke-width='1.4'/><line x1='387.8' y1='336.4' x2='457.1' y2='365.1' stroke-width='1.4'/><line x1='375.4' y1='357.8' x2='434.9' y2='403.5' stroke-width='1.4'/><line x1='357.8' y1='375.4' x2='403.5' y2='434.9' stroke-width='1.4'/><line x1='336.4' y1='387.8' x2='365.1' y2='457.1' stroke-width='1.4'/><line x1='312.4' y1='394.2' x2='322.2' y2='468.5' stroke-width='1.4'/><line x1='287.6' y1='394.2' x2='277.8' y2='468.5' stroke-width='1.4'/><line x1='263.6' y1='387.8' x2='234.9' y2='457.1' stroke-width='1.4'/><line x1='242.2' y1='375.4' x2='196.5' y2='434.9' stroke-width='1.4'/><line x1='224.6' y1='357.8' x2='165.1' y2='403.5' stroke-width='1.4'/><line x1='212.2' y1='336.4' x2='142.9' y2='365.1' stroke-width='1.4'/><line x1='205.8' y1='312.4' x2='131.5' y2='322.2' stroke-width='1.4'/><line x1='205.8' y1='287.6' x2='131.5' y2='277.8' stroke-width='1.4'/><line x1='212.2' y1='263.6' x2='142.9' y2='234.9' stroke-width='1.4'/><line x1='224.6' y1='242.2' x2='165.1' y2='196.5' stroke-width='1.4'/><line x1='242.2' y1='224.6' x2='196.5' y2='165.1' stroke-width='1.4'/><line x1='263.6' y1='212.2' x2='234.9' y2='142.9' stroke-width='1.4'/><line x1='287.6' y1='205.8' x2='277.8' y2='131.5' stroke-width='1.4'/><line x1='312.4' y1='205.8' x2='322.2' y2='131.5' stroke-width='1.4'/><line x1='336.4' y1='212.2' x2='365.1' y2='142.9' stroke-width='1.4'/><line x1='357.8' y1='224.6' x2='403.5' y2='165.1' stroke-width='1.4'/><line x1='375.4' y1='242.2' x2='434.9' y2='196.5' stroke-width='1.4'/><line x1='387.8' y1='263.6' x2='457.1' y2='234.9' stroke-width='1.4'/><line x1='394.2' y1='287.6' x2='468.5' y2='277.8' stroke-width='1.4'/><circle cx='300' cy='300' r='75' fill='none' stroke-width='2.5'/><circle cx='300' cy='300' r='40' fill='none' stroke-width='0.8' opacity='0.5'/><circle cx='300' cy='300' r='55' fill='none' stroke-width='0.8' opacity='0.5'/><circle cx='300' cy='300' r='65' fill='none' stroke-width='0.8' opacity='0.5'/><circle cx='280' cy='285' r='3' fill='%231a1a1a'/><circle cx='320' cy='285' r='3' fill='%231a1a1a'/><path d='M275 315 Q300 330 325 315' fill='none' stroke-width='2'/></g></svg>") center/contain no-repeat !important;
-    mix-blend-mode:multiply !important;
-    -webkit-mask:none !important; mask:none !important;
-    filter:none !important;
-  }
-  body[data-bg-skin="ink"][data-daypart="night"] .wcv-rays-ring{
-    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600'><g stroke='%23f5f1e6' opacity='0.85' fill='none'><line x1='390.0' y1='300.0' x2='560.0' y2='300.0' stroke-width='2.5'/><line x1='386.9' y1='323.3' x2='512.5' y2='356.9' stroke-width='2.5'/><line x1='377.9' y1='345.0' x2='525.2' y2='430.0' stroke-width='2.5'/><line x1='363.6' y1='363.6' x2='455.6' y2='455.6' stroke-width='2.5'/><line x1='345.0' y1='377.9' x2='430.0' y2='525.2' stroke-width='2.5'/><line x1='323.3' y1='386.9' x2='356.9' y2='512.5' stroke-width='2.5'/><line x1='300.0' y1='390.0' x2='300.0' y2='560.0' stroke-width='2.5'/><line x1='276.7' y1='386.9' x2='243.1' y2='512.5' stroke-width='2.5'/><line x1='255.0' y1='377.9' x2='170.0' y2='525.2' stroke-width='2.5'/><line x1='236.4' y1='363.6' x2='144.4' y2='455.6' stroke-width='2.5'/><line x1='222.1' y1='345.0' x2='74.8' y2='430.0' stroke-width='2.5'/><line x1='213.1' y1='323.3' x2='87.5' y2='356.9' stroke-width='2.5'/><line x1='210.0' y1='300.0' x2='40.0' y2='300.0' stroke-width='2.5'/><line x1='213.1' y1='276.7' x2='87.5' y2='243.1' stroke-width='2.5'/><line x1='222.1' y1='255.0' x2='74.8' y2='170.0' stroke-width='2.5'/><line x1='236.4' y1='236.4' x2='144.4' y2='144.4' stroke-width='2.5'/><line x1='255.0' y1='222.1' x2='170.0' y2='74.8' stroke-width='2.5'/><line x1='276.7' y1='213.1' x2='243.1' y2='87.5' stroke-width='2.5'/><line x1='300.0' y1='210.0' x2='300.0' y2='40.0' stroke-width='2.5'/><line x1='323.3' y1='213.1' x2='356.9' y2='87.5' stroke-width='2.5'/><line x1='345.0' y1='222.1' x2='430.0' y2='74.8' stroke-width='2.5'/><line x1='363.6' y1='236.4' x2='455.6' y2='144.4' stroke-width='2.5'/><line x1='377.9' y1='255.0' x2='525.2' y2='170.0' stroke-width='2.5'/><line x1='386.9' y1='276.7' x2='512.5' y2='243.1' stroke-width='2.5'/><line x1='394.2' y1='312.4' x2='468.5' y2='322.2' stroke-width='1.4'/><line x1='387.8' y1='336.4' x2='457.1' y2='365.1' stroke-width='1.4'/><line x1='375.4' y1='357.8' x2='434.9' y2='403.5' stroke-width='1.4'/><line x1='357.8' y1='375.4' x2='403.5' y2='434.9' stroke-width='1.4'/><line x1='336.4' y1='387.8' x2='365.1' y2='457.1' stroke-width='1.4'/><line x1='312.4' y1='394.2' x2='322.2' y2='468.5' stroke-width='1.4'/><line x1='287.6' y1='394.2' x2='277.8' y2='468.5' stroke-width='1.4'/><line x1='263.6' y1='387.8' x2='234.9' y2='457.1' stroke-width='1.4'/><line x1='242.2' y1='375.4' x2='196.5' y2='434.9' stroke-width='1.4'/><line x1='224.6' y1='357.8' x2='165.1' y2='403.5' stroke-width='1.4'/><line x1='212.2' y1='336.4' x2='142.9' y2='365.1' stroke-width='1.4'/><line x1='205.8' y1='312.4' x2='131.5' y2='322.2' stroke-width='1.4'/><line x1='205.8' y1='287.6' x2='131.5' y2='277.8' stroke-width='1.4'/><line x1='212.2' y1='263.6' x2='142.9' y2='234.9' stroke-width='1.4'/><line x1='224.6' y1='242.2' x2='165.1' y2='196.5' stroke-width='1.4'/><line x1='242.2' y1='224.6' x2='196.5' y2='165.1' stroke-width='1.4'/><line x1='263.6' y1='212.2' x2='234.9' y2='142.9' stroke-width='1.4'/><line x1='287.6' y1='205.8' x2='277.8' y2='131.5' stroke-width='1.4'/><line x1='312.4' y1='205.8' x2='322.2' y2='131.5' stroke-width='1.4'/><line x1='336.4' y1='212.2' x2='365.1' y2='142.9' stroke-width='1.4'/><line x1='357.8' y1='224.6' x2='403.5' y2='165.1' stroke-width='1.4'/><line x1='375.4' y1='242.2' x2='434.9' y2='196.5' stroke-width='1.4'/><line x1='387.8' y1='263.6' x2='457.1' y2='234.9' stroke-width='1.4'/><line x1='394.2' y1='287.6' x2='468.5' y2='277.8' stroke-width='1.4'/><circle cx='300' cy='300' r='75' fill='none' stroke-width='2.5'/><circle cx='300' cy='300' r='40' fill='none' stroke-width='0.8' opacity='0.5'/><circle cx='300' cy='300' r='55' fill='none' stroke-width='0.8' opacity='0.5'/><circle cx='300' cy='300' r='65' fill='none' stroke-width='0.8' opacity='0.5'/><circle cx='280' cy='285' r='3' fill='%23f5f1e6'/><circle cx='320' cy='285' r='3' fill='%23f5f1e6'/><path d='M275 315 Q300 330 325 315' fill='none' stroke-width='2'/></g></svg>") center/contain no-repeat !important;
-    mix-blend-mode:screen !important;
-  }
+  body[data-bg-skin="ink"] .wcv-rays-ring{display:none !important}
+  body[data-bg-skin="ink"][data-daypart="night"] .wcv-rays-ring{display:none !important}
   /* Moon: SVG crescent with stipple shading, replaces the PNG */
   body[data-bg-skin="ink"] .wcv-moon{
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><g stroke='%231a1a1a' fill='none'><circle cx='100' cy='100' r='70' stroke-width='2.5'/><path d='M70 50 A 70 70 0 0 1 70 150 A 50 70 0 0 0 70 50 Z' fill='%231a1a1a' opacity='0.85'/><circle cx='85' cy='70' r='2' fill='%231a1a1a'/><circle cx='110' cy='80' r='1.5' fill='%231a1a1a'/><circle cx='125' cy='110' r='2' fill='%231a1a1a'/><circle cx='95' cy='130' r='1.5' fill='%231a1a1a'/><circle cx='115' cy='140' r='1.8' fill='%231a1a1a'/></g></svg>") !important;
@@ -1550,11 +1541,13 @@
   }
   /* Wind: calligraphy S-curve SVG (not horizontal gradient bar) */
   body[data-bg-skin="ink"] .wcv-streak{
-    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'><path d='M0 18 Q40 8 80 16 T160 12 Q180 10 200 15' stroke='%231a1a1a' stroke-width='1.4' fill='none' stroke-linecap='round' opacity='0.75'/></svg>") center/100% 100% no-repeat !important;
-    height:14px !important; filter:none !important; opacity:0.75 !important;
+    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'><path d='M0 18 Q40 8 80 16 T160 12 Q180 10 200 15' stroke='%231a1a1a' stroke-width='2.2' fill='none' stroke-linecap='round' opacity='0.95'/></svg>") center/100% 100% no-repeat !important;
+    height:18px !important; filter:none !important; opacity:1 !important;
+    mix-blend-mode:multiply !important;
   }
   body[data-bg-skin="ink"][data-daypart="night"] .wcv-streak{
-    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'><path d='M0 18 Q40 8 80 16 T160 12 Q180 10 200 15' stroke='%23f5f1e6' stroke-width='1.4' fill='none' stroke-linecap='round' opacity='0.8'/></svg>") center/100% 100% no-repeat !important;
+    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'><path d='M0 18 Q40 8 80 16 T160 12 Q180 10 200 15' stroke='%23f5f1e6' stroke-width='2.2' fill='none' stroke-linecap='round' opacity='0.95'/></svg>") center/100% 100% no-repeat !important;
+    mix-blend-mode:screen !important;
   }
   /* Ink stars: sparkle-in/hold/fade lifecycle, ink dots not glowing */
   body[data-bg-skin="ink"] .wcv-stars{ filter:none !important; }
@@ -2093,7 +2086,7 @@
 
   /* End of pencil skin block ============================================ */
   /* =====================================================================
-     INK SKIN v1.7.4 — pen-and-ink / scratchboard aesthetic
+     INK SKIN v1.7.7 — pen-and-ink / scratchboard aesthetic
      Strictly B/W. Light = black ink lines on warm off-white paper.
      Night    = INVERTED — white scratches on pitch-black.
      Per skin contract (home-assistant skill v2.4 rule 9): visual only.
@@ -2263,6 +2256,315 @@
     color: var(--ipv-ink) !important;
   }
   body[data-ui-skin="ink"] .soil-zone-row .z-name{ font-weight: 600; }
+  
+  /* v1.7.7: history modal — class-based so each skin can override consistently */
+  .hist-wrap{padding:0 4px}
+  .hist-srcs{font-size:11px;color:#8aa1c2;margin-bottom:14px;line-height:1.6}
+  .hist-head{display:grid;grid-template-columns:54px 1fr 1fr 1fr 1fr;gap:6px;
+    font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em;
+    padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .hist-head .r{text-align:right}
+  .hist-row{display:grid;grid-template-columns:54px 1fr 1fr 1fr 1fr;gap:6px;
+    font-size:13px;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,.04)}
+  .hist-row.is-today{background:rgba(99,179,237,.05);font-weight:600}
+  .hist-row .r{text-align:right}
+  .hist-row .hist-day{color:#aab8c6}
+  .hist-row.is-today .hist-day{color:#cfe2f7}
+  .hist-temp{color:#9bd8ad}
+  .hist-hum{color:#8db4d6}
+  .hist-solar{color:#ffd680;position:relative}
+  .hist-rain{color:#9ccff5;position:relative}
+  .hist-empty{color:#5e6a78}
+  .hist-bar-cell{position:relative;text-align:right}
+  .hist-bar{position:absolute;inset:0;border-radius:3px}
+  .hist-bar-solar{background:linear-gradient(to left, rgba(255,200,80,.18) var(--pct), transparent var(--pct))}
+  .hist-bar-rain{background:linear-gradient(to left, rgba(99,179,237,.22) var(--pct), transparent var(--pct))}
+  .hist-foot{margin-top:14px;padding:10px 12px;background:rgba(95,209,126,.06);
+    border-left:3px solid rgba(95,209,126,.4);border-radius:6px;
+    font-size:11px;color:#9bd8ad;line-height:1.5}
+
+  /* Ink overrides — flat ink palette, no fruit-salad colors */
+  body[data-ui-skin="ink"] .hist-srcs,
+  body[data-ui-skin="ink"] .hist-head,
+  body[data-ui-skin="ink"] .hist-head .r,
+  body[data-ui-skin="ink"] .hist-row .hist-day,
+  body[data-ui-skin="ink"] .hist-row.is-today .hist-day,
+  body[data-ui-skin="ink"] .hist-temp,
+  body[data-ui-skin="ink"] .hist-hum,
+  body[data-ui-skin="ink"] .hist-solar,
+  body[data-ui-skin="ink"] .hist-rain,
+  body[data-ui-skin="ink"] .hist-empty,
+  body[data-ui-skin="ink"] .hist-foot{
+    color: var(--ipv-ink) !important;
+  }
+  body[data-ui-skin="ink"] .hist-srcs,
+  body[data-ui-skin="ink"] .hist-head,
+  body[data-ui-skin="ink"] .hist-head .r,
+  body[data-ui-skin="ink"] .hist-row .hist-day,
+  body[data-ui-skin="ink"] .hist-empty{
+    color: var(--ipv-ink-soft) !important;
+  }
+  body[data-ui-skin="ink"] .hist-row{
+    border-bottom: 1px solid var(--ipv-border) !important;
+  }
+  body[data-ui-skin="ink"] .hist-head{
+    border-bottom: 1px solid var(--ipv-border) !important;
+  }
+  body[data-ui-skin="ink"] .hist-row.is-today{
+    background: transparent !important;
+    border-left: 2px solid var(--ipv-ink) !important;
+    padding-left: 6px;
+  }
+  body[data-ui-skin="ink"] .hist-bar-solar,
+  body[data-ui-skin="ink"] .hist-bar-rain{
+    background: linear-gradient(to left,
+      rgba(26,26,26,.18) var(--pct),
+      transparent var(--pct)) !important;
+  }
+  body[data-ui-skin="ink"] .hist-foot{
+    background: transparent !important;
+    border-left: 2px solid var(--ipv-ink) !important;
+    color: var(--ipv-ink-soft) !important;
+  }
+  /* Night ink — flip to cream */
+  body[data-ui-skin="ink"][data-daypart="night"] .hist-srcs,
+  body[data-ui-skin="ink"][data-daypart="night"] .hist-head,
+  body[data-ui-skin="ink"][data-daypart="night"] .hist-head .r,
+  body[data-ui-skin="ink"][data-daypart="night"] .hist-row,
+  body[data-ui-skin="ink"][data-daypart="night"] .hist-row .hist-day,
+  body[data-ui-skin="ink"][data-daypart="night"] .hist-row.is-today .hist-day,
+  body[data-ui-skin="ink"][data-daypart="night"] .hist-temp,
+  body[data-ui-skin="ink"][data-daypart="night"] .hist-hum,
+  body[data-ui-skin="ink"][data-daypart="night"] .hist-solar,
+  body[data-ui-skin="ink"][data-daypart="night"] .hist-rain,
+  body[data-ui-skin="ink"][data-daypart="night"] .hist-empty,
+  body[data-ui-skin="ink"][data-daypart="night"] .hist-foot{
+    color: #f5f1e6 !important;
+  }
+  body[data-ui-skin="ink"][data-daypart="night"] .hist-bar-solar,
+  body[data-ui-skin="ink"][data-daypart="night"] .hist-bar-rain{
+    background: linear-gradient(to left,
+      rgba(245,241,230,.20) var(--pct),
+      transparent var(--pct)) !important;
+  }
+  body[data-ui-skin="ink"][data-daypart="night"] .hist-row.is-today,
+  body[data-ui-skin="ink"][data-daypart="night"] .hist-foot{
+    border-left: 2px solid #f5f1e6 !important;
+  }
+
+  
+  /* v1.7.7: wr-modal (wind/rain) reuses .hist-* + adds wrh-* tile/row classes */
+  .wrh-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .wrh-tile{padding:14px;border-radius:10px;border:1px solid rgba(99,179,237,.18);
+    background:rgba(99,179,237,.08)}
+  .wrh-tile-wind{border-color:rgba(255,180,80,.18);background:rgba(255,180,80,.08)}
+  .wrh-tile-lbl{font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em}
+  .wrh-tile-val{font-size:24px;font-weight:600;margin-top:4px}
+  .wrh-tile-val-sm{font-size:18px}
+  .wrh-tile-unit{font-size:13px;color:#8aa1c2;font-weight:400}
+  .wrh-tile-sub{font-size:12px;color:#8aa1c2;margin-top:2px}
+  .wrh-head{display:grid;gap:6px;font-size:10px;color:#8aa1c2;text-transform:uppercase;
+    letter-spacing:.06em;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .wrh-head .r{text-align:right}
+  .wrh-row{display:grid;gap:6px;font-size:13px;padding:10px 4px;
+    border-bottom:1px solid rgba(255,255,255,.04)}
+  .wrh-row.is-today{background:rgba(255,180,80,.05);font-weight:600}
+  .wrh-row .r{text-align:right}
+  .wrh-row .hist-day{color:#aab8c6}
+  .wrh-row.is-today .hist-day{color:#ffe6b3}
+  .wrh-num{color:#aab8c6}
+  .wrh-pct{color:#8aa1c2}
+  .hist-bar-wind{background:linear-gradient(to left, rgba(255,180,80,.22) var(--pct), transparent var(--pct))}
+
+  /* Ink overrides for wr-modal — flat ink palette */
+  body[data-ui-skin="ink"] .wrh-tile,
+  body[data-ui-skin="ink"] .wrh-tile-wind{
+    background: transparent !important;
+    border: 1px solid var(--ipv-border) !important;
+  }
+  body[data-ui-skin="ink"] .wrh-tile-lbl,
+  body[data-ui-skin="ink"] .wrh-tile-unit,
+  body[data-ui-skin="ink"] .wrh-tile-sub,
+  body[data-ui-skin="ink"] .wrh-tile-val,
+  body[data-ui-skin="ink"] .wrh-head,
+  body[data-ui-skin="ink"] .wrh-head .r,
+  body[data-ui-skin="ink"] .wrh-row .hist-day,
+  body[data-ui-skin="ink"] .wrh-row.is-today .hist-day,
+  body[data-ui-skin="ink"] .wrh-num,
+  body[data-ui-skin="ink"] .wrh-pct{
+    color: var(--ipv-ink) !important;
+  }
+  body[data-ui-skin="ink"] .wrh-tile-lbl,
+  body[data-ui-skin="ink"] .wrh-tile-unit,
+  body[data-ui-skin="ink"] .wrh-tile-sub,
+  body[data-ui-skin="ink"] .wrh-head,
+  body[data-ui-skin="ink"] .wrh-head .r,
+  body[data-ui-skin="ink"] .wrh-row .hist-day,
+  body[data-ui-skin="ink"] .wrh-num,
+  body[data-ui-skin="ink"] .wrh-pct{
+    color: var(--ipv-ink-soft) !important;
+  }
+  body[data-ui-skin="ink"] .wrh-row{
+    border-bottom: 1px solid var(--ipv-border) !important;
+  }
+  body[data-ui-skin="ink"] .wrh-head{
+    border-bottom: 1px solid var(--ipv-border) !important;
+  }
+  body[data-ui-skin="ink"] .wrh-row.is-today{
+    background: transparent !important;
+    border-left: 2px solid var(--ipv-ink) !important;
+    padding-left: 6px;
+  }
+  body[data-ui-skin="ink"] .hist-bar-wind{
+    background: linear-gradient(to left,
+      rgba(26,26,26,.18) var(--pct),
+      transparent var(--pct)) !important;
+  }
+  /* Night ink — cream */
+  body[data-ui-skin="ink"][data-daypart="night"] .wrh-tile,
+  body[data-ui-skin="ink"][data-daypart="night"] .wrh-tile-wind{
+    border-color: rgba(245,241,230,.30) !important;
+  }
+  body[data-ui-skin="ink"][data-daypart="night"] .wrh-tile-lbl,
+  body[data-ui-skin="ink"][data-daypart="night"] .wrh-tile-unit,
+  body[data-ui-skin="ink"][data-daypart="night"] .wrh-tile-sub,
+  body[data-ui-skin="ink"][data-daypart="night"] .wrh-tile-val,
+  body[data-ui-skin="ink"][data-daypart="night"] .wrh-head,
+  body[data-ui-skin="ink"][data-daypart="night"] .wrh-head .r,
+  body[data-ui-skin="ink"][data-daypart="night"] .wrh-row,
+  body[data-ui-skin="ink"][data-daypart="night"] .wrh-row .hist-day,
+  body[data-ui-skin="ink"][data-daypart="night"] .wrh-row.is-today .hist-day,
+  body[data-ui-skin="ink"][data-daypart="night"] .wrh-num,
+  body[data-ui-skin="ink"][data-daypart="night"] .wrh-pct{
+    color: #f5f1e6 !important;
+  }
+  body[data-ui-skin="ink"][data-daypart="night"] .hist-bar-wind{
+    background: linear-gradient(to left,
+      rgba(245,241,230,.20) var(--pct),
+      transparent var(--pct)) !important;
+  }
+  body[data-ui-skin="ink"][data-daypart="night"] .wrh-row.is-today{
+    border-left: 2px solid #f5f1e6 !important;
+  }
+
+  /* v1.7.7: comprehensive ink modal consistency — every text descendant must be ink, not inherited */
+  body[data-ui-skin="ink"] .now-card .big,
+  body[data-ui-skin="ink"] .now-real .big,
+  body[data-ui-skin="ink"] .now-fc .big{
+    color: var(--ipv-ink) !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+  }
+  body[data-ui-skin="ink"] .now-card .lbl,
+  body[data-ui-skin="ink"] .now-real .lbl,
+  body[data-ui-skin="ink"] .now-fc .lbl{
+    color: var(--ipv-ink-soft) !important;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+  body[data-ui-skin="ink"] .now-card .meta,
+  body[data-ui-skin="ink"] .now-card .meta .rain-off,
+  body[data-ui-skin="ink"] .now-card .meta .rain-on{
+    color: var(--ipv-ink-soft) !important;
+  }
+  body[data-ui-skin="ink"] .now-card .meta .rain-on{ font-weight: 600 !important; }
+  body[data-ui-skin="ink"] .now-card .tap-hint{ color: var(--ipv-ink-soft) !important; }
+  /* Forecast row */
+  body[data-ui-skin="ink"] .forecast .fc,
+  body[data-ui-skin="ink"] .forecast .fc *,
+  body[data-ui-skin="ink"] .forecast .fc .day,
+  body[data-ui-skin="ink"] .forecast .fc .hilo,
+  body[data-ui-skin="ink"] .forecast .fc .rain{
+    color: var(--ipv-ink) !important;
+  }
+  body[data-ui-skin="ink"] .forecast .fc .day{
+    color: var(--ipv-ink-soft) !important;
+    font-weight: 500;
+  }
+  /* Hydrawise zones: kill default green/blue, all ink */
+  body[data-ui-skin="ink"] .zones,
+  body[data-ui-skin="ink"] .zones *,
+  body[data-ui-skin="ink"] .zone,
+  body[data-ui-skin="ink"] .zone .nm,
+  body[data-ui-skin="ink"] .zone .st,
+  body[data-ui-skin="ink"] .zone .st.scheduled,
+  body[data-ui-skin="ink"] .zone .st.suspended,
+  body[data-ui-skin="ink"] .zone .st.watering{
+    color: var(--ipv-ink) !important;
+  }
+  body[data-ui-skin="ink"] .zones .head,
+  body[data-ui-skin="ink"] .zone .st{
+    color: var(--ipv-ink-soft) !important;
+  }
+  body[data-ui-skin="ink"] .zone .st.watering{
+    color: var(--ipv-ink) !important;
+    font-weight: 700 !important;
+  }
+  /* Zone dots: ink-filled circles */
+  body[data-ui-skin="ink"] .zone .dot,
+  body[data-ui-skin="ink"] .zone .dot.scheduled,
+  body[data-ui-skin="ink"] .zone .dot.watering,
+  body[data-ui-skin="ink"] .zone .dot.suspended{
+    background: var(--ipv-ink) !important;
+    border: 1px solid var(--ipv-ink) !important;
+  }
+  body[data-ui-skin="ink"] .zone.veg{
+    background: transparent !important;
+    border: 1px dashed var(--ipv-border) !important;
+  }
+  body[data-ui-skin="ink"] .zone{
+    border-bottom-color: var(--ipv-border) !important;
+  }
+  /* 24h chart lines */
+  body[data-ui-skin="ink"] .h24 .head .ttl,
+  body[data-ui-skin="ink"] .h24 .head .sub{ color: var(--ipv-ink-soft) !important; }
+  body[data-ui-skin="ink"] .h24 .line .lab{ color: var(--ipv-ink-soft) !important; }
+  body[data-ui-skin="ink"] .h24 .line .val,
+  body[data-ui-skin="ink"] .h24 .line .val.up,
+  body[data-ui-skin="ink"] .h24 .line .val.down{
+    color: var(--ipv-ink) !important;
+    font-weight: 700 !important;
+  }
+  body[data-ui-skin="ink"] .h24 .line{
+    border-top-color: var(--ipv-border) !important;
+  }
+  /* Night variant — flip to cream */
+  body[data-ui-skin="ink"][data-daypart="night"] .now-card .big,
+  body[data-ui-skin="ink"][data-daypart="night"] .now-card .lbl,
+  body[data-ui-skin="ink"][data-daypart="night"] .now-card .meta,
+  body[data-ui-skin="ink"][data-daypart="night"] .now-card .meta .rain-on,
+  body[data-ui-skin="ink"][data-daypart="night"] .now-card .meta .rain-off,
+  body[data-ui-skin="ink"][data-daypart="night"] .now-card .tap-hint,
+  body[data-ui-skin="ink"][data-daypart="night"] .forecast .fc,
+  body[data-ui-skin="ink"][data-daypart="night"] .forecast .fc *,
+  body[data-ui-skin="ink"][data-daypart="night"] .zones,
+  body[data-ui-skin="ink"][data-daypart="night"] .zones *,
+  body[data-ui-skin="ink"][data-daypart="night"] .zone,
+  body[data-ui-skin="ink"][data-daypart="night"] .zone *,
+  body[data-ui-skin="ink"][data-daypart="night"] .h24,
+  body[data-ui-skin="ink"][data-daypart="night"] .h24 *{
+    color: #f5f1e6 !important;
+  }
+  body[data-ui-skin="ink"][data-daypart="night"] .now-card .lbl,
+  body[data-ui-skin="ink"][data-daypart="night"] .now-card .meta,
+  body[data-ui-skin="ink"][data-daypart="night"] .now-card .meta .rain-off,
+  body[data-ui-skin="ink"][data-daypart="night"] .now-card .tap-hint,
+  body[data-ui-skin="ink"][data-daypart="night"] .zones .head,
+  body[data-ui-skin="ink"][data-daypart="night"] .zone .st,
+  body[data-ui-skin="ink"][data-daypart="night"] .forecast .fc .day,
+  body[data-ui-skin="ink"][data-daypart="night"] .h24 .head .ttl,
+  body[data-ui-skin="ink"][data-daypart="night"] .h24 .head .sub,
+  body[data-ui-skin="ink"][data-daypart="night"] .h24 .line .lab{
+    color: rgba(245,241,230,0.65) !important;
+  }
+  body[data-ui-skin="ink"][data-daypart="night"] .zone .dot,
+  body[data-ui-skin="ink"][data-daypart="night"] .zone .dot.scheduled,
+  body[data-ui-skin="ink"][data-daypart="night"] .zone .dot.watering,
+  body[data-ui-skin="ink"][data-daypart="night"] .zone .dot.suspended{
+    background: #f5f1e6 !important;
+    border: 1px solid #f5f1e6 !important;
+  }
+
 
   /* Pills — outlined only, no fills, status indicated by border accent */
   body[data-ui-skin="ink"] .pill.ok,
@@ -2422,7 +2724,7 @@
 
 
   /* =========================================================================
-     v1.7.4 — FROST LAYER (universal motion)
+     v1.7.7 — FROST LAYER (universal motion)
      Trigger: temp_c <= 0  AND  rain_rate_mm_h == 0
      Style:   edge crystals on viewport corners + frame edges
      Skin-aware via [data-bg-skin="..."] overrides below.
@@ -2482,7 +2784,7 @@
   }
 
   /* =========================================================================
-     v1.7.4 — INK MODAL BLOCK (Sun & Garden, Weather, Past-7-days, Rain, Cam, HP10, Skin-picker)
+     v1.7.7 — INK MODAL BLOCK (Sun & Garden, Weather, Past-7-days, Rain, Cam, HP10, Skin-picker)
      Mirrors the watercolor modal block at lines 1093+ but uses ink palette.
      ========================================================================= */
   body[data-ui-skin="ink"] .modal-bg{
@@ -2900,7 +3202,7 @@
     <div class="line"><span class="lab">Rain</span><span class="val" id="h24-rain">—</span></div>
   </div>
 
-  <div class="footer small">v1.7.4 · Pull down to refresh · <span id="updated">--</span></div>
+  <div class="footer small">v1.7.7 · Pull down to refresh · <span id="updated">--</span></div>
 </div>
 
 <!-- ===== zoom modal ===== -->
@@ -3435,7 +3737,7 @@
     if (isNight && (cond === "clear-night" || cond === "sunny" || cond === "partlycloudy")) {
       _startMeteors();
     }
-    // v1.7.4: ensure frost layer exists on realistic skin (innerHTML wiped it)
+    // v1.7.7: ensure frost layer exists on realistic skin (innerHTML wiped it)
     if (!wx.querySelector("#wcv-frost")) {
       wx.insertAdjacentHTML("beforeend", '<div class="wcv-frost" id="wcv-frost"></div>');
     }
@@ -3464,7 +3766,7 @@
       console.error("renderWx failed:", e);
       // Visible breadcrumb in footer so we can spot a backdrop fault without DevTools
       const f = document.querySelector(".footer");
-      if (f) f.textContent = "v1.7.4 \u00b7 bg err: " + (e.message || e);
+      if (f) f.textContent = "v1.7.7 \u00b7 bg err: " + (e.message || e);
     }
   }
   /* ============================================================
@@ -3635,7 +3937,7 @@
     const raysRing = document.createElement("div"); raysRing.className = "wcv-rays-ring"; raysRing.id="wcv-rays-ring";
     const moonHalo = document.createElement("div"); moonHalo.className = "wcv-moon-halo"; moonHalo.id="wcv-moon-halo";
     const wind  = document.createElement("div"); wind.className  = "wcv-wind";  wind.id="wcv-wind";
-    // v1.7.4 frost layer — edge crystals when cold AND not raining
+    // v1.7.7 frost layer — edge crystals when cold AND not raining
     const frost = document.createElement("div"); frost.className = "wcv-frost"; frost.id="wcv-frost";
     const drift = document.createElement("div"); drift.className = "wcv-drift"; drift.id="wcv-drift";
     drift.innerHTML = `
@@ -3703,7 +4005,7 @@
     el.classList.add("show");
   }
 
-  // v1.7.4 — frost activation. Edge crystal layer for cold+dry weather.
+  // v1.7.7 — frost activation. Edge crystal layer for cold+dry weather.
   function _wcvSetFrost(opts){
     const el = document.getElementById("wcv-frost");
     if(!el) return;
@@ -4013,7 +4315,7 @@
     document.body.dataset.season = _seasonNow();
   }
 
-  /* ----------- INK SKIN renderer (v1.7.4) ----------- */
+  /* ----------- INK SKIN renderer (v1.7.7) ----------- */
   function _ipvPickSky(cond, isNight, sunElev){
     const base = "/garden/static/sky/ink/";
     const partly = (cond === "partlycloudy");
@@ -4037,6 +4339,21 @@
       return base + "clearday-01.jpg";
     }
   }
+
+  // v1.7.7: JPG-baked sun anchor table. Only JPGs with a real baked-in sun get rays,
+  // and the rays MUST emanate from the sun's actual position in the JPG (not astronomical).
+  // sky-02 == sky-06 (identical): sun crown at ~(54%, 32%) of image, occluded on lower-right
+  // by cloud → visible crown arc is upper half (180°→360° in SVG math = top of disc).
+  const SKY_SUN_ANCHORS = {
+    "sky-02.jpg": {cx: 54, cy: 32},
+    "sky-06.jpg": {cx: 54, cy: 32}
+    // All other JPGs: no baked sun → no entry → ring stays hidden in ink skin.
+  };
+  function _inkSunAnchor(skyUrl){
+    if(!skyUrl) return null;
+    const file = skyUrl.split("/").pop();
+    return SKY_SUN_ANCHORS[file] || null;
+  }
   function renderWxInk(cond, daypart, opts){
     opts = opts || {};
     const wx = document.getElementById("wx");
@@ -4050,27 +4367,15 @@
     const isClearNight = (cond === "clear-night" || (cond === "sunny" && isNight));
     const sunElev = (opts.sun_elev != null) ? opts.sun_elev : null;
 
-    _wcvSetSky(_ipvPickSky(cond, isNight, sunElev));
+    const skyUrl = _ipvPickSky(cond, isNight, sunElev);
+    _wcvSetSky(skyUrl);
 
     const sunEl = document.getElementById("wcv-sun");
     const ringEl = document.getElementById("wcv-rays-ring");
-    const sunVisible = !isNight && (cond === "sunny" || cond === "partlycloudy" || cond === "exceptional");
-    if(sunVisible){
-      const pos = _wcvSunPosition();
-      if(pos.visible){
-        document.body.style.setProperty("--sun-x", pos.x);
-        document.body.style.setProperty("--sun-y", pos.y);
-        sunEl.classList.add("show");
-        ringEl.classList.add("show");
-        ringEl.style.setProperty("--rays-alpha", (cond === "sunny") ? "1" : "0.65");
-      } else {
-        sunEl.classList.remove("show");
-        ringEl.classList.remove("show");
-      }
-    } else {
-      sunEl.classList.remove("show");
-      ringEl.classList.remove("show");
-    }
+    // v1.7.7: NO SUN MOTION in ink. The JPG handles its own sun if any.
+    // Drawing rays in code can never align to the JPG-baked crown precisely; abandoned.
+    sunEl.classList.remove("show");
+    ringEl.classList.remove("show");
 
     const moonEl = document.getElementById("wcv-moon");
     const haloEl = document.getElementById("wcv-moon-halo");
@@ -4185,7 +4490,7 @@
     } catch(e){
       console.error("backdrop render failed:", e);
       const f = document.querySelector(".footer");
-      if(f) f.textContent = "v1.7.4 \u00b7 bg err: " + (e.message || e);
+      if(f) f.textContent = "v1.7.7 \u00b7 bg err: " + (e.message || e);
     }
   }
 
@@ -5434,7 +5739,7 @@
     if (hasVideo) {
       wrap.innerHTML = `<video controls playsinline id="hp10-video"></video>`;
       const newVid = $("hp10-video");
-      newVid.src = "/garden/api/timelapse/today.mp4?date=" + encodeURIComponent(iso) + "&t=" + Date.now();
+      newVid.src = "/garden/api/timelapse/today.mp4?date=" + encodeURIComponent(iso);
       newVid.play().catch(()=>{});
       return;
     }
@@ -5495,15 +5800,15 @@
       const days = j.days || [];
       const srcs = j.sources || {};
       // Build a compact daily table + tiny sparkline
-      let html = `<div style="padding:0 4px">`;
-      html += `<div style="font-size:11px;color:#8aa1c2;margin-bottom:14px;line-height:1.6">
+      let html = `<div class="hist-wrap">`;
+      html += `<div class="hist-srcs">
         🌡️ Temp + 💧 Humidity — ${srcs.temperature || "Ecowitt"}<br>
         ☀️ Solar daily — ${srcs.solar || "Enphase"}<br>
         🌧️ Rain — ${srcs.rain || "Ecowitt"}
       </div>`;
       // Header row
-      html += `<div style="display:grid;grid-template-columns:54px 1fr 1fr 1fr 1fr;gap:6px;font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.08)">
-        <div>Day</div><div style="text-align:right">Temp °C</div><div style="text-align:right">Hum %</div><div style="text-align:right">Solar kWh</div><div style="text-align:right">Rain mm</div>
+      html += `<div class="hist-head">
+        <div>Day</div><div class="r">Temp °C</div><div class="r">Hum %</div><div class="r">Solar kWh</div><div class="r">Rain mm</div>
       </div>`;
       // Find max solar for bar scaling
       const maxSolar = Math.max(1, ...days.map(d => d.solar_kwh || 0));
@@ -5511,29 +5816,29 @@
       days.forEach((d, idx) => {
         const isToday = idx === days.length - 1;
         const tempCell = (d.temp_min_c != null && d.temp_max_c != null)
-          ? `<span style="color:#9bd8ad">${d.temp_min_c.toFixed(0)}→${d.temp_max_c.toFixed(0)}</span>`
+          ? `<span class="hist-temp">${d.temp_min_c.toFixed(0)}→${d.temp_max_c.toFixed(0)}</span>`
           : "—";
         const humCell = (d.hum_min != null && d.hum_max != null)
-          ? `<span style="color:#8db4d6">${d.hum_min.toFixed(0)}→${d.hum_max.toFixed(0)}</span>`
+          ? `<span class="hist-hum">${d.hum_min.toFixed(0)}→${d.hum_max.toFixed(0)}</span>`
           : "—";
         const solarPct = d.solar_kwh != null ? Math.round((d.solar_kwh / maxSolar) * 100) : 0;
         const solarCell = d.solar_kwh != null
-          ? `<div style="position:relative;text-align:right"><div style="position:absolute;inset:0;background:linear-gradient(to left,rgba(255,200,80,.18) ${solarPct}%,transparent ${solarPct}%);border-radius:3px"></div><span style="position:relative;color:#ffd680">${d.solar_kwh.toFixed(1)}</span></div>`
+          ? `<div class="hist-bar-cell"><div class="hist-bar hist-bar-solar" style="--pct:${solarPct}%"></div><span class="hist-solar">${d.solar_kwh.toFixed(1)}</span></div>`
           : "—";
         const rainPct = d.rain_mm != null ? Math.round((d.rain_mm / maxRain) * 100) : 0;
         const rainCell = d.rain_mm != null && d.rain_mm > 0
-          ? `<div style="position:relative;text-align:right"><div style="position:absolute;inset:0;background:linear-gradient(to left,rgba(99,179,237,.22) ${rainPct}%,transparent ${rainPct}%);border-radius:3px"></div><span style="position:relative;color:#9ccff5">${d.rain_mm.toFixed(1)}</span></div>`
-          : `<span style="color:#5e6a78">—</span>`;
-        html += `<div style="display:grid;grid-template-columns:54px 1fr 1fr 1fr 1fr;gap:6px;font-size:13px;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,.04);${isToday ? "background:rgba(99,179,237,.05);font-weight:600" : ""}">
-          <div style="color:${isToday ? "#cfe2f7" : "#aab8c6"}">${d.weekday}${isToday ? " · now" : ""}</div>
-          <div style="text-align:right">${tempCell}</div>
-          <div style="text-align:right">${humCell}</div>
-          <div style="text-align:right">${solarCell}</div>
-          <div style="text-align:right">${rainCell}</div>
+          ? `<div class="hist-bar-cell"><div class="hist-bar hist-bar-rain" style="--pct:${rainPct}%"></div><span class="hist-rain">${d.rain_mm.toFixed(1)}</span></div>`
+          : `<span class="hist-empty">—</span>`;
+        html += `<div class="hist-row${isToday ? " is-today" : ""}">
+          <div class="hist-day">${d.weekday}${isToday ? " · now" : ""}</div>
+          <div class="r">${tempCell}</div>
+          <div class="r">${humCell}</div>
+          <div class="r">${solarCell}</div>
+          <div class="r">${rainCell}</div>
         </div>`;
       });
       html += `</div>`;
-      html += `<div style="margin-top:14px;padding:10px 12px;background:rgba(95,209,126,.06);border-left:3px solid rgba(95,209,126,.4);border-radius:6px;font-size:11px;color:#9bd8ad;line-height:1.5">
+      html += `<div class="hist-foot">
         Real readings from your sensors. Temp shows daily min→max range. Solar from Enphase production.
       </div>`;
       body.innerHTML = html;
@@ -5576,39 +5881,39 @@
         if (v > peak) { peak = v; peakDay = d.weekday; }
       });
       // Header summary
-      let html = `<div style="padding:0 4px">`;
+      let html = `<div class="hist-wrap">`;
       if (isRain) {
-        html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-          <div style="background:rgba(99,179,237,.08);padding:14px;border-radius:10px;border:1px solid rgba(99,179,237,.18)">
-            <div style="font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em">7d total</div>
-            <div style="font-size:24px;font-weight:600;color:#9ccff5;margin-top:4px">${total.toFixed(1)} <span style="font-size:13px;color:#8aa1c2;font-weight:400">mm</span></div>
+        html += `<div class="wrh-tiles">
+          <div class="wrh-tile wrh-tile-rain">
+            <div class="wrh-tile-lbl">7d total</div>
+            <div class="wrh-tile-val hist-rain">${total.toFixed(1)} <span class="wrh-tile-unit">mm</span></div>
           </div>
-          <div style="background:rgba(99,179,237,.08);padding:14px;border-radius:10px;border:1px solid rgba(99,179,237,.18)">
-            <div style="font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em">Wettest day</div>
-            <div style="font-size:18px;font-weight:600;color:#9ccff5;margin-top:4px">${peakDay || "—"}</div>
-            <div style="font-size:12px;color:#8aa1c2;margin-top:2px">${peak.toFixed(1)} mm</div>
+          <div class="wrh-tile wrh-tile-rain">
+            <div class="wrh-tile-lbl">Wettest day</div>
+            <div class="wrh-tile-val hist-rain wrh-tile-val-sm">${peakDay || "—"}</div>
+            <div class="wrh-tile-sub">${peak.toFixed(1)} mm</div>
           </div>
         </div>`;
       } else {
         const avgWind = days.length ? days.reduce((a,d)=>a+(d.wind_avg_kmh||0),0) / days.length : 0;
-        html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-          <div style="background:rgba(255,180,80,.08);padding:14px;border-radius:10px;border:1px solid rgba(255,180,80,.18)">
-            <div style="font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em">Peak gust</div>
-            <div style="font-size:24px;font-weight:600;color:#ffd680;margin-top:4px">${peak.toFixed(1)} <span style="font-size:13px;color:#8aa1c2;font-weight:400">km/h</span></div>
-            <div style="font-size:12px;color:#8aa1c2;margin-top:2px">${peakDay || "—"}</div>
+        html += `<div class="wrh-tiles">
+          <div class="wrh-tile wrh-tile-wind">
+            <div class="wrh-tile-lbl">Peak gust</div>
+            <div class="wrh-tile-val hist-solar">${peak.toFixed(1)} <span class="wrh-tile-unit">km/h</span></div>
+            <div class="wrh-tile-sub">${peakDay || "—"}</div>
           </div>
-          <div style="background:rgba(255,180,80,.08);padding:14px;border-radius:10px;border:1px solid rgba(255,180,80,.18)">
-            <div style="font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em">7d avg wind</div>
-            <div style="font-size:24px;font-weight:600;color:#ffd680;margin-top:4px">${avgWind.toFixed(1)} <span style="font-size:13px;color:#8aa1c2;font-weight:400">km/h</span></div>
+          <div class="wrh-tile wrh-tile-wind">
+            <div class="wrh-tile-lbl">7d avg wind</div>
+            <div class="wrh-tile-val hist-solar">${avgWind.toFixed(1)} <span class="wrh-tile-unit">km/h</span></div>
           </div>
         </div>`;
       }
       // Header row
       const cols = isRain
-        ? `<div>Day</div><div style="text-align:right">Rain mm</div><div style="text-align:right">% of week</div>`
-        : `<div>Day</div><div style="text-align:right">Avg km/h</div><div style="text-align:right">Max km/h</div><div style="text-align:right">Gust km/h</div>`;
+        ? `<div>Day</div><div class="r">Rain mm</div><div class="r">% of week</div>`
+        : `<div>Day</div><div class="r">Avg km/h</div><div class="r">Max km/h</div><div class="r">Gust km/h</div>`;
       const gridCols = isRain ? "54px 1fr 1fr" : "54px 1fr 1fr 1fr";
-      html += `<div style="display:grid;grid-template-columns:${gridCols};gap:6px;font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.08)">${cols}</div>`;
+      html += `<div class="wrh-head" style="grid-template-columns:${gridCols}">${cols}</div>`;
       const maxBar = isRain ? Math.max(1, ...days.map(d => d.rain_mm || 0)) : Math.max(1, ...days.map(d => d.gust_max_kmh || d.wind_max_kmh || 0));
       days.forEach((d, idx) => {
         const isToday = idx === days.length - 1;
@@ -5618,20 +5923,20 @@
           const pct = (v != null && total > 0) ? Math.round((v / total) * 100) : 0;
           const barPct = (v != null) ? Math.round((v / maxBar) * 100) : 0;
           const rainCell = (v != null && v > 0)
-            ? `<div style="position:relative;text-align:right"><div style="position:absolute;inset:0;background:linear-gradient(to left,rgba(99,179,237,.22) ${barPct}%,transparent ${barPct}%);border-radius:3px"></div><span style="position:relative;color:#9ccff5">${v.toFixed(1)}</span></div>`
-            : `<span style="color:#5e6a78">—</span>`;
-          row = `<div style="text-align:right">${rainCell}</div><div style="text-align:right;color:#8aa1c2">${pct}%</div>`;
+            ? `<div class="hist-bar-cell"><div class="hist-bar hist-bar-rain" style="--pct:${barPct}%"></div><span class="hist-rain">${v.toFixed(1)}</span></div>`
+            : `<span class="hist-empty">—</span>`;
+          row = `<div class="r">${rainCell}</div><div class="r wrh-pct">${pct}%</div>`;
         } else {
           const a = d.wind_avg_kmh, mx = d.wind_max_kmh, g = d.gust_max_kmh;
           const gv = g || mx || 0;
           const barPct = Math.round((gv / maxBar) * 100);
           const gustCell = (g != null)
-            ? `<div style="position:relative;text-align:right"><div style="position:absolute;inset:0;background:linear-gradient(to left,rgba(255,180,80,.22) ${barPct}%,transparent ${barPct}%);border-radius:3px"></div><span style="position:relative;color:#ffd680">${g.toFixed(1)}</span></div>`
-            : `<span style="color:#5e6a78">—</span>`;
-          row = `<div style="text-align:right;color:#aab8c6">${a != null ? a.toFixed(1) : "—"}</div><div style="text-align:right;color:#aab8c6">${mx != null ? mx.toFixed(1) : "—"}</div><div style="text-align:right">${gustCell}</div>`;
+            ? `<div class="hist-bar-cell"><div class="hist-bar hist-bar-wind" style="--pct:${barPct}%"></div><span class="hist-solar">${g.toFixed(1)}</span></div>`
+            : `<span class="hist-empty">—</span>`;
+          row = `<div class="r wrh-num">${a != null ? a.toFixed(1) : "—"}</div><div class="r wrh-num">${mx != null ? mx.toFixed(1) : "—"}</div><div class="r">${gustCell}</div>`;
         }
-        html += `<div style="display:grid;grid-template-columns:${gridCols};gap:6px;font-size:13px;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,.04);${isToday ? "background:rgba(255,180,80,.05);font-weight:600" : ""}">
-          <div style="color:${isToday ? "#ffe6b3" : "#aab8c6"}">${d.weekday}${isToday ? " · now" : ""}</div>
+        html += `<div class="wrh-row${isToday ? " is-today" : ""}" style="grid-template-columns:${gridCols}">
+          <div class="hist-day">${d.weekday}${isToday ? " · now" : ""}</div>
           ${row}
         </div>`;
       });
@@ -5639,7 +5944,7 @@
       const note = isRain
         ? "Daily rainfall from your Ecowitt rain gauge."
         : "Wind from Ecowitt anemometer. Gusts > 38 km/h trigger the greenhouse plastic-check alert.";
-      html += `<div style="margin-top:14px;padding:10px 12px;background:rgba(95,209,126,.06);border-left:3px solid rgba(95,209,126,.4);border-radius:6px;font-size:11px;color:#9bd8ad;line-height:1.5">${note}</div>`;
+      html += `<div class="hist-foot">${note}</div>`;
       body.innerHTML = html;
     } catch (e) {
       body.innerHTML = `<div style="padding:24px;text-align:center;color:#ff9b6b">Could not load stats. Check Home Assistant logs.</div>`;
