@@ -10,7 +10,7 @@
 <link rel="manifest" href="/garden/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/garden/static/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/garden/static/icon-192.png">
-<title>Masha's Garden · v1.7.2</title>
+<title>Masha's Garden · v1.7.3</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
   html,body{height:100%;width:100%}
@@ -2028,7 +2028,7 @@
 
   /* End of pencil skin block ============================================ */
   /* =====================================================================
-     INK SKIN v1.7.2 — pen-and-ink / scratchboard aesthetic
+     INK SKIN v1.7.3 — pen-and-ink / scratchboard aesthetic
      Strictly B/W. Light = black ink lines on warm off-white paper.
      Night    = INVERTED — white scratches on pitch-black.
      Per skin contract (home-assistant skill v2.4 rule 9): visual only.
@@ -2355,6 +2355,244 @@
     filter: grayscale(1) contrast(1.4);
   }
 
+
+  /* =========================================================================
+     v1.7.3 — FROST LAYER (universal motion)
+     Trigger: temp_c <= 0  AND  rain_rate_mm_h == 0
+     Style:   edge crystals on viewport corners + frame edges
+     Skin-aware via [data-bg-skin="..."] overrides below.
+     ========================================================================= */
+  .wcv-frost{
+    position:absolute; inset:0; pointer-events:none; opacity:0;
+    transition:opacity 1.5s ease;
+    z-index:6;
+    /* Realistic default: pale cyan-white ice crystals etched into screen corners */
+    background:
+      radial-gradient(ellipse 60% 28% at 50% 0%, rgba(220,240,255,.55), transparent 70%),
+      radial-gradient(ellipse 60% 28% at 50% 100%, rgba(220,240,255,.55), transparent 70%),
+      radial-gradient(ellipse 28% 60% at 0% 50%, rgba(220,240,255,.45), transparent 70%),
+      radial-gradient(ellipse 28% 60% at 100% 50%, rgba(220,240,255,.45), transparent 70%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800' preserveAspectRatio='none'><defs><filter id='b'><feGaussianBlur stdDeviation='.4'/></filter></defs><g stroke='%23dfeefc' stroke-width='1.4' fill='none' opacity='.85' filter='url(%23b)'><!-- top-left fern --><path d='M0 18 L 32 4 M0 32 L 58 10 M0 50 L 86 16 M0 70 L 110 26 M0 90 L 130 40'/><path d='M18 0 L 6 28 M32 0 L 14 58 M50 0 L 22 84 M70 0 L 36 110'/><!-- top-right --><path d='M800 18 L 768 4 M800 32 L 742 10 M800 50 L 714 16 M800 70 L 690 26'/><path d='M782 0 L 794 28 M768 0 L 786 58 M750 0 L 778 84 M730 0 L 764 110'/><!-- bottom-left --><path d='M0 782 L 32 796 M0 768 L 58 790 M0 750 L 86 784 M0 730 L 110 774'/><path d='M18 800 L 6 772 M32 800 L 14 742 M50 800 L 22 716 M70 800 L 36 690'/><!-- bottom-right --><path d='M800 782 L 768 796 M800 768 L 742 790 M800 750 L 714 784 M800 730 L 690 774'/><path d='M782 800 L 794 772 M768 800 L 786 742 M750 800 L 778 716 M730 800 L 764 690'/></g><!-- scattered crystals along all edges --><g fill='%23eaf6ff' opacity='.7'><circle cx='12' cy='12' r='2.4'/><circle cx='40' cy='6' r='1.6'/><circle cx='6' cy='44' r='1.8'/><circle cx='788' cy='10' r='2.2'/><circle cx='760' cy='6' r='1.4'/><circle cx='794' cy='40' r='1.8'/><circle cx='12' cy='788' r='2.4'/><circle cx='40' cy='794' r='1.6'/><circle cx='794' cy='790' r='2.2'/></g></svg>") center/100% 100% no-repeat;
+    /* Subtle twinkle */
+    animation: wcv-frost-twinkle 7s ease-in-out infinite;
+  }
+  .wcv-frost.show{ opacity: var(--frost-alpha, .85) }
+  @keyframes wcv-frost-twinkle{
+    0%,100%{ filter: brightness(1) saturate(1) }
+    50%{ filter: brightness(1.12) saturate(1.15) }
+  }
+  /* Skin variants — restate the SVG with the skin's palette */
+  body[data-bg-skin="watercolor"] .wcv-frost{
+    background:
+      radial-gradient(ellipse 60% 28% at 50% 0%, rgba(206,225,232,.55), transparent 70%),
+      radial-gradient(ellipse 60% 28% at 50% 100%, rgba(206,225,232,.55), transparent 70%),
+      radial-gradient(ellipse 28% 60% at 0% 50%, rgba(206,225,232,.45), transparent 70%),
+      radial-gradient(ellipse 28% 60% at 100% 50%, rgba(206,225,232,.45), transparent 70%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800' preserveAspectRatio='none'><g stroke='%23a8c8d8' stroke-width='2' fill='none' opacity='.55' stroke-linecap='round'><path d='M0 20 L 36 6 M0 38 L 62 14 M0 60 L 92 22 M22 0 L 8 32 M40 0 L 16 64'/><path d='M800 20 L 764 6 M800 38 L 738 14 M778 0 L 792 32 M760 0 L 784 64'/><path d='M0 780 L 36 794 M0 762 L 62 786 M22 800 L 8 768 M40 800 L 16 736'/><path d='M800 780 L 764 794 M800 762 L 738 786 M778 800 L 792 768'/></g></svg>") center/100% 100% no-repeat;
+  }
+  body[data-bg-skin="pencil"] .wcv-frost{
+    background:
+      radial-gradient(ellipse 60% 28% at 50% 0%, rgba(60,55,42,.32), transparent 75%),
+      radial-gradient(ellipse 60% 28% at 50% 100%, rgba(60,55,42,.32), transparent 75%),
+      radial-gradient(ellipse 28% 60% at 0% 50%, rgba(60,55,42,.28), transparent 75%),
+      radial-gradient(ellipse 28% 60% at 100% 50%, rgba(60,55,42,.28), transparent 75%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800' preserveAspectRatio='none'><g stroke='%23463c2a' stroke-width='1.1' fill='none' opacity='.65' stroke-linecap='round'><path d='M0 18 L 38 4 M0 36 L 64 12 M0 60 L 96 22 M0 84 L 122 36 M18 0 L 4 30 M40 0 L 16 60 M58 0 L 22 96'/><path d='M800 18 L 762 4 M800 36 L 736 12 M800 60 L 704 22 M800 84 L 678 36 M782 0 L 796 30 M760 0 L 784 60 M742 0 L 778 96'/><path d='M0 782 L 38 796 M0 764 L 64 788 M0 740 L 96 778 M18 800 L 4 770 M40 800 L 16 740'/><path d='M800 782 L 762 796 M800 764 L 736 788 M800 740 L 704 778 M782 800 L 796 770 M760 800 L 784 740'/></g></svg>") center/100% 100% no-repeat;
+  }
+  body[data-bg-skin="ink"] .wcv-frost{
+    background:
+      radial-gradient(ellipse 60% 28% at 50% 0%, rgba(20,20,20,.35), transparent 70%),
+      radial-gradient(ellipse 60% 28% at 50% 100%, rgba(20,20,20,.35), transparent 70%),
+      radial-gradient(ellipse 28% 60% at 0% 50%, rgba(20,20,20,.3), transparent 70%),
+      radial-gradient(ellipse 28% 60% at 100% 50%, rgba(20,20,20,.3), transparent 70%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800' preserveAspectRatio='none'><g stroke='%231a1a1a' stroke-width='1.4' fill='none' opacity='.9' stroke-linecap='round'><path d='M0 16 L 40 2 M0 34 L 66 10 M0 56 L 96 18 M0 80 L 124 32 M0 106 L 150 50 M16 0 L 2 32 M38 0 L 12 64 M58 0 L 22 96 M82 0 L 32 122'/><path d='M800 16 L 760 2 M800 34 L 734 10 M800 56 L 704 18 M800 80 L 676 32 M800 106 L 650 50 M784 0 L 798 32 M762 0 L 788 64 M742 0 L 778 96 M718 0 L 768 122'/><path d='M0 784 L 40 798 M0 766 L 66 790 M0 744 L 96 782 M0 720 L 124 768 M16 800 L 2 768 M38 800 L 12 736 M58 800 L 22 704'/><path d='M800 784 L 760 798 M800 766 L 734 790 M800 744 L 704 782 M800 720 L 676 768 M784 800 L 798 768 M762 800 L 788 736 M742 800 L 778 704'/></g><g fill='%231a1a1a' opacity='.9'><circle cx='14' cy='14' r='2.5'/><circle cx='42' cy='6' r='1.7'/><circle cx='6' cy='46' r='1.9'/><circle cx='786' cy='12' r='2.3'/><circle cx='794' cy='42' r='1.9'/><circle cx='14' cy='786' r='2.5'/><circle cx='794' cy='788' r='2.3'/></g></svg>") center/100% 100% no-repeat;
+  }
+  body[data-bg-skin="ink"][data-daypart="night"] .wcv-frost{
+    /* Inverted: white scratches on dark night */
+    background:
+      radial-gradient(ellipse 60% 28% at 50% 0%, rgba(245,241,230,.45), transparent 70%),
+      radial-gradient(ellipse 60% 28% at 50% 100%, rgba(245,241,230,.45), transparent 70%),
+      radial-gradient(ellipse 28% 60% at 0% 50%, rgba(245,241,230,.4), transparent 70%),
+      radial-gradient(ellipse 28% 60% at 100% 50%, rgba(245,241,230,.4), transparent 70%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800' preserveAspectRatio='none'><g stroke='%23f5f1e6' stroke-width='1.4' fill='none' opacity='.9' stroke-linecap='round'><path d='M0 16 L 40 2 M0 34 L 66 10 M0 56 L 96 18 M0 80 L 124 32 M16 0 L 2 32 M38 0 L 12 64 M58 0 L 22 96'/><path d='M800 16 L 760 2 M800 34 L 734 10 M800 56 L 704 18 M784 0 L 798 32 M762 0 L 788 64 M742 0 L 778 96'/><path d='M0 784 L 40 798 M0 766 L 66 790 M16 800 L 2 768 M38 800 L 12 736'/><path d='M800 784 L 760 798 M800 766 L 734 790 M784 800 L 798 768 M762 800 L 788 736'/></g><g fill='%23f5f1e6' opacity='.9'><circle cx='14' cy='14' r='2.5'/><circle cx='42' cy='6' r='1.7'/><circle cx='786' cy='12' r='2.3'/><circle cx='14' cy='786' r='2.5'/><circle cx='794' cy='788' r='2.3'/></g></svg>") center/100% 100% no-repeat;
+  }
+
+  /* =========================================================================
+     v1.7.3 — INK MODAL BLOCK (Sun & Garden, Weather, Past-7-days, Rain, Cam, HP10, Skin-picker)
+     Mirrors the watercolor modal block at lines 1093+ but uses ink palette.
+     ========================================================================= */
+  body[data-ui-skin="ink"] .modal-bg{
+    background: rgba(20,18,12,.62) !important;
+    backdrop-filter: blur(3px) !important;
+    -webkit-backdrop-filter: blur(3px) !important;
+  }
+  body[data-ui-skin="ink"] #sun-modal,
+  body[data-ui-skin="ink"] #wx-modal,
+  body[data-ui-skin="ink"] #wx-hist-modal,
+  body[data-ui-skin="ink"] #wr-modal,
+  body[data-ui-skin="ink"] #cam-modal,
+  body[data-ui-skin="ink"] #hp10-modal{
+    background-color: var(--ipv-paper) !important;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.7' numOctaves='2' seed='13'/><feColorMatrix values='0 0 0 0 .12  0 0 0 0 .12  0 0 0 0 .12  0 0 0 .25 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>") !important;
+    background-blend-mode: multiply, normal !important;
+    background-repeat: repeat, no-repeat !important;
+    color: var(--ipv-ink) !important;
+  }
+  body[data-ui-skin="ink"][data-daypart="night"] #sun-modal,
+  body[data-ui-skin="ink"][data-daypart="night"] #wx-modal,
+  body[data-ui-skin="ink"][data-daypart="night"] #wx-hist-modal,
+  body[data-ui-skin="ink"][data-daypart="night"] #wr-modal,
+  body[data-ui-skin="ink"][data-daypart="night"] #cam-modal,
+  body[data-ui-skin="ink"][data-daypart="night"] #hp10-modal{
+    background-color: #0e0e0e !important;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.7' numOctaves='2' seed='13'/><feColorMatrix values='0 0 0 0 .96  0 0 0 0 .94  0 0 0 0 .90  0 0 0 .25 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>") !important;
+    color: #f5f1e6 !important;
+  }
+  body[data-ui-skin="ink"] #sun-modal .top,
+  body[data-ui-skin="ink"] #wx-modal .top,
+  body[data-ui-skin="ink"] #wx-hist-modal .top,
+  body[data-ui-skin="ink"] #wr-modal .top,
+  body[data-ui-skin="ink"] #cam-modal .top,
+  body[data-ui-skin="ink"] #hp10-modal .top{
+    background: var(--ipv-paper) !important;
+    border-bottom: 1.5px solid var(--ipv-ink) !important;
+    color: var(--ipv-ink) !important;
+    backdrop-filter: none !important;
+  }
+  body[data-ui-skin="ink"][data-daypart="night"] #sun-modal .top,
+  body[data-ui-skin="ink"][data-daypart="night"] #wx-modal .top,
+  body[data-ui-skin="ink"][data-daypart="night"] #wx-hist-modal .top,
+  body[data-ui-skin="ink"][data-daypart="night"] #wr-modal .top,
+  body[data-ui-skin="ink"][data-daypart="night"] #cam-modal .top,
+  body[data-ui-skin="ink"][data-daypart="night"] #hp10-modal .top{
+    background: #0e0e0e !important;
+    border-bottom-color: #f5f1e6 !important;
+    color: #f5f1e6 !important;
+  }
+  body[data-ui-skin="ink"] #sun-modal .top h2,
+  body[data-ui-skin="ink"] #wx-modal .top h2,
+  body[data-ui-skin="ink"] #wx-hist-modal .top h2,
+  body[data-ui-skin="ink"] #wr-modal .top h2,
+  body[data-ui-skin="ink"] #cam-modal .top h2,
+  body[data-ui-skin="ink"] #hp10-modal .top h2{
+    color: var(--ipv-ink) !important;
+    font-family: 'Playfair Display', Georgia, serif !important;
+    letter-spacing: .02em;
+  }
+  body[data-ui-skin="ink"][data-daypart="night"] #sun-modal .top h2,
+  body[data-ui-skin="ink"][data-daypart="night"] #wx-modal .top h2,
+  body[data-ui-skin="ink"][data-daypart="night"] #wx-hist-modal .top h2,
+  body[data-ui-skin="ink"][data-daypart="night"] #wr-modal .top h2,
+  body[data-ui-skin="ink"][data-daypart="night"] #cam-modal .top h2,
+  body[data-ui-skin="ink"][data-daypart="night"] #hp10-modal .top h2{ color: #f5f1e6 !important; }
+
+  body[data-ui-skin="ink"] #sun-modal .close,
+  body[data-ui-skin="ink"] #wx-modal .close,
+  body[data-ui-skin="ink"] #wx-hist-modal .close,
+  body[data-ui-skin="ink"] #wr-modal .close,
+  body[data-ui-skin="ink"] #cam-modal .close,
+  body[data-ui-skin="ink"] #hp10-modal .close{
+    background: var(--ipv-paper) !important;
+    border: 1.5px solid var(--ipv-ink) !important;
+    color: var(--ipv-ink) !important;
+  }
+  body[data-ui-skin="ink"][data-daypart="night"] #sun-modal .close,
+  body[data-ui-skin="ink"][data-daypart="night"] #wx-modal .close,
+  body[data-ui-skin="ink"][data-daypart="night"] #wx-hist-modal .close,
+  body[data-ui-skin="ink"][data-daypart="night"] #wr-modal .close,
+  body[data-ui-skin="ink"][data-daypart="night"] #cam-modal .close,
+  body[data-ui-skin="ink"][data-daypart="night"] #hp10-modal .close{
+    background: #0e0e0e !important;
+    border-color: #f5f1e6 !important;
+    color: #f5f1e6 !important;
+  }
+  body[data-ui-skin="ink"] #sun-modal .body,
+  body[data-ui-skin="ink"] #wx-modal .body,
+  body[data-ui-skin="ink"] #wx-hist-modal .body,
+  body[data-ui-skin="ink"] #wr-modal .body,
+  body[data-ui-skin="ink"] #cam-modal .body,
+  body[data-ui-skin="ink"] #hp10-modal .body{ color: var(--ipv-ink) !important; }
+  body[data-ui-skin="ink"][data-daypart="night"] #sun-modal .body,
+  body[data-ui-skin="ink"][data-daypart="night"] #wx-modal .body,
+  body[data-ui-skin="ink"][data-daypart="night"] #wx-hist-modal .body,
+  body[data-ui-skin="ink"][data-daypart="night"] #wr-modal .body,
+  body[data-ui-skin="ink"][data-daypart="night"] #cam-modal .body,
+  body[data-ui-skin="ink"][data-daypart="night"] #hp10-modal .body{ color: #f5f1e6 !important; }
+  body[data-ui-skin="ink"] #sun-modal .body *,
+  body[data-ui-skin="ink"] #wx-modal .body *,
+  body[data-ui-skin="ink"] #wx-hist-modal .body *,
+  body[data-ui-skin="ink"] #wr-modal .body *,
+  body[data-ui-skin="ink"] #cam-modal .body *,
+  body[data-ui-skin="ink"] #hp10-modal .body *{ color: inherit; }
+  body[data-ui-skin="ink"] #sun-modal .body > div,
+  body[data-ui-skin="ink"] #wx-modal .body > div,
+  body[data-ui-skin="ink"] #wr-modal .body > div{
+    background-color: var(--ipv-paper) !important;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='2' seed='17'/><feColorMatrix values='0 0 0 0 .12  0 0 0 0 .12  0 0 0 0 .12  0 0 0 .22 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>") !important;
+    background-blend-mode: multiply, normal !important;
+    border: 1.5px solid var(--ipv-ink) !important;
+    border-radius: 4px !important;
+    color: var(--ipv-ink) !important;
+    box-shadow: 2px 2px 0 rgba(20,20,20,.18) !important;
+  }
+  body[data-ui-skin="ink"][data-daypart="night"] #sun-modal .body > div,
+  body[data-ui-skin="ink"][data-daypart="night"] #wx-modal .body > div,
+  body[data-ui-skin="ink"][data-daypart="night"] #wr-modal .body > div{
+    background-color: #161616 !important;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='2' seed='17'/><feColorMatrix values='0 0 0 0 .96  0 0 0 0 .94  0 0 0 0 .9  0 0 0 .2 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>") !important;
+    border-color: #f5f1e6 !important;
+    color: #f5f1e6 !important;
+    box-shadow: 2px 2px 0 rgba(245,241,230,.18) !important;
+  }
+  /* Tables inside modals */
+  body[data-ui-skin="ink"] #sun-modal table,
+  body[data-ui-skin="ink"] #wx-modal table,
+  body[data-ui-skin="ink"] #wx-hist-modal table,
+  body[data-ui-skin="ink"] #wr-modal table{
+    border-color: var(--ipv-ink) !important;
+    color: var(--ipv-ink) !important;
+  }
+  body[data-ui-skin="ink"] #sun-modal table th,
+  body[data-ui-skin="ink"] #wx-modal table th,
+  body[data-ui-skin="ink"] #wx-hist-modal table th,
+  body[data-ui-skin="ink"] #wr-modal table th,
+  body[data-ui-skin="ink"] #sun-modal table td,
+  body[data-ui-skin="ink"] #wx-modal table td,
+  body[data-ui-skin="ink"] #wx-hist-modal table td,
+  body[data-ui-skin="ink"] #wr-modal table td{
+    border-color: var(--ipv-ink) !important;
+    color: var(--ipv-ink) !important;
+  }
+  body[data-ui-skin="ink"][data-daypart="night"] #sun-modal table,
+  body[data-ui-skin="ink"][data-daypart="night"] #wx-modal table,
+  body[data-ui-skin="ink"][data-daypart="night"] #wx-hist-modal table,
+  body[data-ui-skin="ink"][data-daypart="night"] #wr-modal table,
+  body[data-ui-skin="ink"][data-daypart="night"] #sun-modal table th,
+  body[data-ui-skin="ink"][data-daypart="night"] #wx-modal table th,
+  body[data-ui-skin="ink"][data-daypart="night"] #wx-hist-modal table th,
+  body[data-ui-skin="ink"][data-daypart="night"] #wr-modal table th,
+  body[data-ui-skin="ink"][data-daypart="night"] #sun-modal table td,
+  body[data-ui-skin="ink"][data-daypart="night"] #wx-modal table td,
+  body[data-ui-skin="ink"][data-daypart="night"] #wx-hist-modal table td,
+  body[data-ui-skin="ink"][data-daypart="night"] #wr-modal table td{
+    border-color: #f5f1e6 !important;
+    color: #f5f1e6 !important;
+  }
+  /* Chart modal backdrop */
+  body[data-ui-skin="ink"] .modal-bg{ background: rgba(20,18,12,.7) !important; }
+  body[data-ui-skin="ink"][data-daypart="night"] .modal-bg{ background: rgba(0,0,0,.78) !important; }
+  /* Skin-picker modal */
+  body[data-ui-skin="ink"] .skin-modal-bg{ background: rgba(20,18,12,.55) !important; }
+  /* Drop-shadow on charts (matches watercolor pattern) */
+  body[data-ui-skin="ink"] .spark,
+  body[data-ui-skin="ink"] #big-chart{ filter: drop-shadow(1px 1px 0 rgba(20,20,20,.25)); }
+  body[data-ui-skin="ink"][data-daypart="night"] .spark,
+  body[data-ui-skin="ink"][data-daypart="night"] #big-chart{ filter: drop-shadow(1px 1px 0 rgba(245,241,230,.35)); }
+  /* End of ink modal block ============================================ */
+
   /* End of ink skin block ============================================ */
 
 
@@ -2597,7 +2835,7 @@
     <div class="line"><span class="lab">Rain</span><span class="val" id="h24-rain">—</span></div>
   </div>
 
-  <div class="footer small">v1.6.2 · Pull down to refresh · <span id="updated">--</span></div>
+  <div class="footer small">v1.7.3 · Pull down to refresh · <span id="updated">--</span></div>
 </div>
 
 <!-- ===== zoom modal ===== -->
@@ -3132,6 +3370,11 @@
     if (isNight && (cond === "clear-night" || cond === "sunny" || cond === "partlycloudy")) {
       _startMeteors();
     }
+    // v1.7.3: ensure frost layer exists on realistic skin (innerHTML wiped it)
+    if (!wx.querySelector("#wcv-frost")) {
+      wx.insertAdjacentHTML("beforeend", '<div class="wcv-frost" id="wcv-frost"></div>');
+    }
+    _wcvSetFrost(opts);
   }
   function applyBackdrop(d) {
     const cond = (d.weather_forecast && d.weather_forecast.condition)
@@ -3150,12 +3393,13 @@
         uv_index:       wr.uv_index,
         sun_elev:       (d.sun_summary && d.sun_summary.elev_deg) || null,
         moon_phase:     d.moon_phase,
+        temp_c:         (wr.temp_c != null) ? wr.temp_c : ((d.weather_now && d.weather_now.temp_c) != null ? d.weather_now.temp_c : null),
       });
     } catch (e) {
       console.error("renderWx failed:", e);
       // Visible breadcrumb in footer so we can spot a backdrop fault without DevTools
       const f = document.querySelector(".footer");
-      if (f) f.textContent = "v1.6.2 \u00b7 bg err: " + (e.message || e);
+      if (f) f.textContent = "v1.7.3 \u00b7 bg err: " + (e.message || e);
     }
   }
   /* ============================================================
@@ -3326,6 +3570,8 @@
     const raysRing = document.createElement("div"); raysRing.className = "wcv-rays-ring"; raysRing.id="wcv-rays-ring";
     const moonHalo = document.createElement("div"); moonHalo.className = "wcv-moon-halo"; moonHalo.id="wcv-moon-halo";
     const wind  = document.createElement("div"); wind.className  = "wcv-wind";  wind.id="wcv-wind";
+    // v1.7.3 frost layer — edge crystals when cold AND not raining
+    const frost = document.createElement("div"); frost.className = "wcv-frost"; frost.id="wcv-frost";
     const drift = document.createElement("div"); drift.className = "wcv-drift"; drift.id="wcv-drift";
     drift.innerHTML = `
       <div class="wcv-puff" style="top:18%;animation-duration:90s;animation-delay:0s"></div>
@@ -3338,6 +3584,7 @@
     wx.appendChild(moonHalo); wx.appendChild(moon);
     wx.appendChild(stars);wx.appendChild(rain);wx.appendChild(snow);
     wx.appendChild(flash);wx.appendChild(paper);wx.appendChild(wind);
+    wx.appendChild(frost);
     // Pre-render star dots once
     let sHTML = "";
     for(let i=0;i<70;i++){
@@ -3390,6 +3637,27 @@
     el.innerHTML = html;
     el.classList.add("show");
   }
+
+  // v1.7.3 — frost activation. Edge crystal layer for cold+dry weather.
+  function _wcvSetFrost(opts){
+    const el = document.getElementById("wcv-frost");
+    if(!el) return;
+    const t = opts && opts.temp_c;
+    const rain = opts && opts.rain_rate_mm_h;
+    const cold = (t != null) && (Number(t) <= 0);
+    const dry  = !(rain && Number(rain) > 0);
+    const cond = (document.body.dataset.cond || "");
+    const isRainCond = (cond === "rainy" || cond === "pouring" || cond === "lightning-rainy" || cond === "snowy-rainy");
+    if(cold && dry && !isRainCond){
+      el.classList.add("show");
+      // Intensity scales as temp drops below 0
+      const intensity = Math.max(0.55, Math.min(0.95, 0.55 + Math.abs(Math.min(0, Number(t))) * 0.04));
+      el.style.setProperty("--frost-alpha", intensity.toFixed(2));
+    } else {
+      el.classList.remove("show");
+    }
+  }
+
   function renderWxWatercolor(cond, daypart, opts){
     opts = opts || {};
     const wx = document.getElementById("wx");
@@ -3523,6 +3791,7 @@
 
 
     // Season filter
+    _wcvSetFrost(opts);
     document.body.dataset.season = _seasonNow();
   }
 
@@ -3675,10 +3944,11 @@
       });
     }
 
+    _wcvSetFrost(opts);
     document.body.dataset.season = _seasonNow();
   }
 
-  /* ----------- INK SKIN renderer (v1.7.2) ----------- */
+  /* ----------- INK SKIN renderer (v1.7.3) ----------- */
   function _ipvPickSky(cond, isNight, sunElev){
     const base = "/garden/static/sky/ink/";
     const partly = (cond === "partlycloudy");
@@ -3812,6 +4082,7 @@
       });
     }
 
+    _wcvSetFrost(opts);
     document.body.dataset.season = _seasonNow();
   }
 
@@ -3832,6 +4103,7 @@
       uv_index:       wr.uv_index,
       sun_elev:       (d.sun_summary && d.sun_summary.elev_deg) || null,
       moon_phase:     d.moon_phase,
+      temp_c:         (wr.temp_c != null) ? wr.temp_c : ((d.weather_now && d.weather_now.temp_c) != null ? d.weather_now.temp_c : null),
     };
     const skin = _skinGet().bg;
     try {
@@ -3848,7 +4120,7 @@
     } catch(e){
       console.error("backdrop render failed:", e);
       const f = document.querySelector(".footer");
-      if(f) f.textContent = "v1.6.2 \u00b7 bg err: " + (e.message || e);
+      if(f) f.textContent = "v1.7.3 \u00b7 bg err: " + (e.message || e);
     }
   }
 
