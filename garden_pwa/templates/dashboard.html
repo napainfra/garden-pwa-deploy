@@ -780,51 +780,58 @@
     background:rgba(255,220,200,.85) !important;color:#3a1808 !important;
   }
 
+
   /* ===========================================================
-     WATERCOLOR UI v1.5.4 — torn-edge paper strips + opaque modals
-     Reference: image-72 (vertical wash on deckled handmade paper)
+     WATERCOLOR UI v1.5.5 — UNIFIED: every dashboard surface
+     gets cream paper + paper grain + torn edges. NO TRANSPARENCY.
      =========================================================== */
 
-  /* Common SVG paper noise (heavier than v1.5.4 — visible grain) */
+  /* Variables (already declared in v1.5.5 — re-declared for safety) */
   body[data-ui-skin="watercolor"]{
-    /* CSS variables so day/night can swap palette wholesale */
-    --wcv-paper-base-a: rgba(252,247,234,.985);
-    --wcv-paper-base-b: rgba(244,236,220,.985);
-    --wcv-paper-edge:   rgba(180,160,130,.30);
+    --wcv-paper-base-a: #fbf6e8;
+    --wcv-paper-base-b: #f3ecd8;
+    --wcv-paper-edge:   rgba(170,150,110,.30);
     --wcv-text:         #1a2030;
     --wcv-text-soft:    #3a4055;
     --wcv-text-muted:   #5a6072;
-    --wcv-border:       rgba(120,110,90,.32);
-    --wcv-wash-blue:    rgba( 85,140,205,.55);
+    --wcv-border:       rgba(125,108,80,.34);
+    --wcv-wash-blue:    rgba( 85,140,205,.50);
     --wcv-wash-blue2:   rgba(115,165,215,.40);
     --wcv-wash-green:   rgba(110,165,110,.45);
     --wcv-wash-honey:   rgba(245,185, 80,.45);
     --wcv-wash-rose:    rgba(220,150,150,.40);
     --wcv-wash-sage:    rgba(150,180,150,.42);
+    --wcv-shadow:       0 6px 18px rgba(70,55,30,.16), 0 1px 0 rgba(255,255,255,.5) inset;
   }
-  /* Dark variant — auto-activated at night */
   body[data-ui-skin="watercolor"][data-daypart="night"]{
-    --wcv-paper-base-a: rgba(28,32,48,.985);
-    --wcv-paper-base-b: rgba(20,24,38,.985);
-    --wcv-paper-edge:   rgba(70,90,130,.40);
+    --wcv-paper-base-a: #1f2438;
+    --wcv-paper-base-b: #161b2c;
+    --wcv-paper-edge:   rgba(80,100,140,.40);
     --wcv-text:         #ecedf3;
     --wcv-text-soft:    #b8c0d2;
     --wcv-text-muted:   #8893aa;
-    --wcv-border:       rgba(120,140,180,.30);
-    --wcv-wash-blue:    rgba( 80,130,220,.55);
-    --wcv-wash-blue2:   rgba(100,150,230,.45);
-    --wcv-wash-green:   rgba( 70,160,110,.45);
-    --wcv-wash-honey:   rgba(220,170, 90,.40);
-    --wcv-wash-rose:    rgba(200,130,160,.45);
-    --wcv-wash-sage:    rgba(120,170,140,.42);
+    --wcv-border:       rgba(120,140,180,.35);
+    --wcv-shadow:       0 6px 18px rgba(0,0,0,.55), 0 1px 0 rgba(255,255,255,.06) inset;
   }
 
-  /* Shared deckled-edge mask using SVG turbulence — gives torn paper look */
+  /* UNIVERSAL SURFACE class — every "paper" surface uses this recipe.
+     Implemented as a multi-selector covering every container that should
+     look like a piece of watercolor paper. */
   body[data-ui-skin="watercolor"] .tile,
   body[data-ui-skin="watercolor"] .row,
   body[data-ui-skin="watercolor"] .hp10-card,
   body[data-ui-skin="watercolor"] .freeze,
-  body[data-ui-skin="watercolor"] .wind-alert{
+  body[data-ui-skin="watercolor"] .wind-alert,
+  body[data-ui-skin="watercolor"] .now-card,
+  body[data-ui-skin="watercolor"] .forecast,
+  body[data-ui-skin="watercolor"] .forecast .fc,
+  body[data-ui-skin="watercolor"] .zones,
+  body[data-ui-skin="watercolor"] .h24,
+  body[data-ui-skin="watercolor"] .modal,
+  body[data-ui-skin="watercolor"] .sheet,
+  body[data-ui-skin="watercolor"] .stats,
+  body[data-ui-skin="watercolor"] .chart-wrap{
+    background-color: var(--wcv-paper-base-b) !important;
     background-image:
       url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' seed='11'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
       radial-gradient(ellipse 120% 50% at 50% 0%,  var(--wcv-paper-edge), transparent 60%),
@@ -833,158 +840,233 @@
     background-blend-mode: multiply, normal, normal, normal !important;
     background-size: 240px 240px, cover, cover, cover !important;
     background-repeat: repeat, no-repeat, no-repeat, no-repeat !important;
-    /* deckled torn edges via uneven border-radius — different per side */
     border-radius: 14px 18px 16px 20px !important;
     border: 1px solid var(--wcv-border) !important;
-    box-shadow:
-      0 6px 18px rgba(40,35,25,.12),
-      inset 0 0 0 1px rgba(255,255,255,.18) !important;
+    box-shadow: var(--wcv-shadow) !important;
     backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+    color: var(--wcv-text) !important;
     position: relative;
-    overflow: hidden;
   }
 
-  /* True torn-edge effect: jagged SVG mask on ::before pseudo */
-  body[data-ui-skin="watercolor"] .tile::before,
-  body[data-ui-skin="watercolor"] .row::before,
-  body[data-ui-skin="watercolor"] .hp10-card::before{
-    content:"";
-    position:absolute; inset:0; pointer-events:none;
-    background:
-      /* top deckled edge — feathered noise */
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='12' preserveAspectRatio='none'><filter id='t'><feTurbulence baseFrequency='.6 .8' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/><feComponentTransfer><feFuncA type='discrete' tableValues='0 0 0 1 1 1'/></feComponentTransfer></filter><rect width='100%25' height='100%25' filter='url(%23t)'/></svg>") top center / 100% 6px no-repeat,
-      /* bottom deckled edge */
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='12' preserveAspectRatio='none'><filter id='b'><feTurbulence baseFrequency='.6 .8' numOctaves='2' seed='7'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/><feComponentTransfer><feFuncA type='discrete' tableValues='0 0 0 1 1 1'/></feComponentTransfer></filter><rect width='100%25' height='100%25' filter='url(%23b)'/></svg>") bottom center / 100% 6px no-repeat;
-    mix-blend-mode: screen;
-    opacity:.45;
+  /* Forecast grid container — it's a 3-col layout, so paper applies to
+     each .fc child (not the grid itself). Remove paper from .forecast and
+     apply per-fc instead. */
+  body[data-ui-skin="watercolor"] .forecast{
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
   }
-  body[data-ui-skin="watercolor"][data-daypart="night"] .tile::before,
-  body[data-ui-skin="watercolor"][data-daypart="night"] .row::before,
-  body[data-ui-skin="watercolor"][data-daypart="night"] .hp10-card::before{
-    mix-blend-mode: multiply; opacity:.5;
+  body[data-ui-skin="watercolor"] .forecast .fc{
+    padding: 12px 8px !important;
+    text-align: center;
   }
 
-  /* Watercolor wash overlay per tile — vertical gradient like image-72 */
-  body[data-ui-skin="watercolor"] .grid2 > .tile:nth-child(1){    /* SOIL */
+  /* Per-tile wash overlays (vertical gradient like image-72) */
+  body[data-ui-skin="watercolor"] .grid2 > .tile:nth-child(1){
     background-image:
       url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' seed='11'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
       linear-gradient(180deg, var(--wcv-wash-green) 0%, rgba(180,200,150,.18) 55%, transparent 85%),
       linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
   }
-  body[data-ui-skin="watercolor"] .tile.tile-yellow{               /* SUN */
+  body[data-ui-skin="watercolor"] .tile.tile-yellow{
     background-image:
       url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' seed='11'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
       linear-gradient(180deg, var(--wcv-wash-honey) 0%, rgba(245,210,150,.20) 55%, transparent 85%),
       linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
   }
-  body[data-ui-skin="watercolor"] #wind-tile{                       /* WIND */
+  body[data-ui-skin="watercolor"] #wind-tile{
     background-image:
       url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' seed='11'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
       linear-gradient(180deg, var(--wcv-wash-blue2) 0%, rgba(180,200,220,.18) 55%, transparent 85%),
       linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
   }
-  body[data-ui-skin="watercolor"] #rain-tile{                       /* RAIN */
+  body[data-ui-skin="watercolor"] #rain-tile{
     background-image:
       url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' seed='11'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
       linear-gradient(180deg, var(--wcv-wash-blue) 0%, rgba(170,195,220,.18) 55%, transparent 85%),
       linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
   }
-  body[data-ui-skin="watercolor"] .row.grid3{                       /* Last/Valve/Battery */
+  body[data-ui-skin="watercolor"] .row.grid3{
     background-image:
       url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' seed='11'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
       linear-gradient(180deg, var(--wcv-wash-rose) 0%, rgba(220,180,170,.15) 55%, transparent 85%),
       linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
   }
-  body[data-ui-skin="watercolor"] .hp10-card{                       /* Garden cam */
+  body[data-ui-skin="watercolor"] .hp10-card{
     background-image:
       url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' seed='11'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
       linear-gradient(180deg, var(--wcv-wash-sage) 0%, rgba(180,200,180,.18) 55%, transparent 85%),
       linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
   }
-
-  /* Body / heading typography */
-  body[data-ui-skin="watercolor"]{
-    color:var(--wcv-text);
-    font-family:"Iowan Old Style","Palatino",Georgia,"Times New Roman",serif;
-  }
-  body[data-ui-skin="watercolor"] h1{
-    color:var(--wcv-text); font-weight:600;
-    text-shadow:0 1px 0 rgba(255,255,255,.4);
-  }
-  body[data-ui-skin="watercolor"][data-daypart="night"] h1{
-    text-shadow:0 1px 0 rgba(0,0,0,.35);
-  }
-  body[data-ui-skin="watercolor"] .tile .value,
-  body[data-ui-skin="watercolor"] .row .value{
-    color:var(--wcv-text) !important; font-weight:700 !important;
-  }
-  body[data-ui-skin="watercolor"] .tile .label,
-  body[data-ui-skin="watercolor"] .row .label{
-    color:var(--wcv-text-soft) !important; font-weight:600 !important;
-  }
-  body[data-ui-skin="watercolor"] .tile .sub,
-  body[data-ui-skin="watercolor"] .row .sub,
-  body[data-ui-skin="watercolor"] .tap-hint{
-    color:var(--wcv-text-muted) !important;
-  }
-
-  /* Pill / status chip */
-  body[data-ui-skin="watercolor"] .pill{
-    background:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='2' seed='17'/><feColorMatrix values='0 0 0 0 .55  0 0 0 0 .48  0 0 0 0 .38  0 0 0 .25 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+  /* now-real (left top card) = blue wash; now-fc (right top card) = honey wash */
+  body[data-ui-skin="watercolor"] .now-card.now-real{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' seed='11'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+      linear-gradient(180deg, var(--wcv-wash-blue) 0%, rgba(170,195,220,.18) 55%, transparent 85%),
       linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
-    color:var(--wcv-text) !important;
-    border:1px solid var(--wcv-border) !important;
-    backdrop-filter:none !important;
+  }
+  body[data-ui-skin="watercolor"] .now-card.now-fc{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' seed='11'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+      linear-gradient(180deg, var(--wcv-wash-honey) 0%, rgba(245,210,150,.20) 55%, transparent 85%),
+      linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
+  }
+  /* Each forecast day gets a SUBTLE per-day wash to match image-72 set */
+  body[data-ui-skin="watercolor"] .forecast .fc:nth-child(1){
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' seed='11'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+      linear-gradient(180deg, rgba(160,200,235,.35) 0%, transparent 80%),
+      linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
+  }
+  body[data-ui-skin="watercolor"] .forecast .fc:nth-child(2){
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' seed='11'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+      linear-gradient(180deg, rgba(130,175,220,.38) 0%, transparent 80%),
+      linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
+  }
+  body[data-ui-skin="watercolor"] .forecast .fc:nth-child(3){
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' seed='11'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+      linear-gradient(180deg, rgba(100,150,210,.40) 0%, transparent 80%),
+      linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
   }
 
-  /* Buttons */
+  /* Zones list — outer .zones gets paper, inner .zone rows are interior dividers */
+  body[data-ui-skin="watercolor"] .zones{ padding: 14px 14px !important; }
+  body[data-ui-skin="watercolor"] .zones .head{ color: var(--wcv-text-soft) !important; }
+  body[data-ui-skin="watercolor"] .zone{
+    background: transparent !important;
+    border-bottom: 1px solid var(--wcv-border) !important;
+    color: var(--wcv-text) !important;
+    padding: 10px 4px !important;
+  }
+  body[data-ui-skin="watercolor"] .zone.veg{
+    background: var(--wcv-wash-green) !important;
+    background-image:
+      linear-gradient(180deg, var(--wcv-wash-green), transparent 80%) !important;
+    border-radius: 10px !important; border-bottom: none !important;
+  }
+  body[data-ui-skin="watercolor"] .zone .nm{ color: var(--wcv-text) !important; }
+  body[data-ui-skin="watercolor"] .zone .st{ color: var(--wcv-text-soft) !important; }
+  body[data-ui-skin="watercolor"] .zone .st.suspended{ color: #a85020 !important; font-weight: 600; }
+  body[data-ui-skin="watercolor"] .zone .st.scheduled{ color: #2a8030 !important; font-weight: 600; }
+  body[data-ui-skin="watercolor"] .zone .st.watering{ color: #1f5fa0 !important; font-weight: 700; }
+
+  /* 24-hour history block + summary lines */
+  body[data-ui-skin="watercolor"] .h24{ padding: 14px 14px !important; }
+  body[data-ui-skin="watercolor"] .h24 .head{ color: var(--wcv-text-soft) !important; }
+  body[data-ui-skin="watercolor"] .h24 .head .ttl,
+  body[data-ui-skin="watercolor"] .h24 .head .sub{ color: var(--wcv-text-soft) !important; }
+  body[data-ui-skin="watercolor"] .h24 .line{
+    color: var(--wcv-text) !important;
+    border-bottom: 1px dashed var(--wcv-border);
+    padding: 8px 2px;
+  }
+  body[data-ui-skin="watercolor"] .h24 .line .lab{ color: var(--wcv-text-soft) !important; }
+  body[data-ui-skin="watercolor"] .h24 .line .val{ color: var(--wcv-text) !important; font-weight: 600; }
+  body[data-ui-skin="watercolor"] .spark-legend{ color: var(--wcv-text-soft) !important; }
+
+  /* SVG chart shadow — gives strokes/bars a soft paint shadow */
+  body[data-ui-skin="watercolor"] .spark,
+  body[data-ui-skin="watercolor"] #big-chart{
+    filter: drop-shadow(0 2px 3px rgba(70,55,30,.22)) drop-shadow(0 0 .5px rgba(70,55,30,.3));
+  }
+
+  /* Typography defaults inside paper surfaces */
+  body[data-ui-skin="watercolor"] .tile *,
+  body[data-ui-skin="watercolor"] .row *,
+  body[data-ui-skin="watercolor"] .hp10-card *,
+  body[data-ui-skin="watercolor"] .now-card *,
+  body[data-ui-skin="watercolor"] .forecast *,
+  body[data-ui-skin="watercolor"] .zones *,
+  body[data-ui-skin="watercolor"] .h24 *,
+  body[data-ui-skin="watercolor"] .modal *{
+    color: inherit;
+  }
+  body[data-ui-skin="watercolor"] .now-card .lbl,
+  body[data-ui-skin="watercolor"] .now-card .meta,
+  body[data-ui-skin="watercolor"] .now-card .meta .rain-off{ color: var(--wcv-text-soft) !important; }
+  body[data-ui-skin="watercolor"] .now-card .meta .rain-on{ color: #1f5fa0 !important; font-weight: 600; }
+  body[data-ui-skin="watercolor"] .now-card .big{ color: var(--wcv-text) !important; font-weight: 700 !important; }
+  body[data-ui-skin="watercolor"] .now-card .meta .rain-detected{ color: #6038a8 !important; }
+  body[data-ui-skin="watercolor"] .forecast .fc .day{ color: var(--wcv-text-soft) !important; }
+  body[data-ui-skin="watercolor"] .forecast .fc .hilo{ color: var(--wcv-text) !important; font-weight: 600; }
+  body[data-ui-skin="watercolor"] .forecast .fc .rain{ color: #1f5fa0 !important; }
+
+  /* Buttons & pills inside modal (24h/48h/7d toggles) */
+  body[data-ui-skin="watercolor"] .modal .pills button{
+    background: var(--wcv-paper-base-a) !important;
+    color: var(--wcv-text-soft) !important;
+    border: 1px solid var(--wcv-border) !important;
+  }
+  body[data-ui-skin="watercolor"] .modal .pills button.on{
+    background-image:
+      linear-gradient(180deg, var(--wcv-wash-blue), transparent 90%),
+      linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
+    color: var(--wcv-text) !important;
+    border-color: rgba(85,140,205,.55) !important;
+    font-weight: 700 !important;
+  }
+  body[data-ui-skin="watercolor"] .modal .stats .stat{
+    background: transparent !important; color: var(--wcv-text) !important;
+  }
+  body[data-ui-skin="watercolor"] .modal .stats .lab{ color: var(--wcv-text-soft) !important; }
+  body[data-ui-skin="watercolor"] .modal .stats .val{ color: var(--wcv-text) !important; font-weight: 700 !important; }
+  body[data-ui-skin="watercolor"] .modal .top .ttl{ color: var(--wcv-text) !important; }
+  body[data-ui-skin="watercolor"] .modal .top .x{
+    background: var(--wcv-paper-base-a) !important;
+    border: 1px solid var(--wcv-border) !important;
+    color: var(--wcv-text) !important;
+  }
+  body[data-ui-skin="watercolor"] .modal .sub{ color: var(--wcv-text-soft) !important; }
+  body[data-ui-skin="watercolor"] .modal .grab{ background: var(--wcv-border) !important; }
+
+  /* modal-bg (chart modal backdrop dim) — softer brown wash instead of black */
+  body[data-ui-skin="watercolor"] .modal-bg{
+    background: rgba(40,30,15,.55) !important;
+  }
+
+  /* Pin/status pill */
+  body[data-ui-skin="watercolor"] .pill{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' seed='11'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+      linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
+    background-blend-mode: multiply, normal !important;
+    color: var(--wcv-text) !important;
+    border: 1px solid var(--wcv-border) !important;
+    box-shadow: var(--wcv-shadow) !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Buttons — start/stop drip */
   body[data-ui-skin="watercolor"] .btn.start{
     background:
-      linear-gradient(180deg, rgba(150,195,230,.92), rgba(110,165,210,.92)) !important;
-    color:#0e1d35 !important;
-    border:1px solid rgba(70,110,165,.5) !important;
-    border-radius:14px 18px 16px 20px !important;
-    box-shadow:0 4px 14px rgba(60,90,140,.20), inset 0 1px 0 rgba(255,255,255,.45) !important;
+      linear-gradient(180deg, rgba(150,195,230,.94), rgba(110,165,210,.94)) !important;
+    color: #0e1d35 !important;
+    border: 1px solid rgba(70,110,165,.5) !important;
+    border-radius: 14px 18px 16px 20px !important;
+    box-shadow: 0 6px 16px rgba(60,90,140,.22), inset 0 1px 0 rgba(255,255,255,.45) !important;
   }
   body[data-ui-skin="watercolor"] .btn.stop{
     background:
-      linear-gradient(180deg, rgba(235,170,170,.92), rgba(210,130,130,.92)) !important;
-    color:#3a0e0e !important;
-    border:1px solid rgba(165,75,75,.5) !important;
-    border-radius:14px 18px 16px 20px !important;
-    box-shadow:0 4px 14px rgba(150,60,60,.18), inset 0 1px 0 rgba(255,255,255,.40) !important;
-  }
-  body[data-ui-skin="watercolor"][data-daypart="night"] .btn.start{ color:#fff !important; }
-  body[data-ui-skin="watercolor"][data-daypart="night"] .btn.stop{ color:#fff !important; }
-
-  /* Freeze / wind alerts */
-  body[data-ui-skin="watercolor"] .freeze{
-    background-image:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' seed='11'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
-      linear-gradient(180deg, rgba(180,210,240,.55), rgba(140,180,220,.30) 60%, transparent 90%),
-      linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
-    color:var(--wcv-text) !important;
-  }
-  body[data-ui-skin="watercolor"] .wind-alert{
-    background-image:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' seed='11'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
-      linear-gradient(180deg, rgba(240,180,140,.55), rgba(220,150,100,.25) 60%, transparent 90%),
-      linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
-    color:var(--wcv-text) !important;
+      linear-gradient(180deg, rgba(235,170,170,.94), rgba(210,130,130,.94)) !important;
+    color: #3a0e0e !important;
+    border: 1px solid rgba(165,75,75,.5) !important;
+    border-radius: 14px 18px 16px 20px !important;
+    box-shadow: 0 6px 16px rgba(150,60,60,.20), inset 0 1px 0 rgba(255,255,255,.40) !important;
   }
 
-  /* Skin gear button — paper button matching tiles */
+  /* Skin-gear button */
   body[data-ui-skin="watercolor"] .skin-gear{
-    background:linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
-    border:1px solid var(--wcv-border) !important;
-    color:var(--wcv-text) !important;
-    box-shadow:0 2px 6px rgba(60,55,45,.10) !important;
+    background: linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
+    border: 1px solid var(--wcv-border) !important;
+    color: var(--wcv-text) !important;
+    box-shadow: var(--wcv-shadow) !important;
   }
 
   /* ============================================================
-     WATERCOLOR MODALS — OPAQUE cream paper (no sky bleed)
-     EXCLUDE chart modal (#modal-bg) per user rule.
+     OPAQUE FULL-SCREEN MODALS (sun, wx, wx-hist, wr, cam, hp10)
      ============================================================ */
   body[data-ui-skin="watercolor"] #sun-modal,
   body[data-ui-skin="watercolor"] #wx-modal,
@@ -994,14 +1076,12 @@
   body[data-ui-skin="watercolor"] #hp10-modal{
     background-color: var(--wcv-paper-base-b) !important;
     background-image:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' seed='21'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .35 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
-      radial-gradient(ellipse 100% 60% at 50% 0%, var(--wcv-paper-edge), transparent 60%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' seed='11'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
       linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
-    background-blend-mode: multiply, normal, normal !important;
-    background-repeat: repeat, no-repeat, no-repeat !important;
+    background-blend-mode: multiply, normal !important;
+    background-repeat: repeat, no-repeat !important;
     color: var(--wcv-text) !important;
   }
-  /* Modal header bar */
   body[data-ui-skin="watercolor"] #sun-modal .top,
   body[data-ui-skin="watercolor"] #wx-modal .top,
   body[data-ui-skin="watercolor"] #wx-hist-modal .top,
@@ -1009,18 +1089,16 @@
   body[data-ui-skin="watercolor"] #cam-modal .top,
   body[data-ui-skin="watercolor"] #hp10-modal .top{
     background: var(--wcv-paper-base-a) !important;
-    border-bottom:1px solid var(--wcv-border) !important;
+    border-bottom: 1px solid var(--wcv-border) !important;
     color: var(--wcv-text) !important;
-    backdrop-filter:none !important;
+    backdrop-filter: none !important;
   }
   body[data-ui-skin="watercolor"] #sun-modal .top h2,
   body[data-ui-skin="watercolor"] #wx-modal .top h2,
   body[data-ui-skin="watercolor"] #wx-hist-modal .top h2,
   body[data-ui-skin="watercolor"] #wr-modal .top h2,
   body[data-ui-skin="watercolor"] #cam-modal .top h2,
-  body[data-ui-skin="watercolor"] #hp10-modal .top h2{
-    color: var(--wcv-text) !important;
-  }
+  body[data-ui-skin="watercolor"] #hp10-modal .top h2{ color: var(--wcv-text) !important; }
   body[data-ui-skin="watercolor"] #sun-modal .close,
   body[data-ui-skin="watercolor"] #wx-modal .close,
   body[data-ui-skin="watercolor"] #wx-hist-modal .close,
@@ -1028,40 +1106,38 @@
   body[data-ui-skin="watercolor"] #cam-modal .close,
   body[data-ui-skin="watercolor"] #hp10-modal .close{
     background: var(--wcv-paper-base-a) !important;
-    border:1px solid var(--wcv-border) !important;
+    border: 1px solid var(--wcv-border) !important;
     color: var(--wcv-text) !important;
   }
-  /* Body text */
   body[data-ui-skin="watercolor"] #sun-modal .body,
   body[data-ui-skin="watercolor"] #wx-modal .body,
   body[data-ui-skin="watercolor"] #wx-hist-modal .body,
   body[data-ui-skin="watercolor"] #wr-modal .body,
   body[data-ui-skin="watercolor"] #cam-modal .body,
   body[data-ui-skin="watercolor"] #hp10-modal .body{ color: var(--wcv-text) !important; }
-  /* Force-readable strong colors for table cells in past-7-days */
-  body[data-ui-skin="watercolor"] #wx-hist-modal .body,
+  body[data-ui-skin="watercolor"] #sun-modal .body *,
+  body[data-ui-skin="watercolor"] #wx-modal .body *,
   body[data-ui-skin="watercolor"] #wx-hist-modal .body *,
-  body[data-ui-skin="watercolor"] #wr-modal .body,
-  body[data-ui-skin="watercolor"] #wr-modal .body *{
-    color: var(--wcv-text) !important;
-  }
-  /* Inner content cards (e.g. RIGHT NOW / TODAY / THIS WEEK in sun-modal) */
+  body[data-ui-skin="watercolor"] #wr-modal .body *,
+  body[data-ui-skin="watercolor"] #cam-modal .body *,
+  body[data-ui-skin="watercolor"] #hp10-modal .body *{ color: inherit; }
   body[data-ui-skin="watercolor"] #sun-modal .body > div,
   body[data-ui-skin="watercolor"] #wx-modal .body > div,
   body[data-ui-skin="watercolor"] #wr-modal .body > div{
     background-color: var(--wcv-paper-base-a) !important;
-    border:1px solid var(--wcv-border) !important;
-    border-radius:14px 18px 16px 20px !important;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' seed='11'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+      linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
+    background-blend-mode: multiply, normal !important;
+    border: 1px solid var(--wcv-border) !important;
+    border-radius: 14px 18px 16px 20px !important;
     color: var(--wcv-text) !important;
+    box-shadow: var(--wcv-shadow) !important;
   }
-  body[data-ui-skin="watercolor"] #sun-modal .body > div *,
-  body[data-ui-skin="watercolor"] #wx-modal .body > div *,
-  body[data-ui-skin="watercolor"] #wr-modal .body > div *{ color: inherit; }
-
-  /* Language toggle inside sun-modal */
+  /* Language toggle */
   body[data-ui-skin="watercolor"] #sun-modal .lang-toggle{
     background: var(--wcv-paper-base-a) !important;
-    border:1px solid var(--wcv-border) !important;
+    border: 1px solid var(--wcv-border) !important;
   }
   body[data-ui-skin="watercolor"] #sun-modal .lang-btn{ color: var(--wcv-text-soft) !important; }
   body[data-ui-skin="watercolor"] #sun-modal .lang-btn.active{
@@ -1069,30 +1145,31 @@
     color: var(--wcv-text) !important;
   }
 
-  /* Skin-picker modal also gets watercolor */
+  /* Skin-picker modal */
   body[data-ui-skin="watercolor"] .skin-modal-bg{
-    background: rgba(20,20,15,.55) !important;
-    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    background: rgba(40,30,15,.55) !important;
   }
   body[data-ui-skin="watercolor"] .skin-modal{
-    background:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' seed='21'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .35 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+    background-color: var(--wcv-paper-base-b) !important;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' seed='11'/><feColorMatrix values='0 0 0 0 .50  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
       linear-gradient(180deg, var(--wcv-paper-base-a), var(--wcv-paper-base-b)) !important;
     background-blend-mode: multiply, normal !important;
     color: var(--wcv-text) !important;
-    border:1px solid var(--wcv-border) !important;
-    border-radius:14px 18px 16px 20px !important;
+    border: 1px solid var(--wcv-border) !important;
+    border-radius: 14px 18px 16px 20px !important;
+    box-shadow: var(--wcv-shadow) !important;
   }
   body[data-ui-skin="watercolor"] .skin-modal h2,
   body[data-ui-skin="watercolor"] .skin-modal .sub,
   body[data-ui-skin="watercolor"] .skin-modal .group-label,
   body[data-ui-skin="watercolor"] .skin-modal *{ color: inherit !important; }
 
-  /* Soil zone rows inside SOIL tile — keep them readable */
-  body[data-ui-skin="watercolor"] .soil-zone-row{ color: var(--wcv-text) !important; }
-  body[data-ui-skin="watercolor"] .soil-zone-row .z-name,
-  body[data-ui-skin="watercolor"] .soil-zone-row .z-moist,
-  body[data-ui-skin="watercolor"] .soil-zone-row .z-temp{ color: var(--wcv-text) !important; }
+  /* Hide gear when any modal open (kept from v1.5.4) */
+  body[data-modal-open="1"] .skin-gear{
+    opacity: 0 !important; pointer-events: none !important;
+    transform: scale(.8) translateY(-4px); transition: all .18s ease;
+  }
 
   /* Footer */
   body[data-ui-skin="watercolor"] .footer{ color: var(--wcv-text-muted) !important; }
@@ -1336,7 +1413,7 @@
     <div class="line"><span class="lab">Rain</span><span class="val" id="h24-rain">—</span></div>
   </div>
 
-  <div class="footer small">v1.5.4 · Pull down to refresh · <span id="updated">--</span></div>
+  <div class="footer small">v1.5.5 · Pull down to refresh · <span id="updated">--</span></div>
 </div>
 
 <!-- ===== zoom modal ===== -->
@@ -1894,7 +1971,7 @@
       console.error("renderWx failed:", e);
       // Visible breadcrumb in footer so we can spot a backdrop fault without DevTools
       const f = document.querySelector(".footer");
-      if (f) f.textContent = "v1.5.4 \u00b7 bg err: " + (e.message || e);
+      if (f) f.textContent = "v1.5.5 \u00b7 bg err: " + (e.message || e);
     }
   }
   /* ============================================================
@@ -2283,7 +2360,7 @@
     } catch(e){
       console.error("backdrop render failed:", e);
       const f = document.querySelector(".footer");
-      if(f) f.textContent = "v1.5.4 \u00b7 bg err: " + (e.message || e);
+      if(f) f.textContent = "v1.5.5 \u00b7 bg err: " + (e.message || e);
     }
   }
 
@@ -3760,7 +3837,7 @@
   try{ _skinApply(); }catch(e){ console.error('skin init',e); }
 
 
-/* v1.5.4 — track open modals so we can hide the gear via CSS */
+/* v1.5.5 — track open modals so we can hide the gear via CSS */
 (function(){
   function setOpen(){
     const ids = ["sun-modal","wx-modal","wx-hist-modal","wr-modal","cam-modal","hp10-modal","modal-bg","skin-modal-bg"];
