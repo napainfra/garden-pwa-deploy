@@ -774,6 +774,236 @@
     background:rgba(255,220,200,.85) !important;color:#3a1808 !important;
   }
 
+  /* ===========================================================
+     WATERCOLOR UI v1.5.3 — proper painted tiles + light modals
+     =========================================================== */
+
+  /* Shared SVG: artistic paper grain (cool warm fibers). Used as
+     background-image on tiles and modal cards to give them a paper feel. */
+  body[data-ui-skin="watercolor"] .tile,
+  body[data-ui-skin="watercolor"] .row,
+  body[data-ui-skin="watercolor"] .hp10-card,
+  body[data-ui-skin="watercolor"] .freeze,
+  body[data-ui-skin="watercolor"] .wind-alert {
+    background-image:
+      /* paper fibers — multiply blend over the wash */
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' seed='9'/><feColorMatrix values='0 0 0 0 .55  0 0 0 0 .48  0 0 0 0 .38  0 0 0 .28 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+      /* edge wash — darker watercolor pooling at corners */
+      radial-gradient(ellipse 110% 80% at 8% 6%, rgba(120,140,170,.18), transparent 60%),
+      radial-gradient(ellipse 110% 80% at 95% 95%, rgba(120,140,170,.14), transparent 55%),
+      /* base cream paper */
+      linear-gradient(180deg, rgba(252,248,238,.94), rgba(248,243,232,.94)) !important;
+    background-blend-mode: multiply, normal, normal, normal !important;
+    background-size: 220px 220px, cover, cover, cover !important;
+    background-repeat: repeat, no-repeat, no-repeat, no-repeat !important;
+    /* painted slightly-irregular corners */
+    border-radius: 22px 20px 24px 18px !important;
+    border: 1px solid rgba(120,110,90,.22) !important;
+    box-shadow:
+      0 8px 22px rgba(60,55,45,.10),
+      inset 0 0 0 1px rgba(255,255,255,.35),
+      inset 0 -14px 28px rgba(180,160,130,.08) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Per-tile watercolor washes — uniform paper, different pigment.
+     We layer a tinted wash above the cream base. */
+
+  /* SOIL — first .tile on the main .grid2 — leafy green wash */
+  body[data-ui-skin="watercolor"] .grid2 > .tile:nth-child(1) {
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' seed='9'/><feColorMatrix values='0 0 0 0 .55  0 0 0 0 .48  0 0 0 0 .38  0 0 0 .28 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+      radial-gradient(ellipse 90% 70% at 25% 30%, rgba(120,170,110,.32), transparent 65%),
+      radial-gradient(ellipse 80% 60% at 80% 80%, rgba(160,190,120,.22), transparent 60%),
+      linear-gradient(180deg, rgba(245,250,232,.94), rgba(232,242,218,.94)) !important;
+  }
+
+  /* SUN — already has .tile-yellow — golden honey wash */
+  body[data-ui-skin="watercolor"] .tile.tile-yellow {
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' seed='9'/><feColorMatrix values='0 0 0 0 .55  0 0 0 0 .48  0 0 0 0 .38  0 0 0 .28 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+      radial-gradient(ellipse 95% 75% at 70% 25%, rgba(255,200,90,.30), transparent 65%),
+      radial-gradient(ellipse 70% 55% at 20% 85%, rgba(245,180,80,.18), transparent 60%),
+      linear-gradient(180deg, rgba(255,250,228,.94), rgba(250,242,210,.94)) !important;
+  }
+
+  /* WIND tile by id — cool grey-blue wash */
+  body[data-ui-skin="watercolor"] #wind-tile {
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' seed='9'/><feColorMatrix values='0 0 0 0 .55  0 0 0 0 .48  0 0 0 0 .38  0 0 0 .28 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+      radial-gradient(ellipse 90% 70% at 30% 30%, rgba(150,180,210,.32), transparent 65%),
+      radial-gradient(ellipse 80% 60% at 85% 80%, rgba(170,195,220,.22), transparent 60%),
+      linear-gradient(180deg, rgba(238,244,250,.94), rgba(222,232,242,.94)) !important;
+  }
+
+  /* RAIN tile by id — periwinkle / wet-paper blue wash */
+  body[data-ui-skin="watercolor"] #rain-tile {
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' seed='9'/><feColorMatrix values='0 0 0 0 .55  0 0 0 0 .48  0 0 0 0 .38  0 0 0 .28 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+      radial-gradient(ellipse 95% 75% at 25% 20%, rgba(115,150,210,.32), transparent 65%),
+      radial-gradient(ellipse 80% 60% at 80% 85%, rgba(140,170,225,.22), transparent 60%),
+      linear-gradient(180deg, rgba(232,240,250,.94), rgba(214,226,242,.94)) !important;
+  }
+
+  /* Bottom 3-column row (Last watered / Valve / Battery) — soft rosy wash */
+  body[data-ui-skin="watercolor"] .row.grid3 {
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' seed='9'/><feColorMatrix values='0 0 0 0 .55  0 0 0 0 .48  0 0 0 0 .38  0 0 0 .28 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+      radial-gradient(ellipse 95% 75% at 30% 30%, rgba(220,170,170,.22), transparent 65%),
+      radial-gradient(ellipse 80% 60% at 80% 85%, rgba(210,180,160,.18), transparent 60%),
+      linear-gradient(180deg, rgba(252,246,240,.94), rgba(246,238,230,.94)) !important;
+  }
+
+  /* HP10 camera card — sage wash */
+  body[data-ui-skin="watercolor"] .hp10-card {
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' seed='9'/><feColorMatrix values='0 0 0 0 .55  0 0 0 0 .48  0 0 0 0 .38  0 0 0 .28 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+      radial-gradient(ellipse 90% 70% at 30% 30%, rgba(150,180,150,.22), transparent 65%),
+      linear-gradient(180deg, rgba(244,248,238,.94), rgba(232,240,222,.94)) !important;
+  }
+
+  /* Typography on watercolor tiles — slightly darker, painted feel */
+  body[data-ui-skin="watercolor"] .tile .value,
+  body[data-ui-skin="watercolor"] .row .value {
+    color: #1f3a6e !important;
+    font-weight: 700 !important;
+    text-shadow: 0 1px 0 rgba(255,255,255,.45);
+  }
+  body[data-ui-skin="watercolor"] .tile .label,
+  body[data-ui-skin="watercolor"] .row .label {
+    color: #4a4030 !important;
+    font-weight: 600 !important;
+  }
+  body[data-ui-skin="watercolor"] .tile .sub,
+  body[data-ui-skin="watercolor"] .row .sub,
+  body[data-ui-skin="watercolor"] .tap-hint {
+    color: #6a604a !important;
+  }
+
+  /* Buttons — painted gouache feel */
+  body[data-ui-skin="watercolor"] .btn.start {
+    background-image:
+      radial-gradient(ellipse 80% 60% at 30% 30%, rgba(120,170,210,.35), transparent 65%),
+      linear-gradient(180deg, rgba(170,205,235,.94), rgba(135,180,220,.94)) !important;
+    border: 1px solid rgba(80,120,170,.45) !important;
+    box-shadow: 0 6px 16px rgba(60,100,150,.18), inset 0 1px 0 rgba(255,255,255,.45) !important;
+    border-radius: 22px 20px 24px 18px !important;
+  }
+  body[data-ui-skin="watercolor"] .btn.stop {
+    background-image:
+      radial-gradient(ellipse 80% 60% at 30% 30%, rgba(220,140,140,.30), transparent 65%),
+      linear-gradient(180deg, rgba(240,180,180,.94), rgba(220,140,140,.94)) !important;
+    border: 1px solid rgba(170,80,80,.45) !important;
+    box-shadow: 0 6px 16px rgba(150,60,60,.18), inset 0 1px 0 rgba(255,255,255,.40) !important;
+    border-radius: 22px 20px 24px 18px !important;
+  }
+
+  /* Pill / status chip — painted */
+  body[data-ui-skin="watercolor"] .pill {
+    background-image:
+      radial-gradient(ellipse 80% 60% at 30% 30%, rgba(180,210,160,.30), transparent 65%),
+      linear-gradient(180deg, rgba(248,244,232,.92), rgba(238,232,218,.92)) !important;
+    color: #2a4030 !important;
+    border: 1px solid rgba(120,110,90,.30) !important;
+    border-radius: 999px !important;
+    box-shadow: 0 2px 8px rgba(60,55,45,.10), inset 0 1px 0 rgba(255,255,255,.5) !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Skin gear button — paper button */
+  body[data-ui-skin="watercolor"] .skin-gear {
+    background-image:
+      linear-gradient(180deg, rgba(252,248,238,.94), rgba(244,238,225,.94)) !important;
+    border: 1px solid rgba(120,110,90,.30) !important;
+    color: #4a4030 !important;
+    box-shadow: 0 2px 6px rgba(60,55,45,.10) !important;
+  }
+
+  /* ============================================================
+     WATERCOLOR MODALS — cream paper, NOT black
+     Scope: #sun-modal #wx-modal #wx-hist-modal #wr-modal #cam-modal #hp10-modal
+     EXCLUDE: #modal-bg (chart modal — user rule: do not touch)
+     ============================================================ */
+  body[data-ui-skin="watercolor"] #sun-modal,
+  body[data-ui-skin="watercolor"] #wx-modal,
+  body[data-ui-skin="watercolor"] #wx-hist-modal,
+  body[data-ui-skin="watercolor"] #wr-modal,
+  body[data-ui-skin="watercolor"] #cam-modal,
+  body[data-ui-skin="watercolor"] #hp10-modal {
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.0' numOctaves='2' seed='13'/><feColorMatrix values='0 0 0 0 .55  0 0 0 0 .48  0 0 0 0 .38  0 0 0 .22 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+      radial-gradient(ellipse 120% 80% at 50% 0%, rgba(200,210,225,.30), transparent 60%),
+      linear-gradient(180deg, rgba(250,246,236,.985), rgba(244,238,225,.985)) !important;
+    background-blend-mode: multiply, normal, normal !important;
+    color: #1a2438 !important;
+  }
+  /* Modal headings + close buttons in watercolor */
+  body[data-ui-skin="watercolor"] #sun-modal .top,
+  body[data-ui-skin="watercolor"] #wx-modal .top,
+  body[data-ui-skin="watercolor"] #wx-hist-modal .top,
+  body[data-ui-skin="watercolor"] #wr-modal .top,
+  body[data-ui-skin="watercolor"] #cam-modal .top,
+  body[data-ui-skin="watercolor"] #hp10-modal .top {
+    background: rgba(248,242,228,.85) !important;
+    border-bottom: 1px solid rgba(120,110,90,.18) !important;
+    color: #1a2438 !important;
+  }
+  body[data-ui-skin="watercolor"] #sun-modal .top h2,
+  body[data-ui-skin="watercolor"] #wx-modal .top h2,
+  body[data-ui-skin="watercolor"] #wx-hist-modal .top h2,
+  body[data-ui-skin="watercolor"] #wr-modal .top h2,
+  body[data-ui-skin="watercolor"] #cam-modal .top h2,
+  body[data-ui-skin="watercolor"] #hp10-modal .top h2 {
+    color: #1a2438 !important;
+  }
+  body[data-ui-skin="watercolor"] #sun-modal .close,
+  body[data-ui-skin="watercolor"] #wx-modal .close,
+  body[data-ui-skin="watercolor"] #wx-hist-modal .close,
+  body[data-ui-skin="watercolor"] #wr-modal .close,
+  body[data-ui-skin="watercolor"] #cam-modal .close,
+  body[data-ui-skin="watercolor"] #hp10-modal .close {
+    background: rgba(255,255,255,.7) !important;
+    border: 1px solid rgba(120,110,90,.25) !important;
+    color: #1a2438 !important;
+  }
+  /* Body text inside watercolor modals — dark, readable */
+  body[data-ui-skin="watercolor"] #sun-modal .body,
+  body[data-ui-skin="watercolor"] #wx-modal .body,
+  body[data-ui-skin="watercolor"] #wx-hist-modal .body,
+  body[data-ui-skin="watercolor"] #wr-modal .body,
+  body[data-ui-skin="watercolor"] #cam-modal .body,
+  body[data-ui-skin="watercolor"] #hp10-modal .body {
+    color: #1a2438 !important;
+  }
+  body[data-ui-skin="watercolor"] #sun-modal .body *,
+  body[data-ui-skin="watercolor"] #wx-modal .body *,
+  body[data-ui-skin="watercolor"] #wx-hist-modal .body *,
+  body[data-ui-skin="watercolor"] #wr-modal .body *,
+  body[data-ui-skin="watercolor"] #cam-modal .body *,
+  body[data-ui-skin="watercolor"] #hp10-modal .body * {
+    color: inherit;
+  }
+  /* Inner cards inside sun-modal and wx-modal */
+  body[data-ui-skin="watercolor"] #sun-modal .body > div,
+  body[data-ui-skin="watercolor"] #wx-modal .body > div,
+  body[data-ui-skin="watercolor"] #wr-modal .body > div {
+    background-color: rgba(255,253,246,.78) !important;
+    border-color: rgba(120,110,90,.22) !important;
+  }
+  /* Language toggle inside sun-modal */
+  body[data-ui-skin="watercolor"] #sun-modal .lang-toggle {
+    background: rgba(248,242,228,.85) !important;
+    border: 1px solid rgba(120,110,90,.25) !important;
+  }
+  body[data-ui-skin="watercolor"] #sun-modal .lang-btn {
+    color: #4a4030 !important;
+  }
+  body[data-ui-skin="watercolor"] #sun-modal .lang-btn.active {
+    background: rgba(245,200,120,.5) !important;
+    color: #1a2438 !important;
+  }
+
 </style>
 </head>
 <body>
@@ -1013,7 +1243,7 @@
     <div class="line"><span class="lab">Rain</span><span class="val" id="h24-rain">—</span></div>
   </div>
 
-  <div class="footer small">v1.5.2 · Pull down to refresh · <span id="updated">--</span></div>
+  <div class="footer small">v1.5.3 · Pull down to refresh · <span id="updated">--</span></div>
 </div>
 
 <!-- ===== zoom modal ===== -->
@@ -1571,7 +1801,7 @@
       console.error("renderWx failed:", e);
       // Visible breadcrumb in footer so we can spot a backdrop fault without DevTools
       const f = document.querySelector(".footer");
-      if (f) f.textContent = "v1.5.2 \u00b7 bg err: " + (e.message || e);
+      if (f) f.textContent = "v1.5.3 \u00b7 bg err: " + (e.message || e);
     }
   }
   /* ============================================================
@@ -1960,7 +2190,7 @@
     } catch(e){
       console.error("backdrop render failed:", e);
       const f = document.querySelector(".footer");
-      if(f) f.textContent = "v1.5.2 \u00b7 bg err: " + (e.message || e);
+      if(f) f.textContent = "v1.5.3 \u00b7 bg err: " + (e.message || e);
     }
   }
 
