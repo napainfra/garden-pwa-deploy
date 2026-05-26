@@ -8,6 +8,10 @@ FREEZE_AT=$(jq -r '.freeze_at // 1.0' "$OPTS")
 COOKIE_SECRET=$(jq -r '.cookie_secret // ""' "$OPTS")
 CFG_HA_URL=$(jq -r '.ha_url // ""' "$OPTS")
 CFG_HA_TOKEN=$(jq -r '.ha_token // ""' "$OPTS")
+ECOWITT_AUTHORIZE=$(jq -r '.ecowitt_authorize // ""' "$OPTS")
+ECOWITT_DEVICE_ID=$(jq -r '.ecowitt_device_id // ""' "$OPTS")
+[ "$ECOWITT_AUTHORIZE" = "null" ] && ECOWITT_AUTHORIZE=""
+[ "$ECOWITT_DEVICE_ID" = "null" ] && ECOWITT_DEVICE_ID=""
 
 if [ -z "$COOKIE_SECRET" ] || [ "$COOKIE_SECRET" = "null" ]; then
   COOKIE_SECRET=$(python3 -c 'import secrets; print(secrets.token_hex(32))')
@@ -31,7 +35,7 @@ else
   exit 1
 fi
 
-export APP_PIN FREEZE_AT COOKIE_SECRET HA_URL HA_TOKEN
+export APP_PIN FREEZE_AT COOKIE_SECRET HA_URL HA_TOKEN ECOWITT_AUTHORIZE ECOWITT_DEVICE_ID
 export PORT=8090
 
 echo "[garden_pwa] Starting Veg Garden PWA on :8090 (PIN=${APP_PIN}, freeze=${FREEZE_AT})"

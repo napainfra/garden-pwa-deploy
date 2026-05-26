@@ -10,7 +10,7 @@
 <link rel="manifest" href="/garden/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/garden/static/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/garden/static/icon-192.png">
-<title>Masha's Garden · v1.3.1</title>
+<title>Masha's Garden · v1.5.0</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
   html,body{height:100%;width:100%}
@@ -36,6 +36,40 @@
   body[data-cond="windy"]                             { background: radial-gradient(ellipse 90% 60% at 50% -5%, #355a6c 0%, #142632 45%, #06090c 90%); }
   /* ===== animated weather layer ===== */
   .wx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  /* aquarelle (watercolor) backdrop — layered SVG with paper grain + bleeding edges */
+  .wx svg{width:100%;height:100%;display:block}
+  .wx .sky-grad{position:absolute;inset:0;transition:opacity 2s ease,background 2s ease;mix-blend-mode:normal}
+  .wx .paper{position:absolute;inset:0;opacity:.07;mix-blend-mode:overlay;pointer-events:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.95  0 0 0 0 0.92  0 0 0 0 0.85  0 0 0 .6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");}
+  /* aquarelle keyframes — slow organic motion, no sharp transitions */
+  @keyframes aq-sun-pulse { 0%,100%{filter:blur(.5px) saturate(1);opacity:.92} 50%{filter:blur(.8px) saturate(1.1);opacity:1} }
+  .wx .aq-sun{transform-origin:50% 50%;animation:aq-sun-pulse 9s ease-in-out infinite}
+  @keyframes aq-moon-pulse { 0%,100%{opacity:.85;filter:blur(.4px)} 50%{opacity:1;filter:blur(.6px)} }
+  .wx .aq-moon{animation:aq-moon-pulse 7s ease-in-out infinite}
+  @keyframes aq-star-twinkle { 0%,100%{opacity:.3} 50%{opacity:.95} }
+  .wx .aq-star{animation:aq-star-twinkle 4s ease-in-out infinite}
+  @keyframes aq-cloud-driftA { from{transform:translateX(-35%)} to{transform:translateX(135%)} }
+  @keyframes aq-cloud-driftB { from{transform:translateX(135%)} to{transform:translateX(-35%)} }
+  .wx .aq-cloud-far{animation:aq-cloud-driftA 180s linear infinite;opacity:.6;transform-origin:50% 50%}
+  .wx .aq-cloud-mid{animation:aq-cloud-driftB 120s linear infinite;opacity:.78;transform-origin:50% 50%}
+  .wx .aq-cloud-near{animation:aq-cloud-driftA 80s linear infinite;opacity:.9;transform-origin:50% 50%}
+  /* v1.3.5: shooting stars — keyframes for streak across sky */
+  @keyframes aq-meteor { 0%{transform:translate(0,0) rotate(-25deg);opacity:0} 5%{opacity:1} 60%{opacity:1} 100%{transform:translate(40vw,18vw) rotate(-25deg);opacity:0} }
+  .wx .aq-meteor{position:absolute;width:80px;height:1.5px;background:linear-gradient(to right,transparent,#fffce8,#fffce8);border-radius:1px;
+    box-shadow:0 0 4px #fffce8,0 0 8px rgba(255,252,232,.6);animation:aq-meteor 1.8s ease-out forwards;pointer-events:none}
+  .wx .aq-meteor::after{content:"";position:absolute;right:-3px;top:-2px;width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 8px #fff,0 0 14px #ffe680}
+  @keyframes aq-rain { from{transform:translateY(-15%)} to{transform:translateY(115%)} }
+  .wx .aq-drop{animation:aq-rain linear infinite}
+  @keyframes aq-snow { 0%{transform:translate(0,-20%) rotate(0);opacity:0} 8%{opacity:.92} 92%{opacity:.92} 100%{transform:translate(var(--dx,0),120%) rotate(var(--rot,360deg));opacity:0} }
+  .wx .aq-flake{animation:aq-snow linear infinite}
+  @keyframes aq-hail { 0%{transform:translateY(-15%);opacity:0} 6%{opacity:1} 94%{opacity:1} 100%{transform:translateY(120%);opacity:1} }
+  .wx .aq-hail{animation:aq-hail linear infinite}
+  @keyframes aq-fog-drift { 0%,100%{transform:translateX(-8%)} 50%{transform:translateX(8%)} }
+  .wx .aq-fog{animation:aq-fog-drift 18s ease-in-out infinite}
+  @keyframes aq-flash { 0%,93%,100%{opacity:0} 93.5%{opacity:.85} 94%{opacity:0} 94.3%{opacity:.6} 94.7%{opacity:0} }
+  .wx .aq-flash{position:absolute;inset:0;background:radial-gradient(ellipse at 65% 25%,rgba(255,240,200,.7),transparent 55%);animation:aq-flash 11s linear infinite;mix-blend-mode:screen}
+  @keyframes aq-bolt { 0%,93%,100%{opacity:0} 93.5%,94.3%{opacity:1} 94%,94.7%{opacity:0} }
+  .wx .aq-bolt{animation:aq-bolt 11s linear infinite}
   .wx svg{width:100%;height:100%;display:block}
   /* sun rays sweep — POSTCARD */
   @keyframes sunsweep { 0%,100%{opacity:.55;transform:rotate(0deg)} 50%{opacity:.85;transform:rotate(8deg)} }
@@ -74,20 +108,21 @@
      the chart bottom-sheet and would otherwise clobber padding/background.
      Dynamic Island fix: env(safe-area-inset-top) + 14px breathing room and
      a 48×48 close hit-target (Apple HIG ≥ 44). */
-  #cam-modal,#wx-modal{position:fixed !important;inset:0 !important;z-index:100;background:rgba(0,0,0,.94) !important;
+  #cam-modal,#wx-modal,#wx-hist-modal,#wr-modal{position:fixed !important;inset:0 !important;z-index:100;background:rgba(0,0,0,.94) !important;
          display:none !important;flex-direction:column !important;max-width:none !important;border:0 !important;
          border-radius:0 !important;animation:none !important;
          padding:calc(env(safe-area-inset-top) + 14px) 0 env(safe-area-inset-bottom) !important;
          overflow-y:auto !important;max-height:none !important}
-  #cam-modal.open,#wx-modal.open{display:flex !important}
-  #cam-modal .top,#wx-modal .top{display:flex;justify-content:space-between;align-items:center;
+  #cam-modal.open,#wx-modal.open,#wx-hist-modal.open,#wr-modal.open{display:flex !important}
+  #cam-modal .top,#wx-modal .top,#wx-hist-modal .top,#wr-modal .top{display:flex;justify-content:space-between;align-items:center;
               padding:10px 14px 12px 18px;background:rgba(11,17,23,.8);backdrop-filter:blur(14px);
               -webkit-backdrop-filter:blur(14px);position:sticky;top:0;z-index:1;min-height:56px;margin:0}
-  #cam-modal .top h2,#wx-modal .top h2{font-size:18px;font-weight:600;margin:0}
-  #cam-modal .close,#wx-modal .close{background:rgba(255,255,255,.14);border:0;color:#fff;width:48px;height:48px;
+  #cam-modal .top h2,#wx-modal .top h2,#wx-hist-modal .top h2,#wr-modal .top h2{font-size:18px;font-weight:600;margin:0}
+  #cam-modal .close,#wx-modal .close,#wx-hist-modal .close,#wr-modal .close{background:rgba(255,255,255,.14);border:0;color:#fff;width:48px;height:48px;
                 border-radius:50%;font-size:26px;line-height:1;cursor:pointer;display:flex;align-items:center;
                 justify-content:center;-webkit-tap-highlight-color:transparent;flex-shrink:0;margin-left:8px;padding:0}
-  #cam-modal .close:active,#wx-modal .close:active{background:rgba(255,255,255,.24);transform:scale(.94)}
+  #cam-modal .close:active,#wx-modal .close:active,#wx-hist-modal .close:active,#wr-modal .close:active{background:rgba(255,255,255,.24);transform:scale(.94)}
+  .tap-hint{opacity:.45;font-weight:400;font-size:11px;margin-left:4px}
   .modal .body{flex:1;padding:0 18px 24px;display:flex;flex-direction:column;gap:14px}
   .modal .stream-box{width:100%;background:#000;border-radius:14px;overflow:hidden;min-height:240px;
                      display:flex;align-items:center;justify-content:center}
@@ -214,8 +249,15 @@
   .btn.stop{background:linear-gradient(135deg,#e53935,#b71c1c)}
   .btn.disabled{opacity:.4;pointer-events:none}
   .forecast{margin-top:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  /* v1.3.2: REAL tile gets a green-tinted gradient to distinguish from forecast */
+  .now-real{background:linear-gradient(135deg,rgba(95,209,126,.18),rgba(95,209,126,.05)) !important;
+           border:1px solid rgba(95,209,126,.25) !important}
+  .now-real .lbl{color:#9bd8ad !important}
+  .now-real .big{color:#eef9ef}
+  .now-card .row2 > div:first-child{flex:1;overflow:hidden}
   .now-card{background:linear-gradient(135deg,rgba(99,179,237,.18),rgba(99,179,237,.05));
-    border:1px solid rgba(99,179,237,.35);border-radius:14px;padding:14px;margin-top:18px}
+    border:1px solid rgba(99,179,237,.35);border-radius:14px;padding:14px}
+  .wx-pair .now-card{margin-top:0}
   .now-card .lbl{font-size:11px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em}
   .now-card .row2{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
   .now-card .big{font-size:34px;font-weight:600}
@@ -367,11 +409,16 @@
   /* HP10 fullscreen modal */
   #hp10-modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.96);
     display:none;flex-direction:column;
-    padding:calc(env(safe-area-inset-top)+14px) 0 env(safe-area-inset-bottom)}
+    /* v1.3.2: outer padding cleared; .top header handles its own safe-area inset */
+    padding:0 0 env(safe-area-inset-bottom) 0}
   #hp10-modal.open{display:flex}
+  /* v1.3.2: .top header has its OWN safe-area-inset-top so the close X is never under
+     the iPhone status bar / Dynamic Island. Adds extra 8px breathing room. */
   #hp10-modal .top{display:flex;justify-content:space-between;align-items:center;
-    padding:10px 14px 12px 18px;background:rgba(11,17,23,.8);backdrop-filter:blur(14px);
-    -webkit-backdrop-filter:blur(14px);position:sticky;top:0;z-index:1;min-height:56px;
+    padding:calc(env(safe-area-inset-top) + 12px) 14px 12px 18px;
+    background:rgba(11,17,23,.92);backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);position:sticky;top:0;z-index:1;
+    min-height:calc(env(safe-area-inset-top) + 60px);
     border-bottom:1px solid rgba(255,255,255,.06)}
   #hp10-modal .top h2{font-size:18px;font-weight:600;margin:0}
   #hp10-modal .close{background:rgba(255,255,255,.14);border:0;color:#fff;width:48px;height:48px;
@@ -387,6 +434,255 @@
   .timelapse-btn:active{transform:scale(.97)}
   #hp10-timelapse-wrap{display:none}
   #hp10-timelapse-wrap video{width:100%;border-radius:12px;display:block;margin-top:12px}
+  /* v1.3.9: date selector bar (‹ 📅 2026-05-25 ›) */
+  .tl-datebar{display:grid;grid-template-columns:48px 1fr 48px;gap:8px;align-items:stretch;margin-top:6px}
+  .tl-arrow,.tl-date{background:linear-gradient(135deg,rgba(99,179,237,.20),rgba(99,179,237,.08));
+    border:1px solid rgba(99,179,237,.30);color:#cfe2f7;border-radius:14px;
+    display:flex;align-items:center;justify-content:center;font-weight:600;
+    cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;
+    transition:transform .08s ease, opacity .15s ease}
+  .tl-arrow{font-size:22px;padding:0}
+  .tl-date{font-size:15px;padding:14px 12px;gap:8px;flex-direction:column;line-height:1.25;position:relative}
+  .tl-date .tl-date-main{font-size:16px;font-weight:700;color:#e6f0fb}
+  .tl-date .tl-date-sub{font-size:11px;color:#8aa1c2;font-weight:500;letter-spacing:.3px}
+  .tl-arrow:active,.tl-date:active{transform:scale(.94)}
+  .tl-arrow[aria-disabled="true"]{opacity:.28;pointer-events:none}
+  .tl-date input[type="date"]{position:absolute;inset:0;opacity:0;width:100%;height:100%;
+    border:0;background:transparent;font-size:16px;cursor:pointer;color-scheme:dark}
+  .tl-today-pill{align-self:center;justify-self:center;background:rgba(99,179,237,.18);
+    border:1px solid rgba(99,179,237,.35);color:#bcdcff;font-size:12px;font-weight:600;
+    padding:6px 12px;border-radius:999px;margin-top:8px;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;display:inline-flex;align-items:center;gap:6px}
+  .tl-today-pill:active{transform:scale(.95)}
+  .tl-today-pill[hidden]{display:none}
+  .tl-latest-link{display:block;margin-top:14px;background:rgba(99,179,237,.10);
+    border:1px dashed rgba(99,179,237,.35);border-radius:12px;padding:14px;
+    color:#cfe2f7;font-size:14px;text-align:center;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;font-weight:600}
+  .tl-latest-link:active{transform:scale(.98)}
+  .tl-latest-link .arrow{color:#7fb6e0;margin-left:6px}
+  /* ============================================================
+     v1.5.0 — SKINS SYSTEM
+     Two independent dimensions on <body>:
+       data-bg-skin  = realistic | watercolor   (background)
+       data-ui-skin  = realistic | watercolor   (tile chrome)
+     Defaults (no attr) = realistic, identical to v1.4.0.
+     ============================================================ */
+
+  /* ---------- Gear icon (top-right of hero) ---------- */
+  .skin-gear{
+    position:absolute;top:max(env(safe-area-inset-top),10px);right:14px;
+    width:36px;height:36px;border-radius:18px;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,.08);backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,.12);
+    color:#cfe2f7;font-size:18px;cursor:pointer;z-index:50;
+    transition:transform .15s ease,background .2s ease;
+  }
+  .skin-gear:active{transform:scale(.92)}
+
+  /* ---------- Skin settings modal ---------- */
+  .skin-modal-bg{
+    position:fixed;inset:0;z-index:200;display:none;
+    background:rgba(8,10,14,.78);backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    align-items:center;justify-content:center;padding:20px;
+  }
+  .skin-modal-bg.open{display:flex}
+  .skin-modal{
+    width:100%;max-width:420px;border-radius:22px;
+    background:linear-gradient(180deg,#1b2230,#0f141d);
+    border:1px solid rgba(255,255,255,.08);
+    box-shadow:0 30px 60px rgba(0,0,0,.5);
+    padding:20px 18px;color:#e9eef5;
+  }
+  .skin-modal h2{font-size:18px;font-weight:700;margin-bottom:4px}
+  .skin-modal .sub{font-size:12px;color:#8a96a6;margin-bottom:16px}
+  .skin-modal .group{margin-top:14px}
+  .skin-modal .group-label{
+    font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:#7c8ca3;margin-bottom:8px;
+  }
+  .skin-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .skin-opt{
+    border-radius:14px;padding:10px;cursor:pointer;
+    background:rgba(255,255,255,.04);
+    border:2px solid rgba(255,255,255,.08);
+    transition:border-color .15s ease,background .15s ease,transform .1s ease;
+    text-align:center;
+  }
+  .skin-opt:active{transform:scale(.97)}
+  .skin-opt[data-disabled="1"]{opacity:.4;cursor:not-allowed}
+  .skin-opt.active{border-color:#7fb6e0;background:rgba(127,182,224,.12)}
+  .skin-opt .swatch{
+    width:100%;aspect-ratio:1.4/1;border-radius:8px;margin-bottom:6px;
+    background-size:cover;background-position:center;
+    background-color:#0f141d;
+  }
+  .skin-opt[data-skin="realistic"] .swatch{
+    background:radial-gradient(ellipse 90% 60% at 50% -5%, #3d556e 0%, #1a2638 60%, #0b1117 100%);
+  }
+  .skin-opt[data-skin="watercolor"] .swatch{
+    background-image:url("/garden/static/sky/watercolor/sky-02.jpg");
+  }
+  .skin-opt[data-skin="pencil"] .swatch{
+    background:linear-gradient(180deg,#cfd6d8,#94a3b3 70%,#5b6a78);
+  }
+  .skin-opt .name{font-size:13px;font-weight:600}
+  .skin-opt .pencil-soon{font-size:10px;color:#7c8ca3;margin-top:2px}
+  .skin-modal .close-row{margin-top:18px;text-align:center}
+  .skin-modal .close-btn{
+    background:#243246;color:#e9eef5;border:none;border-radius:12px;
+    padding:10px 22px;font-size:14px;font-weight:600;cursor:pointer;
+  }
+
+  /* ============================================================
+     WATERCOLOR — BACKGROUND
+     ============================================================ */
+  body[data-bg-skin="watercolor"]{
+    background:#eaeaf0 !important;
+    transition:background 1.6s ease;
+  }
+  /* The watercolor wx is a stack of layers we control via JS by toggling
+     class names and inline opacities on .wcv-* children. */
+  body[data-bg-skin="watercolor"] .wx{
+    position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+  }
+  /* When watercolor is active, fade out the legacy SVG layer. */
+  body[data-bg-skin="watercolor"] .wx > svg,
+  body[data-bg-skin="watercolor"] .wx > .sky-grad,
+  body[data-bg-skin="watercolor"] .wx > .paper,
+  body[data-bg-skin="watercolor"] .wx > .aq-flash{ display:none !important; }
+
+  /* Sky base — two stacked tiles for crossfade. */
+  .wcv-sky{position:absolute;inset:0;background-size:cover;background-position:center;
+    opacity:0;transition:opacity 2.5s ease;will-change:opacity}
+  .wcv-sky.show{opacity:1}
+
+  /* Sun overlay (clear-day arc, image-57 strips) */
+  .wcv-sun{position:absolute;inset:0;background-size:cover;background-position:center;
+    mix-blend-mode:lighten;opacity:0;transition:opacity 2s ease;pointer-events:none}
+  .wcv-sun.show{opacity:.95}
+
+  /* Moon overlay (image-58 tiles cropped to disc area) — positioned + scaled */
+  .wcv-moon{position:absolute;top:6%;right:10%;width:26vw;max-width:170px;aspect-ratio:.5/1;
+    background-size:cover;background-position:center;background-repeat:no-repeat;
+    mix-blend-mode:screen;opacity:0;transition:opacity 2.5s ease;filter:drop-shadow(0 0 18px rgba(255,255,240,.18))}
+  .wcv-moon.show{opacity:1}
+
+  /* Paper texture, very subtle, sits on top of everything painted */
+  .wcv-paper{position:absolute;inset:0;pointer-events:none;opacity:.10;
+    mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='5'/><feColorMatrix values='0 0 0 0 .82  0 0 0 0 .78  0 0 0 0 .7  0 0 0 .55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>");}
+
+  /* Star layer (CSS dots) — for clear nights to add twinkle */
+  .wcv-stars{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 2s ease}
+  .wcv-stars.show{opacity:.9}
+  .wcv-star{position:absolute;width:2px;height:2px;border-radius:50%;background:#fffce8;
+    box-shadow:0 0 4px #fffce8,0 0 8px rgba(255,252,232,.45);
+    animation:wcv-twinkle 4s ease-in-out infinite}
+  @keyframes wcv-twinkle{0%,100%{opacity:.35}50%{opacity:1}}
+
+  /* Rain — CSS streaks with watercolor-blue tint */
+  .wcv-rain{position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:0;transition:opacity 1.2s ease}
+  .wcv-rain.show{opacity:1}
+  .wcv-drop{position:absolute;top:-12%;width:1.5px;height:18px;
+    background:linear-gradient(to bottom,transparent,rgba(110,150,200,.55),rgba(110,150,200,.85));
+    border-radius:1px;filter:blur(.4px);
+    animation:wcv-rain linear infinite}
+  @keyframes wcv-rain{from{transform:translateY(-20%)}to{transform:translateY(120vh)}}
+
+  /* Snow — soft dots */
+  .wcv-snow{position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:0;transition:opacity 1.2s ease}
+  .wcv-snow.show{opacity:1}
+  .wcv-flake{position:absolute;top:-8%;width:6px;height:6px;border-radius:50%;
+    background:rgba(255,255,255,.9);box-shadow:0 0 4px rgba(255,255,255,.6);
+    filter:blur(.5px);animation:wcv-snow linear infinite}
+  @keyframes wcv-snow{0%{transform:translate(0,-20%) rotate(0);opacity:0}
+    8%{opacity:.92}92%{opacity:.92}
+    100%{transform:translate(var(--dx,20px),120vh) rotate(360deg);opacity:0}}
+
+  /* Thunder flash */
+  .wcv-flash{position:absolute;inset:0;pointer-events:none;opacity:0;
+    background:radial-gradient(ellipse at 65% 25%,rgba(255,250,220,.75),transparent 55%);
+    mix-blend-mode:screen}
+  body[data-bg-skin="watercolor"][data-cond="lightning"] .wcv-flash,
+  body[data-bg-skin="watercolor"][data-cond="lightning-rainy"] .wcv-flash{
+    animation:wcv-flash 11s linear infinite;
+  }
+  @keyframes wcv-flash{
+    0%,93%,100%{opacity:0}
+    93.5%{opacity:.85}94%{opacity:0}
+    94.3%{opacity:.6}94.7%{opacity:0}
+  }
+
+  /* Season tint — gentle filter applied to the whole watercolor stack */
+  body[data-bg-skin="watercolor"][data-season="winter"] .wx{filter:saturate(.82) hue-rotate(-6deg) brightness(1.02)}
+  body[data-bg-skin="watercolor"][data-season="summer"] .wx{filter:saturate(1.12) brightness(1.03)}
+  body[data-bg-skin="watercolor"][data-season="autumn"] .wx{filter:sepia(.12) saturate(1.05)}
+  /* spring = no filter (default) */
+
+  /* ============================================================
+     WATERCOLOR — UI TILES
+     ============================================================ */
+  body[data-ui-skin="watercolor"]{
+    color:#1a2438;
+    font-family:"Iowan Old Style","Palatino",Georgia,"Times New Roman",serif;
+  }
+  body[data-ui-skin="watercolor"] h1{
+    color:#1a2438;font-weight:600;letter-spacing:.01em;
+    text-shadow:0 1px 0 rgba(255,255,255,.5);
+  }
+  body[data-ui-skin="watercolor"] .pill{
+    background:rgba(255,255,255,.55);color:#2a4a3a;
+    border:1px solid rgba(60,90,70,.25);backdrop-filter:blur(4px);
+  }
+  body[data-ui-skin="watercolor"] .tile,
+  body[data-ui-skin="watercolor"] .row,
+  body[data-ui-skin="watercolor"] .hp10-card{
+    background:rgba(252,250,245,.78) !important;
+    border:1px solid rgba(120,130,150,.28) !important;
+    box-shadow:0 6px 18px rgba(40,55,80,.12),inset 0 0 0 1px rgba(255,255,255,.4);
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    color:#1a2438 !important;
+    border-radius:18px;
+  }
+  body[data-ui-skin="watercolor"] .tile *,
+  body[data-ui-skin="watercolor"] .row *,
+  body[data-ui-skin="watercolor"] .hp10-card *{ color:inherit }
+  body[data-ui-skin="watercolor"] .tile .label,
+  body[data-ui-skin="watercolor"] .row .label{ color:#3a4658 !important; font-weight:600 }
+  body[data-ui-skin="watercolor"] .tile .value{ color:#1f3a8a !important; font-weight:700 }
+  body[data-ui-skin="watercolor"] .tile .sub,
+  body[data-ui-skin="watercolor"] .tap-hint{ color:#5a6678 !important }
+  body[data-ui-skin="watercolor"] .tile.tile-yellow{
+    background:rgba(255,250,225,.82) !important;
+    border-color:rgba(180,150,80,.35) !important;
+  }
+  body[data-ui-skin="watercolor"] .stars{ color:#c8a020 }
+  body[data-ui-skin="watercolor"] .btn.start{
+    background:linear-gradient(180deg,rgba(180,210,240,.92),rgba(140,180,225,.92));
+    color:#0f2238;border:1px solid rgba(80,120,170,.4);
+    text-shadow:0 1px 0 rgba(255,255,255,.4);
+  }
+  body[data-ui-skin="watercolor"] .btn.stop{
+    background:linear-gradient(180deg,rgba(240,180,180,.92),rgba(220,140,140,.92));
+    color:#3a0e0e;border:1px solid rgba(170,80,80,.4);
+    text-shadow:0 1px 0 rgba(255,255,255,.35);
+  }
+  body[data-ui-skin="watercolor"] .footer{ color:rgba(40,55,80,.55) }
+  body[data-ui-skin="watercolor"] .skin-gear{
+    background:rgba(255,255,255,.55);border:1px solid rgba(120,130,150,.3);color:#1a2438;
+  }
+  body[data-ui-skin="watercolor"] .freeze{
+    background:rgba(220,235,250,.85) !important;color:#0f2238 !important;
+    border:1px solid rgba(80,120,170,.4) !important;
+  }
+  body[data-ui-skin="watercolor"] .wind-alert{
+    background:rgba(255,220,200,.85) !important;color:#3a1808 !important;
+  }
+
 </style>
 </head>
 <body>
@@ -438,16 +734,16 @@
   <!-- WIND + RAIN tiles -->
   <div class="grid2" style="margin-top:12px">
     <!-- WIND tile -->
-    <div class="tile tappable" id="wind-tile">
-      <div class="label">💨 Wind</div>
+    <div class="tile tappable" id="wind-tile" onclick="openWindRainModal('wind')">
+      <div class="label">💨 Wind <span class="tap-hint">· tap</span></div>
       <div class="value" id="wind-speed" style="font-size:28px">--</div>
       <div class="sub" id="wind-dir">—</div>
       <div class="sub" id="wind-gust" style="font-size:11px">Gust —</div>
       <div id="wind-alert-banner" class="wind-alert" style="display:none"></div>
     </div>
     <!-- RAIN tile -->
-    <div class="tile" id="rain-tile">
-      <div class="label">🌧️ Rain</div>
+    <div class="tile tappable" id="rain-tile" onclick="openWindRainModal('rain')">
+      <div class="label">🌧️ Rain <span class="tap-hint">· tap</span></div>
       <div class="value" id="rain-today" style="font-size:28px">--</div>
       <div class="sub" id="rain-today-lbl" style="font-size:11px">today mm</div>
       <div class="sub" id="rain-week" style="font-size:11px">Week —</div>
@@ -484,28 +780,57 @@
     </div>
     <div class="body">
       <img id="hp10-modal-img" class="full-img" alt="Garden full view" src="">
-      <button class="timelapse-btn" id="hp10-tl-btn" onclick="loadTimelapse()">
-        🎬 <span id="hp10-tl-label">Today's timelapse</span>
-      </button>
+      <!-- v1.3.9: date-aware timelapse picker -->
+      <div class="tl-datebar" id="tl-datebar">
+        <div class="tl-arrow" id="tl-prev" role="button" aria-label="Previous day" onclick="tlStepDay(-1)">‹</div>
+        <div class="tl-date" id="tl-date" role="button" aria-label="Pick date">
+          <span class="tl-date-main" id="tl-date-main">🎬 —</span>
+          <span class="tl-date-sub" id="tl-date-sub">tap to choose day</span>
+          <input type="date" id="tl-date-input" onchange="tlPickDate(this.value)">
+        </div>
+        <div class="tl-arrow" id="tl-next" role="button" aria-label="Next day" onclick="tlStepDay(1)">›</div>
+      </div>
+      <button class="tl-today-pill" id="tl-today-pill" hidden onclick="tlGoToday()">↶ Jump to today</button>
       <div id="hp10-timelapse-wrap">
         <video controls playsinline id="hp10-video"></video>
       </div>
     </div>
   </div>
 
-  <!-- Current conditions card (tap for full forecast) -->
-  <div class="now-card" id="now-card" onclick="openWxModal()">
-    <div class="lbl">Right now — outdoor</div>
-    <div class="row2">
-      <div>
-        <div class="big"><span id="now-temp">--</span>°C</div>
-        <div class="meta">
-          <span id="now-cond-text">—</span>
-          <span id="now-humidity"></span>
-          <span id="now-rain" class="rain-off">No rain detected</span>
+  <!-- v1.3.2: Two side-by-side weather tiles. REAL = Ecowitt (tap = past 7d).
+       FORECAST = weather.forecast_home (tap = next 7d). -->
+  <div class="wx-pair" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px">
+    <!-- REAL (Ecowitt sensor) -->
+    <div class="now-card now-real" id="now-real" onclick="openWxHistoryModal()">
+      <div class="lbl">📡 Real · sensor</div>
+      <div class="row2">
+        <div style="min-width:0">
+          <div class="big"><span id="real-temp">--</span>°C</div>
+          <div class="meta" style="flex-direction:column;gap:2px;font-size:11px">
+            <span><span id="real-hum">--</span>% humidity</span>
+            <span>UV <span id="real-uv">--</span></span>
+            <span id="real-rain" class="rain-off">No rain</span>
+          </div>
         </div>
+        <div class="ico" style="font-size:34px">🌡️</div>
       </div>
-      <div class="ico" id="now-ico">⋯</div>
+      <div class="tap-hint" style="font-size:10px;color:#5fd17e;margin-top:6px">Tap → past 7d</div>
+    </div>
+    <!-- FORECAST (weather.forecast_home) -->
+    <div class="now-card now-fc" id="now-card" onclick="openWxModal()">
+      <div class="lbl">☁️ Forecast</div>
+      <div class="row2">
+        <div style="min-width:0">
+          <div class="big"><span id="now-temp">--</span>°C</div>
+          <div class="meta" style="flex-direction:column;gap:2px;font-size:11px">
+            <span id="now-cond-text">—</span>
+            <span id="now-humidity">--% humidity</span>
+            <span id="now-rain" class="rain-off">No rain in forecast</span>
+          </div>
+        </div>
+        <div class="ico" id="now-ico" style="font-size:34px">⋯</div>
+      </div>
+      <div class="tap-hint" style="font-size:10px;color:#8aa1c2;margin-top:6px">Tap → next 7d</div>
     </div>
   </div>
 
@@ -517,14 +842,36 @@
     <div id="zones-list"></div>
   </div>
 
-  <!-- Weather full-forecast modal -->
+  <!-- Weather full-forecast modal (NEXT 7 days from forecast_home) -->
   <div class="modal" id="wx-modal">
     <div class="top">
-      <h2>7-day forecast</h2>
+      <h2>☁️ Next 7 days · forecast</h2>
       <button class="close" onclick="closeWxModal()">×</button>
     </div>
     <div class="body" id="wx-modal-body">
       <div class="stream-msg"><div class="spinner"></div>Loading forecast…</div>
+    </div>
+  </div>
+
+  <!-- v1.3.2: REAL history modal (PAST 7 days from Ecowitt + Enphase) -->
+  <div class="modal" id="wx-hist-modal">
+    <div class="top">
+      <h2>📡 Past 7 days · real sensors</h2>
+      <button class="close" onclick="closeWxHistoryModal()">×</button>
+    </div>
+    <div class="body" id="wx-hist-body">
+      <div class="stream-msg"><div class="spinner"></div>Loading history…</div>
+    </div>
+  </div>
+
+  <!-- v1.3.2: Wind/Rain stats modal -->
+  <div class="modal" id="wr-modal">
+    <div class="top">
+      <h2 id="wr-modal-title">💨 Wind · past 7 days</h2>
+      <button class="close" onclick="closeWindRainModal()">×</button>
+    </div>
+    <div class="body" id="wr-modal-body">
+      <div class="stream-msg"><div class="spinner"></div>Loading stats…</div>
     </div>
   </div>
 
@@ -575,7 +922,7 @@
     <div class="line"><span class="lab">Rain</span><span class="val" id="h24-rain">—</span></div>
   </div>
 
-  <div class="footer small">v1.3.1 · Pull down to refresh · <span id="updated">--</span></div>
+  <div class="footer small">v1.5.0 · Pull down to refresh · <span id="updated">--</span></div>
 </div>
 
 <!-- ===== zoom modal ===== -->
@@ -611,83 +958,813 @@
     "rainy":"🌧️","pouring":"🌧️","snowy":"❄️","snowy-rainy":"🌨️","lightning":"⛈️",
     "lightning-rainy":"⛈️","windy":"💨","windy-variant":"💨","exceptional":"⚠️",
   };
-  // ===== weather backdrop =====
-  function renderWx(cond, daypart){
-    const wx = $("wx"); wx.innerHTML = "";
+  // ===== v1.3.4: aquarelle weather backdrop =====
+  // Watercolor-style SVG primitives. Soft edges via Gaussian blur + turbulence
+  // displacement (bleeding paint). Sensor-driven density/speed/color.
+  //
+  // Layers (z order):
+  //   1. .sky-grad  — full-bleed CSS gradient sky tint
+  //   2. svg  — sun/moon/stars + cloud layers + precipitation + bolt
+  //   3. .paper — noise grain overlay (gives canvas/paper feel)
+  //   4. .aq-flash  — thunderstorm screen flash
+  //
+  // Conditions handled: sunny, partlycloudy, cloudy, clear-night, rainy,
+  //   pouring, snowy, snowy-rainy, hail, lightning, lightning-rainy, fog, windy.
+  function _aqDefs() {
+    // v1.3.6: iOS Safari struggles with feTurbulence+feDisplacementMap at scale (the
+    // whole filter chain silently fails to render on real devices). Use plain Gaussian
+    // blur only — still gives a soft watercolor wash, no painterly displacement bleed.
+    return `<defs>
+      <filter id="aq-bleed" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation=".7"/>
+      </filter>
+      <filter id="aq-bleed-heavy" x="-25%" y="-25%" width="150%" height="150%">
+        <feGaussianBlur stdDeviation="1.6"/>
+      </filter>
+      <filter id="aq-soft" x="-10%" y="-10%" width="120%" height="120%">
+        <feGaussianBlur stdDeviation=".4"/>
+      </filter>
+      <!-- Watercolor paint puddles — dark center + soft halo -->
+      <radialGradient id="aq-sun-disc" cx="45%" cy="45%" r="55%">
+        <stop offset="0%" stop-color="#fff4c4"/>
+        <stop offset="40%" stop-color="#ffd278"/>
+        <stop offset="75%" stop-color="#f6a44b"/>
+        <stop offset="100%" stop-color="#e07c1c" stop-opacity=".7"/>
+      </radialGradient>
+      <radialGradient id="aq-sun-halo" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#ffd278" stop-opacity=".55"/>
+        <stop offset="50%" stop-color="#ff9a3c" stop-opacity=".18"/>
+        <stop offset="100%" stop-color="#ff7a1a" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="aq-moon-disc" cx="38%" cy="38%" r="62%">
+        <stop offset="0%" stop-color="#fffaf0"/>
+        <stop offset="55%" stop-color="#dfe4f0"/>
+        <stop offset="100%" stop-color="#9ba8c4" stop-opacity=".85"/>
+      </radialGradient>
+      <radialGradient id="aq-moon-halo" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#cfd9f2" stop-opacity=".55"/>
+        <stop offset="100%" stop-color="#cfd9f2" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="aq-cloud-light" cx="35%" cy="35%" r="75%">
+        <stop offset="0%" stop-color="#fbfcfe" stop-opacity=".95"/>
+        <stop offset="60%" stop-color="#dde4ee" stop-opacity=".85"/>
+        <stop offset="100%" stop-color="#bcc6d3" stop-opacity=".55"/>
+      </radialGradient>
+      <!-- v1.3.5: night clouds — brighter, more visible against dark sky -->
+      <radialGradient id="aq-cloud-night" cx="35%" cy="35%" r="75%">
+        <stop offset="0%" stop-color="#a8b4cc" stop-opacity=".85"/>
+        <stop offset="60%" stop-color="#7889a8" stop-opacity=".7"/>
+        <stop offset="100%" stop-color="#4a5468" stop-opacity=".45"/>
+      </radialGradient>
+      <radialGradient id="aq-cloud-night-thin" cx="35%" cy="35%" r="75%">
+        <stop offset="0%" stop-color="#c4cee0" stop-opacity=".55"/>
+        <stop offset="60%" stop-color="#8a98b4" stop-opacity=".4"/>
+        <stop offset="100%" stop-color="#5a6478" stop-opacity=".2"/>
+      </radialGradient>
+      <radialGradient id="aq-cloud-grey" cx="40%" cy="35%" r="75%">
+        <stop offset="0%" stop-color="#c8cfdb" stop-opacity=".9"/>
+        <stop offset="60%" stop-color="#8e98a8" stop-opacity=".85"/>
+        <stop offset="100%" stop-color="#5d6678" stop-opacity=".65"/>
+      </radialGradient>
+      <radialGradient id="aq-cloud-storm" cx="40%" cy="30%" r="80%">
+        <stop offset="0%" stop-color="#6b7689" stop-opacity=".95"/>
+        <stop offset="50%" stop-color="#3e4659" stop-opacity=".9"/>
+        <stop offset="100%" stop-color="#1f2433" stop-opacity=".7"/>
+      </radialGradient>
+      <linearGradient id="aq-drop" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#a8d8ff" stop-opacity="0"/>
+        <stop offset="45%" stop-color="#7eb8e8" stop-opacity=".85"/>
+        <stop offset="100%" stop-color="#5a8cba" stop-opacity=".95"/>
+      </linearGradient>
+      <radialGradient id="aq-hail" cx="35%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="60%" stop-color="#d6e4f1"/>
+        <stop offset="100%" stop-color="#7a8fa8" stop-opacity=".9"/>
+      </radialGradient>
+    </defs>`;
+  }
+  function _aqWatercolorBlob(cx, cy, radius, fill, opacity, seedShift) {
+    // Draws a watercolor "puddle": main paint + irregular splotches around the rim
+    // for that hand-painted, organic feel.
+    let s = `<g opacity="${opacity}">`;
+    s += `<ellipse cx="${cx}" cy="${cy}" rx="${radius}" ry="${radius*0.78}" fill="${fill}"/>`;
+    // 4 satellite splotches (smaller, offset, slightly different opacity)
+    for (let i = 0; i < 4; i++) {
+      const a = ((i + seedShift) * (Math.PI * 2 / 4)) + 0.7;
+      const r = radius * (0.55 + ((i + seedShift) % 3) * 0.12);
+      const ox = cx + Math.cos(a) * radius * 0.65;
+      const oy = cy + Math.sin(a) * radius * 0.48;
+      const sr = radius * (0.22 + ((i + seedShift) % 2) * 0.08);
+      s += `<ellipse cx="${ox.toFixed(1)}" cy="${oy.toFixed(1)}" rx="${sr.toFixed(1)}" ry="${(sr*0.7).toFixed(1)}" fill="${fill}" opacity=".65"/>`;
+    }
+    s += `</g>`;
+    return s;
+  }
+  function _aqCloud(cx, cy, scale, gradId, classes, durationSec) {
+    // A watercolor cloud: 5–7 overlapping puddles in roughly horizontal shape.
+    // v1.3.5: animation-duration applied to element itself (not wrapper <g>).
+    const durStyle = durationSec ? ` style="animation-duration:${durationSec}s"` : "";
+    let s = `<g class="${classes}"${durStyle}>`;
+    const blobs = [
+      [0,       0,    1.0],
+      [-1.1,    0.15, 0.85],
+      [1.0,     0.10, 0.82],
+      [-0.55,  -0.35, 0.70],
+      [0.50,   -0.30, 0.72],
+      [-1.7,    0.30, 0.50],
+      [1.6,     0.25, 0.55],
+    ];
+    blobs.forEach(b => {
+      const x = cx + b[0] * scale * 8;
+      const y = cy + b[1] * scale * 5;
+      const r = b[2] * scale * 7;
+      s += `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${r.toFixed(1)}" ry="${(r*0.62).toFixed(1)}" fill="url(#${gradId})"/>`;
+    });
+    s += `</g>`;
+    return s;
+  }
+  function _aqSun(cx, cy, size) {
+    // Watercolor sun: irregular halo (paint splatter) + main disc + soft inner glow.
+    let s = `<g class="aq-sun">`;
+    // Outer halo — large soft puddle
+    s += `<g>`;
+    s += `<circle cx="${cx}" cy="${cy}" r="${size*2.6}" fill="url(#aq-sun-halo)"/>`;
+    s += `</g>`;
+    // 6 painterly rays (irregular blobs around the disc)
+    s += `<g opacity=".55">`;
+    for (let i = 0; i < 6; i++) {
+      const a = (i * 60 + 15) * Math.PI / 180;
+      const r1 = size * 1.4;
+      const r2 = size * 2.2;
+      const x1 = cx + Math.cos(a) * r1;
+      const y1 = cy + Math.sin(a) * r1;
+      const x2 = cx + Math.cos(a) * r2;
+      const y2 = cy + Math.sin(a) * r2;
+      const mx = (x1+x2)/2 + Math.cos(a+Math.PI/2)*1.5;
+      const my = (y1+y2)/2 + Math.sin(a+Math.PI/2)*1.5;
+      s += `<path d="M${x1.toFixed(1)},${y1.toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}" stroke="#ffc26b" stroke-width="${(size*0.4).toFixed(1)}" stroke-linecap="round" fill="none" opacity=".7"/>`;
+    }
+    s += `</g>`;
+    // Disc — main paint puddle
+    s += `<g>`;
+    s += `<ellipse cx="${cx}" cy="${cy}" rx="${size}" ry="${size*0.92}" fill="url(#aq-sun-disc)"/>`;
+    s += `</g>`;
+    s += `</g>`;
+    return s;
+  }
+  function _aqMoon(cx, cy, size, phase) {
+    // v1.3.5: Watercolor moon with REAL phase illumination.
+    // phase: 0.0=new, 0.25=first qtr, 0.5=full, 0.75=last qtr, 1.0=new
+    // Algorithm: draw full bright disc, then overlay shadow ellipse offset based on phase.
+    //   - phase 0–0.5 (waxing): shadow on left side, shrinking
+    //   - phase 0.5–1.0 (waning): shadow on right side, growing
+    if (phase == null) phase = 0.5; // default to full moon if unknown
+    let s = `<g class="aq-moon">`;
+    // Halo
+    s += `<g>`;
+    s += `<circle cx="${cx}" cy="${cy}" r="${size*2.8}" fill="url(#aq-moon-halo)"/>`;
+    s += `</g>`;
+    // Disc (full bright base)
+    s += `<g>`;
+    s += `<ellipse cx="${cx}" cy="${cy}" rx="${size}" ry="${size*0.97}" fill="url(#aq-moon-disc)"/>`;
+    // Phase shadow — elliptical mask that covers unlit portion
+    // illumFrac: 0 = new (all shadow), 1 = full (no shadow)
+    const illumFrac = (phase < 0.5) ? (phase * 2) : ((1 - phase) * 2);
+    // Shadow horizontal radius determines crescent thickness:
+    //   illum=0 → shadow rx = size (fully covers)
+    //   illum=0.5 (half moon) → shadow rx = 0 (straight terminator line, but we use small ellipse for soft edge)
+    //   illum=1 (full) → shadow rx negative (no shadow drawn)
+    const shadowRx = size * (1 - 2 * illumFrac);  // can be negative
+    if (illumFrac < 0.98) {
+      // For waxing (phase < 0.5), shadow is on LEFT; for waning, shadow is on RIGHT
+      const waxing = phase < 0.5;
+      // Shadow ellipse offset: when illumFrac is high (near full), small offset; when low (near new), zero offset (covers fully)
+      const shadowCx = cx + (waxing ? -1 : 1) * Math.abs(shadowRx);
+      // If illumFrac > 0.5 (gibbous), shadow is smaller than disc and inside it
+      // If illumFrac < 0.5 (crescent), shadow is larger; we use the disc-side shadow ellipse
+      if (illumFrac > 0.5) {
+        // Gibbous: small shadow ellipse offset to side
+        const sr = size * (1 - 2 * (1 - illumFrac));
+        s += `<ellipse cx="${(cx + (waxing ? -1 : 1) * (size - sr)).toFixed(1)}" cy="${cy}" rx="${sr.toFixed(1)}" ry="${(size*0.97).toFixed(1)}" fill="#0e1426" opacity=".82"/>`;
+      } else {
+        // Crescent / half: shadow covers most of disc, leaves only crescent
+        // We draw a shadow ellipse that's just slightly smaller than the disc, offset so it covers all but the crescent
+        const sr = size * 0.97;
+        const offsetX = (waxing ? -1 : 1) * sr * (1 - 2 * illumFrac) * 0.5;
+        // Wait — simpler: shadow is FULL size, offset so the unshadowed crescent has correct width
+        const crescentWidth = size * 2 * illumFrac;  // 0 at new, size at half
+        const shadowOffsetX = (waxing ? 1 : -1) * (sr - crescentWidth);
+        s += `<ellipse cx="${(cx + shadowOffsetX).toFixed(1)}" cy="${cy}" rx="${sr.toFixed(1)}" ry="${(size*0.97).toFixed(1)}" fill="#0e1426" opacity=".88"/>`;
+      }
+    }
+    // Craters (subtle paint dots) — only show on illuminated side, faint
+    s += `<ellipse cx="${(cx-size*0.25).toFixed(1)}" cy="${(cy-size*0.15).toFixed(1)}" rx="${(size*0.12).toFixed(1)}" ry="${(size*0.10).toFixed(1)}" fill="#9ba8c4" opacity=".45"/>`;
+    s += `<ellipse cx="${(cx+size*0.05).toFixed(1)}" cy="${(cy+size*0.30).toFixed(1)}" rx="${(size*0.08).toFixed(1)}" ry="${(size*0.07).toFixed(1)}" fill="#9ba8c4" opacity=".35"/>`;
+    s += `</g></g>`;
+    return s;
+  }
+  function _moonPhaseName(p) {
+    if (p < 0.03 || p > 0.97) return "New moon";
+    if (p < 0.22) return "Waxing crescent";
+    if (p < 0.28) return "First quarter";
+    if (p < 0.47) return "Waxing gibbous";
+    if (p < 0.53) return "Full moon";
+    if (p < 0.72) return "Waning gibbous";
+    if (p < 0.78) return "Last quarter";
+    return "Waning crescent";
+  }
+  function _aqStars(count) {
+    let s = "";
+    for (let i = 0; i < count; i++) {
+      const cx = (Math.random() * 100).toFixed(1);
+      const cy = (Math.random() * 70).toFixed(1);
+      const r  = (Math.random() * 0.55 + 0.2).toFixed(2);
+      const op = (Math.random() * 0.55 + 0.45).toFixed(2);
+      const dly = (Math.random() * 4).toFixed(1);
+      // Brighter highlights for ~15% of stars (give some "big" stars character)
+      const bright = Math.random() < 0.15;
+      const fill = bright ? "#ffffff" : "#fffce8";
+      const finalR = bright ? (parseFloat(r) + 0.3).toFixed(2) : r;
+      s += `<circle class="aq-star" cx="${cx}" cy="${cy}" r="${finalR}" fill="${fill}" opacity="${op}" style="animation-delay:-${dly}s"/>`;
+      // Add cross-shaped glow on bright stars
+      if (bright) {
+        s += `<line x1="${cx}" y1="${(parseFloat(cy)-1.2).toFixed(1)}" x2="${cx}" y2="${(parseFloat(cy)+1.2).toFixed(1)}" stroke="#ffffff" stroke-width=".15" opacity=".5"/>`;
+        s += `<line x1="${(parseFloat(cx)-1.2).toFixed(1)}" y1="${cy}" x2="${(parseFloat(cx)+1.2).toFixed(1)}" y2="${cy}" stroke="#ffffff" stroke-width=".15" opacity=".5"/>`;
+      }
+    }
+    return s;
+  }
+  // v1.3.5: shooting star scheduler — fires DOM-level meteors at random intervals
+  let _meteorTimer = null;
+  function _startMeteors() {
+    if (_meteorTimer) clearTimeout(_meteorTimer);
+    function fire() {
+      const wx = $("wx");
+      if (!wx) return;
+      // Only spawn if we're still in a night-sky condition
+      const cond = document.body.dataset.cond;
+      const daypart = document.body.dataset.daypart;
+      if (daypart !== "night" || (cond !== "clear-night" && cond !== "sunny" && cond !== "partlycloudy")) {
+        _meteorTimer = setTimeout(fire, 8000);
+        return;
+      }
+      const m = document.createElement("div");
+      m.className = "aq-meteor";
+      // Start position: random across top 60% of screen, left half
+      m.style.left  = (Math.random() * 40) + "vw";
+      m.style.top   = (Math.random() * 25 + 5) + "vh";
+      wx.appendChild(m);
+      setTimeout(() => m.remove(), 2200);
+      // Next meteor in 10–20 seconds
+      _meteorTimer = setTimeout(fire, 10000 + Math.random() * 10000);
+    }
+    _meteorTimer = setTimeout(fire, 3000 + Math.random() * 5000);
+  }
+  function _stopMeteors() {
+    if (_meteorTimer) { clearTimeout(_meteorTimer); _meteorTimer = null; }
+  }
+  function _aqRain(count, intensity, windSlant) {
+    // Watercolor rain — painterly streaks of varying length/opacity.
+    let s = "";
+    const slantTransform = windSlant ? `transform="rotate(${windSlant})"` : "";
+    for (let i = 0; i < count; i++) {
+      const x = (Math.random() * 110 - 5).toFixed(1);
+      const len = (6 + Math.random() * 6 * intensity).toFixed(1);
+      const dur = (0.45 + Math.random() * 0.55 / Math.max(0.5,intensity)).toFixed(2);
+      const delay = (Math.random() * -2.5).toFixed(2);
+      const sw  = (0.55 + Math.random() * 0.65).toFixed(2);
+      s += `<line class="aq-drop" x1="${x}" y1="0" x2="${x}" y2="${len}" stroke="url(#aq-drop)" stroke-width="${sw}" stroke-linecap="round" style="animation-duration:${dur}s;animation-delay:${delay}s" ${slantTransform}/>`;
+    }
+    return s;
+  }
+  function _aqSnow(count) {
+    let s = "";
+    for (let i = 0; i < count; i++) {
+      const x   = (Math.random() * 100).toFixed(1);
+      const dur = (6 + Math.random() * 7).toFixed(2);
+      const dly = (Math.random() * -6).toFixed(2);
+      const dx  = (-9 + Math.random() * 18).toFixed(1);
+      const rot = (180 + Math.random() * 540).toFixed(0);
+      const r   = (0.55 + Math.random() * 0.9).toFixed(2);
+      // 6-point watercolor flake — just a soft circle with bleed filter for painterly feel
+      s += `<circle class="aq-flake" cx="${x}" cy="0" r="${r}" fill="#fafcff" opacity=".92" style="--dx:${dx}px;--rot:${rot}deg;animation-duration:${dur}s;animation-delay:${dly}s"/>`;
+    }
+    return s;
+  }
+  function _aqHail(count) {
+    let s = "";
+    for (let i = 0; i < count; i++) {
+      const x = (Math.random() * 100).toFixed(1);
+      const dur = (0.7 + Math.random() * 0.5).toFixed(2);
+      const dly = (Math.random() * -2).toFixed(2);
+      const r = (0.85 + Math.random() * 0.7).toFixed(2);
+      s += `<circle class="aq-hail" cx="${x}" cy="0" r="${r}" fill="url(#aq-hail)" style="animation-duration:${dur}s;animation-delay:${dly}s"/>`;
+    }
+    return s;
+  }
+  function _aqFog() {
+    let s = `<g class="aq-fog" opacity=".55">`;
+    for (let i = 0; i < 5; i++) {
+      const y = 28 + i * 16;
+      s += `<ellipse cx="50" cy="${y}" rx="75" ry="5" fill="#dde4ee" opacity=".45"/>`;
+    }
+    s += `</g>`;
+    return s;
+  }
+  function _aqBolt() {
+    // Jagged lightning bolt — painterly stroke
+    return `<g class="aq-bolt">
+      <path d="M58,10 L52,42 L60,42 L48,82 L55,52 L46,52 Z" fill="#fff4c4" opacity=".85"/>
+      <path d="M58,10 L52,42 L60,42 L48,82 L55,52 L46,52 Z" fill="none" stroke="#fff" stroke-width=".6" opacity=".9"/>
+    </g>`;
+  }
+  function _skyTint(cond, daypart, sunElev) {
+    // Returns CSS gradient that goes behind the SVG — sets the overall mood.
+    if (cond === "clear-night" || (daypart === "night" && cond === "sunny"))
+      return "linear-gradient(to bottom,#0a0f1f 0%,#1a2240 55%,#2d3656 100%)";
+    if (cond === "lightning" || cond === "lightning-rainy")
+      return "linear-gradient(to bottom,#1d2331 0%,#2d3548 50%,#3d4660 100%)";
+    if (cond === "pouring" || cond === "snowy-rainy")
+      return "linear-gradient(to bottom,#48556a 0%,#5d6a82 50%,#7a8aa3 100%)";
+    if (cond === "rainy")
+      return "linear-gradient(to bottom,#5e6e88 0%,#7889a3 50%,#92a4be 100%)";
+    if (cond === "snowy")
+      return "linear-gradient(to bottom,#a8b4c8 0%,#c0cad9 50%,#dae2ed 100%)";
+    if (cond === "hail")
+      return "linear-gradient(to bottom,#62718a 0%,#7c8aa3 50%,#98a5bc 100%)";
+    if (cond === "fog")
+      return "linear-gradient(to bottom,#9ba6b7 0%,#b5becd 50%,#cdd5e0 100%)";
+    if (cond === "cloudy")
+      return "linear-gradient(to bottom,#7a8499 0%,#959fb3 50%,#b0bac9 100%)";
+    if (cond === "windy")
+      return "linear-gradient(to bottom,#6b8aa8 0%,#8aa3bc 50%,#a8bcd1 100%)";
+    if (cond === "partlycloudy") {
+      if (daypart === "night") return "linear-gradient(to bottom,#1a2240 0%,#3a4566 60%,#5c6680 100%)";
+      // Golden-hour tint when sun is low (< 25° above horizon)
+      if (sunElev != null && sunElev < 25 && sunElev > -2)
+        return "linear-gradient(to bottom,#ff9a5a 0%,#ffc279 35%,#b6c8e0 100%)";
+      return "linear-gradient(to bottom,#5d8fc0 0%,#88b3da 50%,#bdd3e8 100%)";
+    }
+    // sunny daytime
+    if (sunElev != null && sunElev < 18 && sunElev > -2)
+      return "linear-gradient(to bottom,#ff8a3a 0%,#ffb968 30%,#ffd2a0 60%,#b6c8e0 100%)";
+    return "linear-gradient(to bottom,#4a90d0 0%,#7fb6e0 50%,#bfdcef 100%)";
+  }
+  // v1.3.8: iOS Safari silently drops SVG content set via div.innerHTML
+  // (xmlns/namespace inheritance bug). Parse SVG as proper image/svg+xml and
+  // adopt the node so it renders reliably on Safari/WebKit.
+  function _injectSvg(parent, svgString) {
+    try {
+      const doc = new DOMParser().parseFromString(svgString, "image/svg+xml");
+      const svgEl = doc.documentElement;
+      if (svgEl && svgEl.nodeName.toLowerCase() === "svg") {
+        const adopted = document.importNode(svgEl, true);
+        parent.appendChild(adopted);
+        return true;
+      }
+    } catch (e) { /* fall through */ }
+    return false;
+  }
+  function renderWx(cond, daypart, opts) {
+    opts = opts || {};
+    const wx = $("wx"); if (!wx) return;
+    // Stop any active meteor loop — we'll restart if appropriate below
+    _stopMeteors();
     const isNight = daypart === "night";
-    const drops = (cond === "rainy" || cond === "pouring" || cond === "lightning-rainy" || cond === "snowy-rainy") ? (cond === "pouring" ? 60 : 40) : 0;
-    const flakes = (cond === "snowy" || cond === "snowy-rainy") ? 55 : 0;
-    const showSun = (cond === "sunny" && !isNight);
-    const showMoon = (cond === "clear-night" || (cond === "sunny" && isNight));
-    const showClouds = ["partlycloudy","cloudy","rainy","pouring","snowy","snowy-rainy","lightning","lightning-rainy","windy"].includes(cond);
-    const showLightning = (cond === "lightning" || cond === "lightning-rainy");
-    const showFog = (cond === "fog");
-    let svg = '<svg viewBox="0 0 100 200" preserveAspectRatio="xMidYMid slice">';
-    if(showSun){
-      // bright disc + halo + 8 rays
-      svg += '<defs><radialGradient id="sg-halo" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffd27a" stop-opacity=".9"/><stop offset="40%" stop-color="#ffb347" stop-opacity=".4"/><stop offset="100%" stop-color="#ff8c1a" stop-opacity="0"/></radialGradient><radialGradient id="sg-disc" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffe9b0"/><stop offset="70%" stop-color="#ffc26b"/><stop offset="100%" stop-color="#ff8c1a"/></radialGradient></defs>';
-      let raysSvg = '';
-      for(let r=0;r<8;r++){
-        const a = (r*45) * Math.PI/180;
-        const x1 = 70 + Math.cos(a)*16, y1 = 22 + Math.sin(a)*16;
-        const x2 = 70 + Math.cos(a)*30, y2 = 22 + Math.sin(a)*30;
-        raysSvg += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#ffd27a" stroke-width=".8" stroke-linecap="round" opacity=".55"/>`;
+    // Decide which condition family we're in.
+    const isRainy   = (cond === "rainy" || cond === "pouring" || cond === "lightning-rainy" || cond === "snowy-rainy");
+    const isSnowy   = (cond === "snowy" || cond === "snowy-rainy");
+    const isHail    = (cond === "hail");
+    const isLight   = (cond === "lightning" || cond === "lightning-rainy");
+    const isFog     = (cond === "fog");
+    const isWindy   = (cond === "windy");
+    const isCloudy  = ["partlycloudy","cloudy","rainy","pouring","snowy","snowy-rainy","lightning","lightning-rainy","windy","hail"].includes(cond);
+    const showSun   = (cond === "sunny" && !isNight) || (cond === "partlycloudy" && !isNight);
+    const showMoon  = (cond === "clear-night" || ((cond === "sunny" || cond === "partlycloudy") && isNight));
+
+    // Sensor-driven knobs (with sane fallbacks)
+    const rainRate = Math.max(0, Math.min(20, opts.rain_rate_mm_h || 0));     // 0 → forecast-based, >0 → live
+    const windKmh  = Math.max(0, Math.min(80, opts.wind_kmh || 0));
+    const uv       = Math.max(0, Math.min(11, opts.uv_index || 0));
+    const sunElev  = (opts.sun_elev != null) ? opts.sun_elev : null;
+
+    // Drop count: forecast gives base, live rain_rate scales up.
+    let baseDrops = 0;
+    if (cond === "pouring") baseDrops = 95;
+    else if (cond === "rainy" || cond === "lightning-rainy") baseDrops = 55;
+    else if (cond === "snowy-rainy") baseDrops = 35;
+    const liveBoost = rainRate > 0 ? Math.min(60, Math.round(rainRate * 12)) : 0;
+    const drops = isRainy ? Math.max(baseDrops, baseDrops + liveBoost) : 0;
+    const rainIntensity = Math.max(0.6, Math.min(2.2, 1 + rainRate / 10));
+    const windSlant = windKmh > 10 ? Math.min(18, (windKmh - 10) * 0.35) : 0;
+
+    const flakes = isSnowy ? (cond === "snowy-rainy" ? 45 : 80) : 0;
+    const hailDots = isHail ? 50 : 0;
+
+    // Wind speeds up cloud drift
+    const cloudSpeedMult = Math.max(0.4, Math.min(3, 1 + windKmh / 25));
+
+    // Sky gradient layer
+    let bg = `<div class="sky-grad" style="background:${_skyTint(cond, daypart, sunElev)}"></div>`;
+
+    // Build SVG
+    // v1.3.7: explicit width/height + fixed-positioned wrapper sizing — guarantee SVG paints
+    let svg = `<svg width="100%" height="100%" viewBox="0 0 100 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">${_aqDefs()}`;
+
+    // Stars before everything (night only) — denser counts in v1.3.5
+    if (isNight && !isCloudy) svg += _aqStars(140);
+    if (isNight && cond === "partlycloudy") svg += _aqStars(80);
+
+    // Sun / moon
+    if (showSun) {
+      // UV-driven size + brightness boost; golden-hour shifts sun lower
+      const sunSize = 11 + Math.min(4, uv * 0.4);
+      const sunY = (sunElev != null && sunElev < 25 && sunElev > 0) ? 36 : 22;
+      svg += _aqSun(72, sunY, sunSize);
+    }
+    if (showMoon) svg += _aqMoon(72, 26, 11, opts.moon_phase);
+
+    // Clouds (3 layers for parallax, far→near)
+    // v1.3.5: animation-duration must be on the animated element itself, not wrapper <g>.
+    if (isCloudy) {
+      // Pick gradient by severity — at night, use brighter night-tuned palette so they
+      // stand out against dark sky.
+      let gradFar, gradMid, gradNear;
+      if (isNight && (cond === "partlycloudy")) {
+        gradFar = "aq-cloud-night-thin";
+        gradMid = "aq-cloud-night";
+        gradNear = "aq-cloud-night";
+      } else if (isNight && cond === "cloudy") {
+        gradFar = "aq-cloud-night";
+        gradMid = "aq-cloud-night";
+        gradNear = "aq-cloud-night";
+      } else {
+        gradFar = (isLight || cond === "pouring") ? "aq-cloud-storm" : (cond === "cloudy" || cond === "rainy" || cond === "snowy-rainy" || cond === "hail") ? "aq-cloud-grey" : "aq-cloud-light";
+        gradMid = (isLight) ? "aq-cloud-storm" : (cond === "pouring" || cond === "rainy" || cond === "snowy-rainy" || cond === "hail") ? "aq-cloud-grey" : "aq-cloud-light";
+        gradNear = (isLight || cond === "pouring") ? "aq-cloud-storm" : (cond === "rainy" || cond === "snowy-rainy" || cond === "hail" || cond === "cloudy") ? "aq-cloud-grey" : "aq-cloud-light";
       }
-      svg += `<g class="sun"><circle cx="70" cy="22" r="42" fill="url(#sg-halo)"/>${raysSvg}<circle cx="70" cy="22" r="11" fill="url(#sg-disc)"/></g>`;
-    }
-    if(showMoon){
-      svg += '<defs><radialGradient id="mg-halo" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#cfd9f2" stop-opacity=".75"/><stop offset="100%" stop-color="#cfd9f2" stop-opacity="0"/></radialGradient><radialGradient id="mg-disc" cx="40%" cy="40%" r="60%"><stop offset="0%" stop-color="#f4f6ff"/><stop offset="100%" stop-color="#aab8d8"/></radialGradient></defs>';
-      svg += '<g class="moon"><circle cx="72" cy="24" r="34" fill="url(#mg-halo)"/><circle cx="72" cy="24" r="8" fill="url(#mg-disc)"/><circle cx="75" cy="22" r="6.5" fill="#0e1426" opacity=".55"/></g>';
-      // stars (denser, brighter)
-      for(let i=0;i<55;i++){
-        const cx=Math.random()*100, cy=Math.random()*80;
-        const r=(Math.random()*0.7+0.25).toFixed(2);
-        svg += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r}" fill="#ffffff" opacity="${(Math.random()*0.6+0.4).toFixed(2)}"/>`;
+
+      // Speed varies per layer + wind (slower = farther). Inline on each cloud directly.
+      const farSpeed  = (180 / cloudSpeedMult).toFixed(0);
+      const midSpeed  = (120 / cloudSpeedMult).toFixed(0);
+      const nearSpeed = (80  / cloudSpeedMult).toFixed(0);
+
+      // Far layer — small, high, transparent
+      svg += _aqCloud(20, 18, 1.1, gradFar, "aq-cloud-far", farSpeed);
+      svg += _aqCloud(70, 14, 0.9, gradFar, "aq-cloud-far", farSpeed);
+
+      // Mid layer
+      svg += _aqCloud(35, 38, 1.5, gradMid, "aq-cloud-mid", midSpeed);
+      svg += _aqCloud(82, 32, 1.3, gradMid, "aq-cloud-mid", midSpeed);
+
+      // Near layer — only for heavier conditions, sits lower
+      if (cond === "pouring" || isLight || cond === "cloudy" || cond === "hail") {
+        svg += _aqCloud(50, 62, 2.0, gradNear, "aq-cloud-near", nearSpeed);
       }
     }
-    if(showClouds){
-      // 3 cloud groups, bigger and softer-edged
-      svg += '<g class="cloudA"><ellipse cx="22" cy="24" rx="16" ry="7" fill="#e5ebf3"/><ellipse cx="36" cy="22" rx="22" ry="9" fill="#e5ebf3"/><ellipse cx="52" cy="24" rx="14" ry="7" fill="#e5ebf3"/></g>';
-      svg += '<g class="cloudB"><ellipse cx="55" cy="55" rx="20" ry="8" fill="#cfd6e0"/><ellipse cx="75" cy="52" rx="24" ry="9" fill="#cfd6e0"/><ellipse cx="95" cy="56" rx="16" ry="7" fill="#cfd6e0"/></g>';
-      svg += '<g class="cloudA" style="animation-duration:130s;opacity:.22"><ellipse cx="15" cy="75" rx="18" ry="6" fill="#aab4c2"/><ellipse cx="32" cy="73" rx="22" ry="7" fill="#aab4c2"/></g>';
+
+    // Precipitation
+    if (drops > 0) svg += _aqRain(drops, rainIntensity, windSlant);
+    if (flakes > 0) svg += _aqSnow(flakes);
+    if (hailDots > 0) svg += _aqHail(hailDots);
+
+    // Fog
+    if (isFog) svg += _aqFog();
+
+    // Lightning bolt (rendered above clouds, fires on flash keyframe)
+    if (isLight) svg += _aqBolt();
+
+    svg += `</svg>`;
+
+    // Wind shimmer — add some extra fast far clouds for windy condition
+    if (isWindy) {
+      // Already covered by cloudSpeedMult above
     }
-    // rain drops — longer streaks, more visible
-    for(let i=0;i<drops;i++){
-      const x = (Math.random()*100).toFixed(1);
-      const dur = (0.5 + Math.random()*0.7).toFixed(2);
-      const delay = (Math.random()*-2).toFixed(2);
-      const op = (0.55 + Math.random()*0.4).toFixed(2);
-      svg += `<line class="drop" x1="${x}" y1="0" x2="${x}" y2="10" stroke="#a8d8ff" stroke-width=".5" stroke-linecap="round" opacity="${op}" style="animation-duration:${dur}s;animation-delay:${delay}s"/>`;
+
+    // Paper grain overlay + flash for storms
+    let extra = `<div class="paper"></div>`;
+    if (isLight) extra += `<div class="aq-flash"></div>`;
+
+    // v1.3.8: build DOM in pieces — innerHTML for HTML wrappers, DOMParser for SVG.
+    wx.innerHTML = bg;
+    if (!_injectSvg(wx, svg)) {
+      // Fallback if parser somehow fails — last resort
+      wx.insertAdjacentHTML("beforeend", svg);
     }
-    // snowflakes — bigger, brighter
-    for(let i=0;i<flakes;i++){
-      const x = (Math.random()*100).toFixed(1);
-      const dur = (5 + Math.random()*5).toFixed(2);
-      const delay = (Math.random()*-5).toFixed(2);
-      const dx = (-6 + Math.random()*12).toFixed(1);
-      const r = (0.5 + Math.random()*0.6).toFixed(2);
-      svg += `<circle class="flake" cx="${x}" cy="0" r="${r}" fill="#ffffff" style="--dx:${dx}px;animation-duration:${dur}s;animation-delay:${delay}s"/>`;
-    }
-    if(showFog){
-      for(let i=0;i<5;i++){
-        const y = 25 + i*22;
-        svg += `<g class="fog"><rect x="-10" y="${y}" width="120" height="6" fill="#cfd6e0" opacity=".15" style="animation-delay:${(-i*1.6).toFixed(2)}s"/></g>`;
-      }
-    }
-    svg += '</svg>';
-    if(showLightning){
-      wx.innerHTML = svg + '<div class="flash"></div>';
-    } else {
-      wx.innerHTML = svg;
+    wx.insertAdjacentHTML("beforeend", extra);
+
+    // v1.3.5: kick off shooting stars on clear/partly-cloudy nights
+    if (isNight && (cond === "clear-night" || cond === "sunny" || cond === "partlycloudy")) {
+      _startMeteors();
     }
   }
-  function applyBackdrop(d){
-    const cond = (d.weather_now && d.weather_now.condition) || "partlycloudy";
+  function applyBackdrop(d) {
+    const cond = (d.weather_forecast && d.weather_forecast.condition)
+              || (d.weather_now && d.weather_now.condition)
+              || "partlycloudy";
     const daypart = d.sun_above ? "day" : "night";
     document.body.dataset.cond = cond;
     document.body.dataset.daypart = daypart;
-    renderWx(cond, daypart);
+    // Sensor inputs for live, condition-aware rendering.
+    const wr = d.weather_real || {};
+    // v1.3.6: try/catch so a backdrop render bug doesn't disappear silently
+    try {
+      renderWx(cond, daypart, {
+        rain_rate_mm_h: wr.rain_rate_mm_h,
+        wind_kmh:       wr.wind_kmh,
+        uv_index:       wr.uv_index,
+        sun_elev:       (d.sun_summary && d.sun_summary.elev_deg) || null,
+        moon_phase:     d.moon_phase,
+      });
+    } catch (e) {
+      console.error("renderWx failed:", e);
+      // Visible breadcrumb in footer so we can spot a backdrop fault without DevTools
+      const f = document.querySelector(".footer");
+      if (f) f.textContent = "v1.5.0 \u00b7 bg err: " + (e.message || e);
+    }
   }
+  /* ============================================================
+     v1.5.0 — SKINS SYSTEM (JS)
+     ============================================================ */
+  const SKIN_DEFAULTS = { bg:"realistic", ui:"realistic" };
+  const SKIN_AVAILABLE = {
+    bg: ["realistic","watercolor"],   // pencil deferred
+    ui: ["realistic","watercolor"],
+  };
+  function _skinGet(){
+    try{
+      return {
+        bg: localStorage.getItem("gardenBgSkin") || SKIN_DEFAULTS.bg,
+        ui: localStorage.getItem("gardenUiSkin") || SKIN_DEFAULTS.ui,
+      };
+    }catch(e){ return Object.assign({}, SKIN_DEFAULTS); }
+  }
+  function _skinSet(kind, value){
+    try{
+      localStorage.setItem(kind==="bg"?"gardenBgSkin":"gardenUiSkin", value);
+    }catch(e){}
+    _skinApply();
+    // Re-render backdrop immediately so user sees the change
+    if(window.__lastBackdropState) {
+      try { applyBackdrop(window.__lastBackdropState); } catch(e){}
+    }
+  }
+  function _skinApply(){
+    const s = _skinGet();
+    document.body.dataset.bgSkin = s.bg;
+    document.body.dataset.uiSkin = s.ui;
+    // Update modal active states if open
+    document.querySelectorAll(".skin-opt").forEach(el=>{
+      const k = el.dataset.kind, v = el.dataset.skin;
+      el.classList.toggle("active", s[k] === v);
+    });
+  }
+  function openSkinModal(){
+    _skinApply();
+    const m = document.getElementById("skin-modal-bg");
+    if(m){ m.classList.add("open"); }
+  }
+  function closeSkinModal(){
+    const m = document.getElementById("skin-modal-bg");
+    if(m){ m.classList.remove("open"); }
+  }
+  function _skinPick(kind, value){
+    if(!SKIN_AVAILABLE[kind].includes(value)) return;
+    _skinSet(kind, value);
+  }
+  // Season (Northern hemisphere) — for filter tint
+  function _seasonNow(){
+    const m = new Date().getMonth(); // 0..11
+    if(m===11||m<=1) return "winter";
+    if(m<=4) return "spring";
+    if(m<=7) return "summer";
+    return "autumn";
+  }
+
+  /* ----------- Watercolor BG compositor ----------- */
+  // Map (condition, isNight, cloudiness) -> sky base tile.
+  // image-55 sky-01..05 = day (clear→stormy), sky-06..10 = night (clear→stormy).
+  // image-60 clearday-01..05 = clean day gradients (light→deep blue + dusk).
+  // image-59 clearnight-01..05 = clean night gradients (incl. dusk on tile 2).
+  // image-56 sunclouds-01..10 = sun behind clouds, varying brightness.
+  function _wcvPickSky(cond, isNight, sunElev) {
+    const base = "/garden/static/sky/watercolor/";
+    const cloudy = ["cloudy","rainy","pouring","snowy","snowy-rainy","lightning","lightning-rainy","hail","fog","windy"].includes(cond);
+    const partly = (cond === "partlycloudy");
+    const stormy = ["lightning","lightning-rainy","pouring"].includes(cond);
+
+    if(isNight){
+      if(stormy) return base + "sky-10.jpg";
+      if(cond === "cloudy" || cond === "rainy" || cond === "snowy" || cond === "snowy-rainy" || cond === "hail")
+        return base + "sky-09.jpg";
+      if(partly) return base + "sky-07.jpg"; // partly cloudy night
+      // Clear night — pick by twilight depth
+      // sunElev null => deep night; -6..-12 = astronomical twilight; -3..-6 = nautical; -3..0 = civil dusk
+      if(sunElev != null && sunElev > -6) return base + "clearnight-02.jpg"; // dusk/dawn pink
+      if(sunElev != null && sunElev > -12) return base + "clearnight-01.jpg"; // deep blue with hint
+      return base + "clearnight-04.jpg"; // mid-night, lots of stars
+    } else {
+      if(stormy) return base + "sky-05.jpg";
+      if(cond === "cloudy" || cond === "rainy" || cond === "snowy-rainy" || cond === "hail")
+        return base + "sky-04.jpg";
+      if(cond === "snowy") return base + "sky-04.jpg";
+      if(partly) {
+        // pick a sunclouds tile by sun elevation for variety
+        if(sunElev != null && sunElev < 20) return base + "sunclouds-09.jpg"; // golden, low
+        return base + "sunclouds-03.jpg"; // bright midday with cloud gap
+      }
+      // Clear day
+      if(sunElev != null && sunElev < 8) return base + "clearday-05.jpg"; // sunset glow at bottom
+      if(sunElev != null && sunElev < 25) return base + "clearday-04.jpg";
+      return base + "clearday-01.jpg";
+    }
+  }
+  // Pick a sun-arc strip from image-57 based on azimuth/elevation.
+  // For now: simple time-of-day mapping using sun_elev as proxy.
+  function _wcvPickSunArc(sunElev) {
+    const base = "/garden/static/sky/watercolor/sunarc-";
+    // 5 strips: sunrise-left, mid-morning, noon, afternoon, sunset
+    // Approx: elev <5 => sunrise/sunset; 5-30 => mid; >30 => noon
+    if(sunElev == null) return base + "03.jpg";
+    if(sunElev < 5)  return null;            // already covered by clearday-05 horizon glow
+    if(sunElev < 15) return base + "02.jpg";
+    if(sunElev < 35) return base + "03.jpg";
+    if(sunElev < 55) return base + "01.jpg";
+    return base + "03.jpg";
+  }
+  // Moon: 12 tiles, phase 0..1
+  function _wcvPickMoon(phase) {
+    if(phase == null) phase = 0.5;
+    // tile-01 = new, tile-06 = full, tile-12 = new again (waning crescent very thin)
+    let idx = Math.round(phase * 12);
+    if(idx < 1) idx = 1; if(idx > 12) idx = 12;
+    return "/garden/static/sky/watercolor/moon-" + String(idx).padStart(2,"0") + ".jpg";
+  }
+
+  // Build / refresh the watercolor stack. Idempotent.
+  function _wcvEnsureStack(wx){
+    if(wx.querySelector(".wcv-sky")) return; // already built
+    // Two sky layers for crossfade
+    const skyA = document.createElement("div"); skyA.className = "wcv-sky"; skyA.id="wcv-sky-a";
+    const skyB = document.createElement("div"); skyB.className = "wcv-sky"; skyB.id="wcv-sky-b";
+    const sun  = document.createElement("div"); sun.className  = "wcv-sun"; sun.id="wcv-sun";
+    const moon = document.createElement("div"); moon.className = "wcv-moon"; moon.id="wcv-moon";
+    const stars= document.createElement("div"); stars.className= "wcv-stars"; stars.id="wcv-stars";
+    const rain = document.createElement("div"); rain.className = "wcv-rain"; rain.id="wcv-rain";
+    const snow = document.createElement("div"); snow.className = "wcv-snow"; snow.id="wcv-snow";
+    const flash= document.createElement("div"); flash.className= "wcv-flash";flash.id="wcv-flash";
+    const paper= document.createElement("div"); paper.className= "wcv-paper";paper.id="wcv-paper";
+    wx.appendChild(skyA); wx.appendChild(skyB);
+    wx.appendChild(sun);  wx.appendChild(moon);
+    wx.appendChild(stars);wx.appendChild(rain);wx.appendChild(snow);
+    wx.appendChild(flash);wx.appendChild(paper);
+    // Pre-render star dots once
+    let sHTML = "";
+    for(let i=0;i<70;i++){
+      const x = (Math.random()*100).toFixed(2);
+      const y = (Math.random()*55).toFixed(2);
+      const d = (2+Math.random()*5).toFixed(2);
+      const delay = (Math.random()*4).toFixed(2);
+      sHTML += `<div class="wcv-star" style="left:${x}%;top:${y}%;animation-duration:${d}s;animation-delay:${delay}s"></div>`;
+    }
+    stars.innerHTML = sHTML;
+  }
+  function _wcvSetSky(url){
+    const a = document.getElementById("wcv-sky-a");
+    const b = document.getElementById("wcv-sky-b");
+    if(!a || !b) return;
+    // Crossfade: whichever is currently visible becomes the "old", the other gets the new url
+    const showing = a.classList.contains("show") ? a : (b.classList.contains("show") ? b : a);
+    const hidden  = (showing === a) ? b : a;
+    // If same image already showing, nothing to do
+    if(showing.style.backgroundImage === `url("${url}")` || showing.dataset.url === url) return;
+    hidden.style.backgroundImage = `url("${url}")`;
+    hidden.dataset.url = url;
+    requestAnimationFrame(()=>{
+      hidden.classList.add("show");
+      showing.classList.remove("show");
+    });
+  }
+  function _wcvSetParticles(kind, n){
+    // kind: "rain" or "snow"; n = count (0 to hide)
+    const el = document.getElementById(kind === "rain" ? "wcv-rain" : "wcv-snow");
+    if(!el) return;
+    if(n <= 0){ el.classList.remove("show"); el.innerHTML = ""; return; }
+    // Re-render only if count changed
+    if(el.children.length === n){ el.classList.add("show"); return; }
+    let html = "";
+    for(let i=0;i<n;i++){
+      const x = (Math.random()*100).toFixed(2);
+      const delay = (Math.random()*2).toFixed(2);
+      if(kind === "rain"){
+        const dur = (0.6 + Math.random()*0.5).toFixed(2);
+        const h   = (14 + Math.random()*10).toFixed(0);
+        html += `<div class="wcv-drop" style="left:${x}%;height:${h}px;animation-duration:${dur}s;animation-delay:${delay}s"></div>`;
+      } else {
+        const dur = (6 + Math.random()*5).toFixed(2);
+        const dx  = ((Math.random()-0.5)*60).toFixed(0);
+        const sz  = (4 + Math.random()*4).toFixed(1);
+        html += `<div class="wcv-flake" style="left:${x}%;width:${sz}px;height:${sz}px;--dx:${dx}px;animation-duration:${dur}s;animation-delay:${delay}s"></div>`;
+      }
+    }
+    el.innerHTML = html;
+    el.classList.add("show");
+  }
+  function renderWxWatercolor(cond, daypart, opts){
+    opts = opts || {};
+    const wx = document.getElementById("wx");
+    if(!wx) return;
+    _wcvEnsureStack(wx);
+
+    const isNight = daypart === "night";
+    const isRainy = (cond === "rainy" || cond === "pouring" || cond === "lightning-rainy" || cond === "snowy-rainy");
+    const isSnowy = (cond === "snowy" || cond === "snowy-rainy");
+    const isClearDay = (cond === "sunny" && !isNight);
+    const isClearNight = (cond === "clear-night" || (cond === "sunny" && isNight));
+    const sunElev = (opts.sun_elev != null) ? opts.sun_elev : null;
+
+    // Sky base
+    const skyUrl = _wcvPickSky(cond, isNight, sunElev);
+    _wcvSetSky(skyUrl);
+
+    // Sun overlay (only on clear day with sun above horizon, when sky base is a clean gradient)
+    const sunEl = document.getElementById("wcv-sun");
+    if(isClearDay && sunElev != null && sunElev > 5) {
+      const sunUrl = _wcvPickSunArc(sunElev);
+      if(sunUrl){
+        sunEl.style.backgroundImage = `url("${sunUrl}")`;
+        sunEl.classList.add("show");
+      } else {
+        sunEl.classList.remove("show");
+      }
+    } else {
+      sunEl.classList.remove("show");
+    }
+
+    // Moon overlay (clear night or partly cloudy night)
+    const moonEl = document.getElementById("wcv-moon");
+    const showMoon = isNight && (isClearNight || cond === "partlycloudy");
+    if(showMoon){
+      moonEl.style.backgroundImage = `url("${_wcvPickMoon(opts.moon_phase)}")`;
+      moonEl.classList.add("show");
+    } else {
+      moonEl.classList.remove("show");
+    }
+
+    // Stars (clear night enhancement on top of painted stars)
+    const starsEl = document.getElementById("wcv-stars");
+    if(isClearNight) starsEl.classList.add("show"); else starsEl.classList.remove("show");
+
+    // Rain
+    let dropCount = 0;
+    if(cond === "pouring") dropCount = 70;
+    else if(cond === "rainy" || cond === "lightning-rainy") dropCount = 45;
+    else if(cond === "snowy-rainy") dropCount = 25;
+    const rainBoost = (opts.rain_rate_mm_h || 0) > 0 ? Math.min(40, Math.round(opts.rain_rate_mm_h * 8)) : 0;
+    _wcvSetParticles("rain", isRainy ? Math.max(dropCount, dropCount + rainBoost) : 0);
+
+    // Snow
+    _wcvSetParticles("snow", isSnowy ? (cond === "snowy-rainy" ? 40 : 70) : 0);
+
+    // Season filter
+    document.body.dataset.season = _seasonNow();
+  }
+
+  /* ----------- Skin-aware backdrop dispatch ----------- */
+  // We don't replace the original renderWx; we just gate it by skin.
+  function applyBackdropSkinAware(d){
+    window.__lastBackdropState = d; // save for skin-change re-render
+    const cond = (d.weather_forecast && d.weather_forecast.condition)
+              || (d.weather_now && d.weather_now.condition)
+              || "partlycloudy";
+    const daypart = d.sun_above ? "day" : "night";
+    document.body.dataset.cond = cond;
+    document.body.dataset.daypart = daypart;
+    const wr = d.weather_real || {};
+    const opts = {
+      rain_rate_mm_h: wr.rain_rate_mm_h,
+      wind_kmh:       wr.wind_kmh,
+      uv_index:       wr.uv_index,
+      sun_elev:       (d.sun_summary && d.sun_summary.elev_deg) || null,
+      moon_phase:     d.moon_phase,
+    };
+    const skin = _skinGet().bg;
+    try {
+      if(skin === "watercolor") {
+        // Clear legacy SVG layer (CSS hides it but we also wipe content)
+        // Actually we leave it; CSS display:none handles it.
+        renderWxWatercolor(cond, daypart, opts);
+      } else {
+        // realistic — call original
+        renderWx(cond, daypart, opts);
+      }
+    } catch(e){
+      console.error("backdrop render failed:", e);
+      const f = document.querySelector(".footer");
+      if(f) f.textContent = "v1.5.0 \u00b7 bg err: " + (e.message || e);
+    }
+  }
+
   // dayLabel removed — server now provides timezone-safe weekday in forecast.weekday
   async function load(){
     try{
@@ -703,16 +1780,14 @@
       pill.textContent = d.status_text;
       pill.className = "pill " + d.status_kind;
 
-      // Freeze warning
+      // Freeze warning (only show the banner; tile refs are gone in v1.3.2)
+      const fzEl = $("freeze");
+      const fzTempEl = $("freeze-temp");
       if(d.freeze_alert){
-        $("freeze").style.display = "flex";
-        $("freeze-temp").textContent = d.temperature.toFixed(1);
-        $("temp-tile").className = "tile big tile-orange freeze";
-        $("temp-sub").textContent = "⚠️ Below " + d.freeze_threshold + "°C";
+        if(fzEl) fzEl.style.display = "flex";
+        if(fzTempEl && d.temperature != null) fzTempEl.textContent = Number(d.temperature).toFixed(1);
       }else{
-        $("freeze").style.display = "none";
-        $("temp-tile").className = d.temperature < 10 ? "tile big tile-orange cold" : "tile big tile-orange";
-        $("temp-sub").textContent = "Greenhouse";
+        if(fzEl) fzEl.style.display = "none";
       }
 
       // Solar tile is now driven by refreshSunTile() / sun_summary.
@@ -722,19 +1797,35 @@
       // Last watered (now uses combined valve + binary_sensor signals)
       $("last").textContent = d.last_watered_age || "never";
 
-      // Current conditions card
-      const wn = d.weather_now || {};
-      $("now-temp").textContent = wn.temperature != null ? Number(wn.temperature).toFixed(1) : "--";
+      // v1.3.2: Forecast tile (weather.forecast_home)
+      const wn = d.weather_forecast || d.weather_now || {};
+      const fcTemp = wn.temp_c != null ? wn.temp_c : wn.temperature;
+      $("now-temp").textContent = fcTemp != null ? Number(fcTemp).toFixed(1) : "--";
       $("now-ico").textContent = ICONS[wn.condition] || "⋯";
       $("now-cond-text").textContent = (wn.condition || "—").replace(/-/g," ");
-      $("now-humidity").textContent = wn.humidity != null ? `💧 ${wn.humidity}%` : "";
+      $("now-humidity").textContent = wn.humidity != null ? `💧 ${wn.humidity}% humidity` : "--% humidity";
       const rainEl = $("now-rain");
       if(d.rain_outdoor_now){
         rainEl.textContent = "☔ Rain detected";
         rainEl.className = "rain-on";
       }else{
-        rainEl.textContent = "No rain detected";
+        rainEl.textContent = "No rain in forecast";
         rainEl.className = "rain-off";
+      }
+      // v1.3.2: REAL tile (Ecowitt sensor)
+      const wr = d.weather_real || {};
+      if ($("real-temp")) $("real-temp").textContent = wr.temp_c   != null ? Number(wr.temp_c).toFixed(1)   : "--";
+      if ($("real-hum"))  $("real-hum").textContent  = wr.humidity != null ? Math.round(wr.humidity)        : "--";
+      if ($("real-uv"))   $("real-uv").textContent   = wr.uv_index != null ? wr.uv_index                    : "--";
+      const realRainEl = $("real-rain");
+      if (realRainEl) {
+        if (wr.rain_now) {
+          realRainEl.textContent = wr.rain_rate_mm_h ? `☔ Raining ${wr.rain_rate_mm_h} mm/h` : "☔ Rain now";
+          realRainEl.className = "rain-on";
+        } else {
+          realRainEl.textContent = wr.rain_today_mm ? `Today ${wr.rain_today_mm} mm` : "No rain";
+          realRainEl.className = "rain-off";
+        }
       }
 
       // Buttons
@@ -742,7 +1833,7 @@
       $("btn-stop").classList.toggle("disabled", !d.is_watering);
 
       // Apply weather backdrop
-      applyBackdrop(d);
+      applyBackdropSkinAware(d);
 
       // Forecast — skip today (shown in current conditions card above), show next 3 days
       const fc = $("forecast"); fc.innerHTML = "";
@@ -1776,15 +2867,8 @@
     const t = Date.now();
     const mimg = $("hp10-modal-img");
     if (mimg) mimg.src = "/garden/api/cam/garden.jpg?t=" + t;
-    // Update timelapse button label based on lang
-    const L = SLANG[_sunLang];
-    const tlLabel = $("hp10-tl-label");
-    if (tlLabel) tlLabel.textContent = L.todays_timelapse || "Today's timelapse";
-    // Reset timelapse section
-    const wrap = $("hp10-timelapse-wrap");
-    if (wrap) { wrap.style.display = "none"; }
-    const vid = $("hp10-video");
-    if (vid) { vid.src = ""; }
+    // v1.3.9: kick off date-aware timelapse picker (replaces single "Today's timelapse" button)
+    tlInit();
   }
 
   function closeHp10Modal() {
@@ -1793,16 +2877,347 @@
     const vid = $("hp10-video");
     if (vid) { vid.pause(); vid.src = ""; }
     const wrap = $("hp10-timelapse-wrap");
-    if (wrap) wrap.style.display = "none";
+    if (wrap) { wrap.style.display = "none"; wrap.innerHTML = '<video controls playsinline id="hp10-video"></video>'; }
   }
 
-  function loadTimelapse() {
+  // ===== v1.3.9: timelapse date picker (Ecowitt-style) =====
+  // State lives in window.TL_STATE so we don't shadow other modules.
+  const TL_STATE = window.TL_STATE = { dates: [], today: "", selected: "" };
+
+  function _tlFmtDate(iso) {
+    // "2026-05-25" → "Mon, May 25"
+    try {
+      const [y,m,d] = iso.split("-").map(Number);
+      const dt = new Date(y, m-1, d);
+      const wd = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][dt.getDay()];
+      const mn = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][dt.getMonth()];
+      return `${wd}, ${mn} ${d}`;
+    } catch (e) { return iso; }
+  }
+
+  function _tlSubLabel(iso) {
+    if (!iso) return "tap to choose day";
+    if (iso === TL_STATE.today) return "today";
+    // Days ago
+    try {
+      const [y,m,d] = iso.split("-").map(Number);
+      const sel = new Date(y, m-1, d);
+      const [ty,tm,td] = TL_STATE.today.split("-").map(Number);
+      const tod = new Date(ty, tm-1, td);
+      const diff = Math.round((tod - sel)/(86400000));
+      if (diff === 1) return "yesterday";
+      if (diff > 0) return diff + " days ago";
+      return iso;
+    } catch (e) { return iso; }
+  }
+
+  async function tlInit() {
+    // Reset video pane
     const wrap = $("hp10-timelapse-wrap");
-    const vid  = $("hp10-video");
-    if (!wrap || !vid) return;
+    if (wrap) {
+      wrap.style.display = "none";
+      wrap.innerHTML = '<video controls playsinline id="hp10-video"></video>';
+    }
+    // Show loading state on date bar
+    const main = $("tl-date-main");
+    const sub  = $("tl-date-sub");
+    if (main) main.textContent = "⏳ loading…";
+    if (sub)  sub.textContent  = "";
+    try {
+      const r = await fetch("/garden/api/timelapse/list?t=" + Date.now(), {credentials:"same-origin"});
+      if (!r.ok) throw new Error("list failed");
+      const s = await r.json();
+      TL_STATE.dates = s.dates || [];
+      TL_STATE.today = s.today || "";
+      // Default: today if available, else latest
+      const defaultDate = TL_STATE.dates.includes(TL_STATE.today)
+        ? TL_STATE.today
+        : (s.latest || TL_STATE.today);
+      // Wire native date input min/max so the picker shows the valid range
+      const di = $("tl-date-input");
+      if (di) {
+        di.min = s.earliest || "";
+        di.max = TL_STATE.today || "";
+      }
+      tlPickDate(defaultDate);
+    } catch (e) {
+      if (main) main.textContent = "🎬 —";
+      if (sub)  sub.textContent  = "could not load list";
+    }
+  }
+
+  function _tlUpdateArrows() {
+    const dates = TL_STATE.dates;
+    const sel = TL_STATE.selected;
+    const prev = $("tl-prev");
+    const next = $("tl-next");
+    if (!prev || !next || !dates.length) return;
+    const i = dates.indexOf(sel);
+    // Even if selected is today (no video), we still allow prev to the latest video
+    if (sel === TL_STATE.today && !dates.includes(sel)) {
+      prev.setAttribute("aria-disabled", "false");
+      next.setAttribute("aria-disabled", "true");
+      return;
+    }
+    prev.setAttribute("aria-disabled", i <= 0 ? "true" : "false");
+    next.setAttribute("aria-disabled", (i < 0 || i >= dates.length - 1) ? "true" : "false");
+  }
+
+  function tlStepDay(step) {
+    const dates = TL_STATE.dates;
+    if (!dates.length) return;
+    const sel = TL_STATE.selected;
+    // If currently on today (no video) and stepping back, jump to latest rendered
+    if (sel === TL_STATE.today && !dates.includes(sel) && step < 0) {
+      tlPickDate(dates[dates.length - 1]);
+      return;
+    }
+    let i = dates.indexOf(sel);
+    if (i < 0) return;
+    const ni = i + step;
+    if (ni < 0 || ni >= dates.length) return;
+    tlPickDate(dates[ni]);
+  }
+
+  function tlGoToday() {
+    tlPickDate(TL_STATE.today);
+  }
+
+  async function tlPickDate(iso) {
+    if (!iso) return;
+    TL_STATE.selected = iso;
+    // Update date label
+    const main = $("tl-date-main");
+    const sub  = $("tl-date-sub");
+    if (main) main.textContent = "🎬 " + _tlFmtDate(iso);
+    if (sub)  sub.textContent  = _tlSubLabel(iso);
+    const di = $("tl-date-input");
+    if (di && di.value !== iso) di.value = iso;
+    // Jump-to-today pill
+    const pill = $("tl-today-pill");
+    if (pill) pill.hidden = (iso === TL_STATE.today);
+    _tlUpdateArrows();
+
+    const wrap = $("hp10-timelapse-wrap");
+    if (!wrap) return;
     wrap.style.display = "block";
-    vid.src = "/garden/api/timelapse/today.mp4?t=" + Date.now();
-    vid.play().catch(() => {});
+    wrap.innerHTML = `<div style="padding:24px;text-align:center;color:#8aa1c2;font-size:14px">
+      <div class="spinner" style="margin:0 auto 12px"></div>Loading…</div>`;
+
+    const hasVideo = TL_STATE.dates.includes(iso);
+    if (hasVideo) {
+      wrap.innerHTML = `<video controls playsinline id="hp10-video"></video>`;
+      const newVid = $("hp10-video");
+      newVid.src = "/garden/api/timelapse/today.mp4?date=" + encodeURIComponent(iso) + "&t=" + Date.now();
+      newVid.play().catch(()=>{});
+      return;
+    }
+
+    // No video yet for selected day — friendly state, with link to latest if not today
+    let snapInfo = "";
+    if (iso === TL_STATE.today) {
+      try {
+        const r = await fetch("/garden/api/timelapse/status?t=" + Date.now(), {credentials:"same-origin"});
+        if (r.ok) {
+          const s = await r.json();
+          const n = s.snapshot_count || 0;
+          const w = n === 1 ? "snapshot" : "snapshots";
+          snapInfo = `${n} ${w} captured so far<br>First render scheduled for 23:55 tonight`;
+        }
+      } catch (e) { /* ignore */ }
+    } else {
+      snapInfo = "No render for this day";
+    }
+    const latest = TL_STATE.dates.length ? TL_STATE.dates[TL_STATE.dates.length - 1] : null;
+    const showLatest = latest && latest !== iso;
+    wrap.innerHTML = `
+      <div style="padding:28px 18px;text-align:center;background:rgba(99,179,237,.06);border:1px dashed rgba(99,179,237,.25);border-radius:14px">
+        <div style="font-size:42px;margin-bottom:8px">🌿</div>
+        <div style="font-size:15px;font-weight:600;color:#cfe2f7;margin-bottom:6px">No timelapse for ${_tlFmtDate(iso)}</div>
+        <div style="font-size:12px;color:#8aa1c2;line-height:1.5">${snapInfo}</div>
+      </div>
+      ${showLatest ? `<div class="tl-latest-link" onclick="tlPickDate('${latest}')">
+          ▶ Watch latest — ${_tlFmtDate(latest)} <span class="arrow">›</span>
+        </div>` : ""}
+    `;
+  }
+
+  // Back-compat shim — some old call-sites may still trigger this name.
+  async function loadTimelapse() { return tlInit(); }
+
+  // v1.3.2: REAL history modal (past 7 days from Ecowitt + Enphase)
+  function openWxHistoryModal() {
+    const m = $("wx-hist-modal");
+    if (!m) return;
+    m.classList.add("open");
+    document.body.style.overflow = "hidden";
+    loadWxHistory();
+  }
+  function closeWxHistoryModal() {
+    const m = $("wx-hist-modal");
+    if (m) m.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+  async function loadWxHistory() {
+    const body = $("wx-hist-body");
+    if (!body) return;
+    body.innerHTML = `<div class="stream-msg"><div class="spinner"></div>Loading history…</div>`;
+    try {
+      const r = await fetch("/garden/api/history_7d", {credentials:"same-origin"});
+      if (!r.ok) throw new Error("history fetch failed");
+      const j = await r.json();
+      const days = j.days || [];
+      const srcs = j.sources || {};
+      // Build a compact daily table + tiny sparkline
+      let html = `<div style="padding:0 4px">`;
+      html += `<div style="font-size:11px;color:#8aa1c2;margin-bottom:14px;line-height:1.6">
+        🌡️ Temp + 💧 Humidity — ${srcs.temperature || "Ecowitt"}<br>
+        ☀️ Solar daily — ${srcs.solar || "Enphase"}<br>
+        🌧️ Rain — ${srcs.rain || "Ecowitt"}
+      </div>`;
+      // Header row
+      html += `<div style="display:grid;grid-template-columns:54px 1fr 1fr 1fr 1fr;gap:6px;font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.08)">
+        <div>Day</div><div style="text-align:right">Temp °C</div><div style="text-align:right">Hum %</div><div style="text-align:right">Solar kWh</div><div style="text-align:right">Rain mm</div>
+      </div>`;
+      // Find max solar for bar scaling
+      const maxSolar = Math.max(1, ...days.map(d => d.solar_kwh || 0));
+      const maxRain  = Math.max(1, ...days.map(d => d.rain_mm   || 0));
+      days.forEach((d, idx) => {
+        const isToday = idx === days.length - 1;
+        const tempCell = (d.temp_min_c != null && d.temp_max_c != null)
+          ? `<span style="color:#9bd8ad">${d.temp_min_c.toFixed(0)}→${d.temp_max_c.toFixed(0)}</span>`
+          : "—";
+        const humCell = (d.hum_min != null && d.hum_max != null)
+          ? `<span style="color:#8db4d6">${d.hum_min.toFixed(0)}→${d.hum_max.toFixed(0)}</span>`
+          : "—";
+        const solarPct = d.solar_kwh != null ? Math.round((d.solar_kwh / maxSolar) * 100) : 0;
+        const solarCell = d.solar_kwh != null
+          ? `<div style="position:relative;text-align:right"><div style="position:absolute;inset:0;background:linear-gradient(to left,rgba(255,200,80,.18) ${solarPct}%,transparent ${solarPct}%);border-radius:3px"></div><span style="position:relative;color:#ffd680">${d.solar_kwh.toFixed(1)}</span></div>`
+          : "—";
+        const rainPct = d.rain_mm != null ? Math.round((d.rain_mm / maxRain) * 100) : 0;
+        const rainCell = d.rain_mm != null && d.rain_mm > 0
+          ? `<div style="position:relative;text-align:right"><div style="position:absolute;inset:0;background:linear-gradient(to left,rgba(99,179,237,.22) ${rainPct}%,transparent ${rainPct}%);border-radius:3px"></div><span style="position:relative;color:#9ccff5">${d.rain_mm.toFixed(1)}</span></div>`
+          : `<span style="color:#5e6a78">—</span>`;
+        html += `<div style="display:grid;grid-template-columns:54px 1fr 1fr 1fr 1fr;gap:6px;font-size:13px;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,.04);${isToday ? "background:rgba(99,179,237,.05);font-weight:600" : ""}">
+          <div style="color:${isToday ? "#cfe2f7" : "#aab8c6"}">${d.weekday}${isToday ? " · now" : ""}</div>
+          <div style="text-align:right">${tempCell}</div>
+          <div style="text-align:right">${humCell}</div>
+          <div style="text-align:right">${solarCell}</div>
+          <div style="text-align:right">${rainCell}</div>
+        </div>`;
+      });
+      html += `</div>`;
+      html += `<div style="margin-top:14px;padding:10px 12px;background:rgba(95,209,126,.06);border-left:3px solid rgba(95,209,126,.4);border-radius:6px;font-size:11px;color:#9bd8ad;line-height:1.5">
+        Real readings from your sensors. Temp shows daily min→max range. Solar from Enphase production.
+      </div>`;
+      body.innerHTML = html;
+    } catch (e) {
+      body.innerHTML = `<div style="padding:24px;text-align:center;color:#ff9b6b">Could not load history. Check Home Assistant logs.</div>`;
+    }
+  }
+
+  // v1.3.2: Wind/Rain past-7d stats modal (reuses /api/history_7d)
+  let _wrMode = "wind";
+  function openWindRainModal(mode) {
+    _wrMode = (mode === "rain") ? "rain" : "wind";
+    const m = $("wr-modal");
+    if (!m) return;
+    $("wr-modal-title").textContent = (_wrMode === "rain") ? "🌧️ Rain · past 7 days" : "💨 Wind · past 7 days";
+    m.classList.add("open");
+    document.body.style.overflow = "hidden";
+    loadWindRain();
+  }
+  function closeWindRainModal() {
+    const m = $("wr-modal");
+    if (m) m.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+  async function loadWindRain() {
+    const body = $("wr-modal-body");
+    if (!body) return;
+    body.innerHTML = `<div class="stream-msg"><div class="spinner"></div>Loading stats…</div>`;
+    try {
+      const r = await fetch("/garden/api/history_7d", {credentials:"same-origin"});
+      if (!r.ok) throw new Error("history fetch failed");
+      const j = await r.json();
+      const days = j.days || [];
+      const isRain = (_wrMode === "rain");
+      // Build summary stats
+      let total = 0, peak = 0, peakDay = "";
+      days.forEach(d => {
+        const v = isRain ? (d.rain_mm || 0) : (d.gust_max_kmh || d.wind_max_kmh || 0);
+        if (isRain) total += v;
+        if (v > peak) { peak = v; peakDay = d.weekday; }
+      });
+      // Header summary
+      let html = `<div style="padding:0 4px">`;
+      if (isRain) {
+        html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+          <div style="background:rgba(99,179,237,.08);padding:14px;border-radius:10px;border:1px solid rgba(99,179,237,.18)">
+            <div style="font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em">7d total</div>
+            <div style="font-size:24px;font-weight:600;color:#9ccff5;margin-top:4px">${total.toFixed(1)} <span style="font-size:13px;color:#8aa1c2;font-weight:400">mm</span></div>
+          </div>
+          <div style="background:rgba(99,179,237,.08);padding:14px;border-radius:10px;border:1px solid rgba(99,179,237,.18)">
+            <div style="font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em">Wettest day</div>
+            <div style="font-size:18px;font-weight:600;color:#9ccff5;margin-top:4px">${peakDay || "—"}</div>
+            <div style="font-size:12px;color:#8aa1c2;margin-top:2px">${peak.toFixed(1)} mm</div>
+          </div>
+        </div>`;
+      } else {
+        const avgWind = days.length ? days.reduce((a,d)=>a+(d.wind_avg_kmh||0),0) / days.length : 0;
+        html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+          <div style="background:rgba(255,180,80,.08);padding:14px;border-radius:10px;border:1px solid rgba(255,180,80,.18)">
+            <div style="font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em">Peak gust</div>
+            <div style="font-size:24px;font-weight:600;color:#ffd680;margin-top:4px">${peak.toFixed(1)} <span style="font-size:13px;color:#8aa1c2;font-weight:400">km/h</span></div>
+            <div style="font-size:12px;color:#8aa1c2;margin-top:2px">${peakDay || "—"}</div>
+          </div>
+          <div style="background:rgba(255,180,80,.08);padding:14px;border-radius:10px;border:1px solid rgba(255,180,80,.18)">
+            <div style="font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em">7d avg wind</div>
+            <div style="font-size:24px;font-weight:600;color:#ffd680;margin-top:4px">${avgWind.toFixed(1)} <span style="font-size:13px;color:#8aa1c2;font-weight:400">km/h</span></div>
+          </div>
+        </div>`;
+      }
+      // Header row
+      const cols = isRain
+        ? `<div>Day</div><div style="text-align:right">Rain mm</div><div style="text-align:right">% of week</div>`
+        : `<div>Day</div><div style="text-align:right">Avg km/h</div><div style="text-align:right">Max km/h</div><div style="text-align:right">Gust km/h</div>`;
+      const gridCols = isRain ? "54px 1fr 1fr" : "54px 1fr 1fr 1fr";
+      html += `<div style="display:grid;grid-template-columns:${gridCols};gap:6px;font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.08)">${cols}</div>`;
+      const maxBar = isRain ? Math.max(1, ...days.map(d => d.rain_mm || 0)) : Math.max(1, ...days.map(d => d.gust_max_kmh || d.wind_max_kmh || 0));
+      days.forEach((d, idx) => {
+        const isToday = idx === days.length - 1;
+        let row;
+        if (isRain) {
+          const v = d.rain_mm;
+          const pct = (v != null && total > 0) ? Math.round((v / total) * 100) : 0;
+          const barPct = (v != null) ? Math.round((v / maxBar) * 100) : 0;
+          const rainCell = (v != null && v > 0)
+            ? `<div style="position:relative;text-align:right"><div style="position:absolute;inset:0;background:linear-gradient(to left,rgba(99,179,237,.22) ${barPct}%,transparent ${barPct}%);border-radius:3px"></div><span style="position:relative;color:#9ccff5">${v.toFixed(1)}</span></div>`
+            : `<span style="color:#5e6a78">—</span>`;
+          row = `<div style="text-align:right">${rainCell}</div><div style="text-align:right;color:#8aa1c2">${pct}%</div>`;
+        } else {
+          const a = d.wind_avg_kmh, mx = d.wind_max_kmh, g = d.gust_max_kmh;
+          const gv = g || mx || 0;
+          const barPct = Math.round((gv / maxBar) * 100);
+          const gustCell = (g != null)
+            ? `<div style="position:relative;text-align:right"><div style="position:absolute;inset:0;background:linear-gradient(to left,rgba(255,180,80,.22) ${barPct}%,transparent ${barPct}%);border-radius:3px"></div><span style="position:relative;color:#ffd680">${g.toFixed(1)}</span></div>`
+            : `<span style="color:#5e6a78">—</span>`;
+          row = `<div style="text-align:right;color:#aab8c6">${a != null ? a.toFixed(1) : "—"}</div><div style="text-align:right;color:#aab8c6">${mx != null ? mx.toFixed(1) : "—"}</div><div style="text-align:right">${gustCell}</div>`;
+        }
+        html += `<div style="display:grid;grid-template-columns:${gridCols};gap:6px;font-size:13px;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,.04);${isToday ? "background:rgba(255,180,80,.05);font-weight:600" : ""}">
+          <div style="color:${isToday ? "#ffe6b3" : "#aab8c6"}">${d.weekday}${isToday ? " · now" : ""}</div>
+          ${row}
+        </div>`;
+      });
+      html += `</div>`;
+      const note = isRain
+        ? "Daily rainfall from your Ecowitt rain gauge."
+        : "Wind from Ecowitt anemometer. Gusts > 38 km/h trigger the greenhouse plastic-check alert.";
+      html += `<div style="margin-top:14px;padding:10px 12px;background:rgba(95,209,126,.06);border-left:3px solid rgba(95,209,126,.4);border-radius:6px;font-size:11px;color:#9bd8ad;line-height:1.5">${note}</div>`;
+      body.innerHTML = html;
+    } catch (e) {
+      body.innerHTML = `<div style="padding:24px;text-align:center;color:#ff9b6b">Could not load stats. Check Home Assistant logs.</div>`;
+    }
   }
 
   // Start HP10 cam auto-refresh
@@ -1812,13 +3227,66 @@
 
   // Escape closes HP10 modal too
   document.addEventListener("keydown", e => {
-    if (e.key === "Escape") { closeHp10Modal(); closeSunModal(); }
+    if (e.key === "Escape") { closeHp10Modal(); closeSunModal(); closeWxHistoryModal(); closeWindRainModal(); }
   });
 
   // --- Kick off initial sun tile render ---
   refreshSunTile();
   // Re-render tile every 60 s (aligned with load() but independent)
   setInterval(refreshSunTile, 60000);
+  // v1.5.0 init: apply persisted skin choices ASAP.
+  try{ _skinApply(); }catch(e){ console.error('skin init',e); }
 </script>
+<!-- ===== v1.5.0 skin settings modal ===== -->
+<button class="skin-gear" id="skin-gear-btn" onclick="openSkinModal()" aria-label="Skin settings">⚙️</button>
+<div class="skin-modal-bg" id="skin-modal-bg" onclick="if(event.target.id==='skin-modal-bg')closeSkinModal()">
+  <div class="skin-modal" role="dialog" aria-label="Skin settings">
+    <h2>Skins</h2>
+    <div class="sub">Pick a background style and a tile style. They're independent.</div>
+
+    <div class="group">
+      <div class="group-label">Background</div>
+      <div class="skin-options">
+        <div class="skin-opt" data-kind="bg" data-skin="realistic" onclick="_skinPick('bg','realistic')">
+          <div class="swatch"></div><div class="name">Realistic</div>
+        </div>
+        <div class="skin-opt" data-kind="bg" data-skin="watercolor" onclick="_skinPick('bg','watercolor')">
+          <div class="swatch"></div><div class="name">Watercolor</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-label">Tiles</div>
+      <div class="skin-options">
+        <div class="skin-opt" data-kind="ui" data-skin="realistic" onclick="_skinPick('ui','realistic')">
+          <div class="swatch"></div><div class="name">Realistic</div>
+        </div>
+        <div class="skin-opt" data-kind="ui" data-skin="watercolor" onclick="_skinPick('ui','watercolor')">
+          <div class="swatch"></div><div class="name">Watercolor</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-label">Coming soon</div>
+      <div class="skin-options">
+        <div class="skin-opt" data-kind="bg" data-skin="pencil" data-disabled="1">
+          <div class="swatch"></div><div class="name">Pencil</div>
+          <div class="pencil-soon">v1.6.0</div>
+        </div>
+        <div class="skin-opt" data-kind="ui" data-skin="pencil" data-disabled="1">
+          <div class="swatch"></div><div class="name">Pencil</div>
+          <div class="pencil-soon">v1.6.0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="close-row">
+      <button class="close-btn" onclick="closeSkinModal()">Done</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

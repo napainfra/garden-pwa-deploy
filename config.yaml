@@ -1,5 +1,5 @@
 name: Masha's Garden PWA
-version: "1.3.1"
+version: "1.5.0"
 slug: garden_pwa
 description: Public no-login PWA dashboard for Masha's garden (PIN gate, freeze alerts, drip control, live camera, full forecast).
 arch:
@@ -20,11 +20,15 @@ options:
   cookie_secret: ""
   ha_url: "http://homeassistant.local.hass.io:8123"
   ha_token: ""
+  ecowitt_authorize: ""
+  ecowitt_device_id: ""
 schema:
   pin: str
   freeze_at: float
   cookie_secret: str
   ha_url: str
   ha_token: str
+  ecowitt_authorize: str?
+  ecowitt_device_id: str?
 panel_icon: mdi:sprout
 url: https://ha.napa.solutions/garden

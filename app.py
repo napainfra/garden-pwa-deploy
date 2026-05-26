@@ -10,7 +10,7 @@ Routes:
   POST /api/stop   -> stop drip
   GET /manifest.json, /icons/*  -> PWA assets
 """
-import os, json, hmac, hashlib, time, secrets, datetime as dt, subprocess, ssl, threading
+import os, json, hmac, hashlib, time, secrets, datetime as dt, subprocess, ssl, threading, math
 from urllib import request as ur
 from urllib.error import HTTPError, URLError
 try:
@@ -394,6 +394,14 @@ def api_state(request: Request):
     # Sun position (drives day/night background)
     sun_above = sun.get("state") == "above_horizon"
 
+    # v1.3.5: Moon phase — simple synodic-cycle math (no integration needed).
+    # Reference new moon: 2000-01-06 18:14 UTC. Cycle = 29.530588853 days.
+    # Returns 0.0 (new) → 0.25 (first quarter) → 0.5 (full) → 0.75 (last quarter) → 1.0 (→ new).
+    _ref_new_moon = dt.datetime(2000, 1, 6, 18, 14, tzinfo=dt.timezone.utc)
+    _now_utc = dt.datetime.now(dt.timezone.utc)
+    _days_since = (_now_utc - _ref_new_moon).total_seconds() / 86400.0
+    moon_phase = (_days_since % 29.530588853) / 29.530588853  # 0–1
+
     # Solar exposure proxy from a single roof microinverter
     # (slightly east-leaning IQ7A — closely mimics garden's sun pattern)
     try:
@@ -460,7 +468,7 @@ def api_state(request: Request):
     _cuc_st = _cucumber_status(e_soil_m2)
 
     return {
-        "version": "1.3.1",
+        "version": "1.3.2",
         "soil_zones": [
             {"key":"tomato",   "name":"Tomato",  "name_ru":"Помидоры", "moisture": e_soil_m1, "temp_c": e_soil_t1, "battery_v": e_soil_b1, "planted": crop_tom,
              "status": _tom_st[0], "status_msg": _tom_st[1], "status_msg_ru": _tom_st[2],
@@ -510,15 +518,39 @@ def api_state(request: Request):
         "solar_band": solar_band,
         "solar_panel_peak_w": SOLAR_PANEL_PEAK_W,
         "weather_now": {
+            # legacy field — still wired so existing JS doesn't break.
             "condition": weather.get("state"),
             "temperature": w_attrs.get("temperature"),
             "humidity": w_attrs.get("humidity"),
             "wind_speed": w_attrs.get("wind_speed"),
         },
+        # v1.3.2: explicit dual weather panes
+        "weather_real": {
+            "source": "Ecowitt HP2564BU",
+            "temp_c":   e_out_t,
+            "humidity": e_out_h,
+            "uv_index": e_uv,
+            "solar_w_m2": e_rad,
+            "lux": int(e_lux) if e_lux is not None else None,
+            "wind_kmh": e_wind_kmh,
+            "wind_gust_kmh": e_gust_kmh,
+            "wind_dir": e_wind_compass,
+            "rain_now": (e_rain_r is not None and e_rain_r > 0) or (rain.get("state") == "on"),
+            "rain_rate_mm_h": round(e_rain_r, 2) if e_rain_r is not None else None,
+            "rain_today_mm": round(e_rain_d, 2) if e_rain_d is not None else None,
+        },
+        "weather_forecast": {
+            "source": "weather.forecast_home",
+            "condition": weather.get("state"),
+            "temp_c":    w_attrs.get("temperature"),
+            "humidity":  w_attrs.get("humidity"),
+            "wind_kmh":  w_attrs.get("wind_speed"),
+        },
         "forecast": forecast,
         "zones": zones,
         "today_local": today_local,
         "sun_above": sun_above,
+        "moon_phase": round(moon_phase, 3),  # v1.3.5
         "server_tz": str(LOCAL_TZ),
     }
 
@@ -1299,22 +1331,305 @@ def api_cam_garden(request: Request):
     return Response(status_code=sc or 502, content=b"", media_type="image/jpeg")
 
 
+# v1.4.0: timelapse history sourced from Ecowitt cloud (HP10 daily timelapse).
+# Public share URL is the auth path — no login required.
+# Endpoints used:
+#   POST https://www.ecowitt.net/index/get_video_info
+#     body: authorize=<code>&device_id=<base64>&date=YYYYMMDD
+#     -> errcode 0 + data.video_url (.mp4) when rendered
+#     -> errcode 9001003 "Making" when still rendering / no video yet
+#     -> other errcodes when day has no data
+_DATE_RE = __import__("re").compile(r"^\d{4}-\d{2}-\d{2}$")
+ECOWITT_AUTHORIZE  = os.environ.get("ECOWITT_AUTHORIZE", "").strip()
+ECOWITT_DEVICE_ID  = os.environ.get("ECOWITT_DEVICE_ID", "").strip()
+ECOWITT_BASE       = "https://www.ecowitt.net"
+ECOWITT_PROBE_DAYS = 30  # how far back to scan
+
+# Cache: { "YYYY-MM-DD": ("ok", "https://.../foo.mp4", expires_epoch)
+#                       | ("making", None, expires_epoch)
+#                       | ("none",   None, expires_epoch) }
+_TL_CACHE = {}
+_TL_LIST_CACHE = {"dates": [], "expires": 0.0}
+
+def _tl_cache_ttl(status: str) -> float:
+    # Found videos cached for 24h, "making"/none retried often
+    if status == "ok":     return 86400.0
+    if status == "making": return 300.0     # 5 min
+    return 1800.0                            # 30 min for definitive no-video days
+
+def _ecowitt_fetch_video_info(date_iso: str):
+    """Returns (status, url_or_none). status ∈ {"ok","making","none","err"}.
+    Caches results in memory."""
+    if not (ECOWITT_AUTHORIZE and ECOWITT_DEVICE_ID):
+        return ("err", None)
+    now = time.time()
+    cached = _TL_CACHE.get(date_iso)
+    if cached and cached[2] > now:
+        return (cached[0], cached[1])
+    yyyymmdd = date_iso.replace("-", "")
+    from urllib.parse import urlencode
+    body = urlencode({
+        "authorize":  ECOWITT_AUTHORIZE,
+        "device_id":  ECOWITT_DEVICE_ID,
+        "date":       yyyymmdd,
+    }).encode("utf-8")
+    req = ur.Request(
+        f"{ECOWITT_BASE}/index/get_video_info",
+        data=body,
+        method="POST",
+        headers={
+            "User-Agent":   "garden-pwa/1.4.0",
+            "Accept":       "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+    )
+    try:
+        with ur.urlopen(req, timeout=8.0) as resp:
+            j = json.loads(resp.read().decode("utf-8"))
+    except Exception:
+        return ("err", None)  # don't cache transient errors
+    errcode = str(j.get("errcode", "")).strip()
+    if errcode == "0":
+        url = (j.get("data") or {}).get("video_url") or ""
+        if url:
+            _TL_CACHE[date_iso] = ("ok", url, now + _tl_cache_ttl("ok"))
+            return ("ok", url)
+        # No URL but success — treat as none
+        _TL_CACHE[date_iso] = ("none", None, now + _tl_cache_ttl("none"))
+        return ("none", None)
+    if errcode == "9001003":  # "Making"
+        _TL_CACHE[date_iso] = ("making", None, now + _tl_cache_ttl("making"))
+        return ("making", None)
+    # Any other error → no video for this day
+    _TL_CACHE[date_iso] = ("none", None, now + _tl_cache_ttl("none"))
+    return ("none", None)
+
+def _list_timelapse_dates():
+    """Return sorted list of YYYY-MM-DD strings that have a rendered Ecowitt video.
+    Probes the last ECOWITT_PROBE_DAYS days. Caches the resolved list for 5 min."""
+    now = time.time()
+    if _TL_LIST_CACHE["expires"] > now and _TL_LIST_CACHE["dates"]:
+        return list(_TL_LIST_CACHE["dates"])
+    if not (ECOWITT_AUTHORIZE and ECOWITT_DEVICE_ID):
+        return []
+    today_local = dt.datetime.now(LOCAL_TZ).date()
+    out = []
+    # Walk back from yesterday (today rarely has a video before midnight)
+    for offset in range(1, ECOWITT_PROBE_DAYS + 1):
+        d = today_local - dt.timedelta(days=offset)
+        iso = d.isoformat()
+        status, _url = _ecowitt_fetch_video_info(iso)
+        if status == "ok":
+            out.append(iso)
+    # Also try today (in case render finished early)
+    s_today, _ = _ecowitt_fetch_video_info(today_local.isoformat())
+    if s_today == "ok":
+        out.append(today_local.isoformat())
+    out.sort()
+    _TL_LIST_CACHE["dates"]   = out
+    _TL_LIST_CACHE["expires"] = now + 300.0  # 5 min
+    return out
+
+
 @app.get("/api/timelapse/today.mp4")
-def api_timelapse_today(request: Request):
-    """Stream most recent timelapse mp4 from /media/garden_timelapse/.
-    Returns 404 with JSON if no mp4 exists yet."""
+def api_timelapse_today(request: Request, date: str = ""):
+    """Redirect to the Ecowitt-hosted mp4 for the requested date.
+    No date → today if available, else most recent. 404 JSON when nothing.
+    v1.4.0: fully delegated to Ecowitt cloud (no local rendering)."""
     if not is_authed(request):
         raise HTTPException(401)
-    import glob as _glob
-    pattern = "/media/garden_timelapse/*.mp4"
-    files = sorted(_glob.glob(pattern))
-    if not files:
+    if not (ECOWITT_AUTHORIZE and ECOWITT_DEVICE_ID):
         return JSONResponse(
-            status_code=404,
-            content={"error": "No timelapse available yet", "hint": "Timelapse renders nightly at 23:00"},
+            status_code=503,
+            content={"error": "Ecowitt share not configured",
+                     "hint": "Set ecowitt_authorize and ecowitt_device_id in addon config"},
         )
-    latest = files[-1]
-    return FileResponse(latest, media_type="video/mp4", filename=os.path.basename(latest))
+    target = None
+    if date and _DATE_RE.match(date):
+        status, url = _ecowitt_fetch_video_info(date)
+        if status == "ok":
+            return RedirectResponse(url, status_code=302)
+        if status == "making":
+            return JSONResponse(status_code=404,
+                content={"error": f"Video for {date} is still rendering on Ecowitt cloud", "making": True})
+        return JSONResponse(status_code=404, content={"error": f"No timelapse for {date}"})
+    # No date: pick today if ready, else most recent
+    today_local = dt.datetime.now(LOCAL_TZ).strftime("%Y-%m-%d")
+    s_today, u_today = _ecowitt_fetch_video_info(today_local)
+    if s_today == "ok":
+        return RedirectResponse(u_today, status_code=302)
+    dates = _list_timelapse_dates()
+    if not dates:
+        return JSONResponse(status_code=404,
+            content={"error": "No timelapse available yet", "hint": "Ecowitt renders daily — check back tomorrow"})
+    latest = dates[-1]
+    _s, url = _ecowitt_fetch_video_info(latest)
+    if url:
+        return RedirectResponse(url, status_code=302)
+    return JSONResponse(status_code=404, content={"error": "Latest video URL is missing"})
+
+
+@app.get("/api/timelapse/status")
+def api_timelapse_status(request: Request, date: str = ""):
+    """Status for the picker UI — reports whether the queried date has a video
+    on Ecowitt, and provides the latest available date.
+    v1.4.0: Ecowitt-backed."""
+    if not is_authed(request):
+        raise HTTPException(401)
+    today_local = dt.datetime.now(LOCAL_TZ).strftime("%Y-%m-%d")
+    queried = today_local
+    if date and _DATE_RE.match(date):
+        queried = date
+    if not (ECOWITT_AUTHORIZE and ECOWITT_DEVICE_ID):
+        return {
+            "today_date": today_local, "queried_date": queried,
+            "configured": False,
+            "mp4_exists": False, "mp4_today_exists": False,
+            "latest_date": None, "available_dates": [],
+            "hint": "Set ecowitt_authorize / ecowitt_device_id in addon config",
+        }
+    status, _url = _ecowitt_fetch_video_info(queried)
+    dates = _list_timelapse_dates()
+    return {
+        "today_date": today_local,
+        "queried_date": queried,
+        "configured": True,
+        "queried_status": status,                # "ok" | "making" | "none" | "err"
+        "mp4_exists": (status == "ok"),
+        "mp4_today_exists": today_local in dates,
+        "latest_date": dates[-1] if dates else None,
+        "available_dates": dates,
+        "snapshot_count": 0,                     # Ecowitt path — N/A
+        "render_schedule": "Ecowitt cloud (daily)",
+        "hint": "Timelapse rendered nightly on Ecowitt servers",
+    }
+
+
+@app.get("/api/timelapse/list")
+def api_timelapse_list(request: Request):
+    """v1.4.0: Return list of dates with a rendered Ecowitt video.
+    Used by the modal's date picker."""
+    if not is_authed(request):
+        raise HTTPException(401)
+    today_local = dt.datetime.now(LOCAL_TZ).strftime("%Y-%m-%d")
+    if not (ECOWITT_AUTHORIZE and ECOWITT_DEVICE_ID):
+        return {
+            "dates": [], "latest": None, "earliest": None,
+            "today": today_local, "count": 0,
+            "configured": False,
+            "hint": "Set ecowitt_authorize / ecowitt_device_id in addon config",
+        }
+    dates = _list_timelapse_dates()
+    return {
+        "dates":     dates,
+        "latest":    dates[-1] if dates else None,
+        "earliest":  dates[0]  if dates else None,
+        "today":     today_local,
+        "count":     len(dates),
+        "configured": True,
+    }
+
+
+@app.get("/api/history_7d")
+def api_history_7d(request: Request):
+    """v1.3.2: 7-day daily-aggregated history for the REAL weather tile tap-through.
+    Sources:
+      - Ecowitt outdoor temp + humidity (daily min/avg/max)
+      - Enphase solar daily kWh (from sensor.solar_riemann_daily statistics)
+      - Ecowitt rain daily totals
+    """
+    if not is_authed(request):
+        raise HTTPException(401)
+
+    def _utc_z(t): return t.strftime("%Y-%m-%dT%H:%M:%SZ")
+    now_local = dt.datetime.now(LOCAL_TZ)
+    days = []
+    for offset in range(6, -1, -1):  # 6 days ago → today
+        d_local = (now_local - dt.timedelta(days=offset)).replace(hour=0, minute=0, second=0, microsecond=0)
+        start_utc = d_local.astimezone(dt.timezone.utc)
+        end_local = d_local + dt.timedelta(days=1)
+        end_utc = end_local.astimezone(dt.timezone.utc)
+        days.append({
+            "date_local": d_local.strftime("%Y-%m-%d"),
+            "weekday":    d_local.strftime("%a"),
+            "start_utc":  _utc_z(start_utc),
+            "end_utc":    _utc_z(end_utc),
+        })
+
+    def _daily_minmaxavg(eid, day):
+        """Fetch /history/period for one day and return min/max/avg of numeric states."""
+        try:
+            hist = ha("GET", f"/history/period/{day['start_utc']}?filter_entity_id={eid}&end_time={day['end_utc']}&minimal_response")
+        except Exception:
+            return None, None, None
+        if not hist or not isinstance(hist, list) or len(hist) == 0 or not isinstance(hist[0], list):
+            return None, None, None
+        vals = []
+        for st in hist[0]:
+            try:
+                v = float(st.get("state"))
+                if math.isfinite(v):
+                    vals.append(v)
+            except (TypeError, ValueError):
+                continue
+        if not vals:
+            return None, None, None
+        return round(min(vals), 1), round(max(vals), 1), round(sum(vals)/len(vals), 1)
+
+    def _daily_last_minus_first(eid, day):
+        """For monotonic counters (Enphase production_daily, rain_daily): last − first.
+        Returns the day's accumulated total in same units as the sensor."""
+        try:
+            hist = ha("GET", f"/history/period/{day['start_utc']}?filter_entity_id={eid}&end_time={day['end_utc']}&minimal_response")
+        except Exception:
+            return None
+        if not hist or not isinstance(hist, list) or len(hist) == 0 or not isinstance(hist[0], list) or len(hist[0]) < 2:
+            return None
+        first_v, last_v = None, None
+        for st in hist[0]:
+            try:
+                v = float(st.get("state"))
+                if not math.isfinite(v): continue
+                if first_v is None: first_v = v
+                last_v = v
+            except (TypeError, ValueError):
+                continue
+        if first_v is None or last_v is None: return None
+        return max(0.0, round(last_v - first_v, 2))
+
+    series = []
+    for day in days:
+        t_min, t_max, t_avg = _daily_minmaxavg(E_OUTDOOR_T, day)
+        h_min, h_max, h_avg = _daily_minmaxavg(E_OUTDOOR_H, day)
+        # Enphase: solar_riemann_daily resets at midnight, take max of day = total kWh
+        solar_kwh = _daily_minmaxavg("sensor.solar_riemann_daily", day)[1]  # max
+        # Rain: ecowitt daily_rain accumulates over the day, take last value (or max)
+        rain_mm = _daily_minmaxavg(E_RAIN_DAILY, day)[1]
+        # Wind: Ecowitt wind_speed is in m/s — fetch min/max/avg and convert to km/h
+        w_min, w_max, w_avg = _daily_minmaxavg(E_WIND_SPEED, day)
+        g_min, g_max, g_avg = _daily_minmaxavg(E_WIND_GUST,  day)
+        def _ms2kmh(v): return round(v * 3.6, 1) if v is not None else None
+        series.append({
+            "date":    day["date_local"],
+            "weekday": day["weekday"],
+            "temp_min_c": t_min, "temp_max_c": t_max, "temp_avg_c": t_avg,
+            "hum_min":    h_min, "hum_max":    h_max, "hum_avg":    h_avg,
+            "solar_kwh":  solar_kwh,
+            "rain_mm":    rain_mm,
+            "wind_avg_kmh": _ms2kmh(w_avg),
+            "wind_max_kmh": _ms2kmh(w_max),
+            "gust_max_kmh": _ms2kmh(g_max),
+        })
+
+    return {
+        "days": series,
+        "sources": {
+            "temperature": "Ecowitt outdoor_temperature",
+            "humidity":    "Ecowitt humidity",
+            "solar":       "Enphase solar_riemann_daily",
+            "rain":        "Ecowitt daily_rain",
+        },
+    }
 
 
 @app.post("/api/start")
