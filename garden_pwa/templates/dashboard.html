@@ -10,7 +10,7 @@
 <link rel="manifest" href="/garden/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/garden/static/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/garden/static/icon-192.png">
-<title>Masha's Garden · v1.7.0</title>
+<title>Masha's Garden · v1.7.1</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
   html,body{height:100%;width:100%}
@@ -1199,7 +1199,7 @@
 
 
   /* ============================================================
-     v1.7.0 — local timelapse cache (no more re-downloads)
+     v1.7.1 — local timelapse cache (no more re-downloads)
      Activated only under body[data-ui-skin="pencil"].
      Hides original emoji and renders pencil-sketched SVG icon.
      ============================================================ */
@@ -2028,7 +2028,7 @@
 
   /* End of pencil skin block ============================================ */
   /* =====================================================================
-     INK SKIN v1.7.0 — pen-and-ink / scratchboard aesthetic
+     INK SKIN v1.7.1 — pen-and-ink / scratchboard aesthetic
      Strictly B/W. Light = black ink lines on warm off-white paper.
      Night    = INVERTED — white scratches on pitch-black.
      Per skin contract (home-assistant skill v2.4 rule 9): visual only.
@@ -2300,12 +2300,23 @@
   /* Footer */
   body[data-ui-skin="ink"] .footer{ color: var(--ipv-ink-muted) !important; }
 
-  /* Hero PNG (tomato+cucumber) — render as black ink silhouette */
+  /* Hero PNG (tomato+cucumber) — ink skin uses a hand-drawn Victorian seed-catalog
+     ink-etching version of the same composition. Day = black ink on transparent
+     (shows through to warm paper); night = white scratches on transparent (shows
+     through to pitch-black tile). Swapped via `content:` URL — works on <img>. */
   body[data-ui-skin="ink"] .hero-img{
-    filter: grayscale(1) contrast(1.6) brightness(.6) drop-shadow(0 6px 14px rgba(0,0,0,.15)) !important;
+    content: url("/garden/static/hero-ink.png") !important;
+    width: 280px !important;
+    height: 200px !important;
+    object-fit: contain !important;
+    filter: drop-shadow(0 6px 14px rgba(0,0,0,.10)) !important;
   }
   body[data-ui-skin="ink"][data-daypart="night"] .hero-img{
-    filter: grayscale(1) contrast(1.4) brightness(2.2) invert(1) drop-shadow(0 6px 14px rgba(0,0,0,.5)) !important;
+    content: url("/garden/static/hero-ink-night.png") !important;
+    width: 280px !important;
+    height: 200px !important;
+    object-fit: contain !important;
+    filter: drop-shadow(0 6px 14px rgba(0,0,0,.45)) !important;
   }
 
   /* Hero headline — strong shadow for legibility against the sky backdrop */
@@ -3667,7 +3678,7 @@
     document.body.dataset.season = _seasonNow();
   }
 
-  /* ----------- INK SKIN renderer (v1.7.0) ----------- */
+  /* ----------- INK SKIN renderer (v1.7.1) ----------- */
   function _ipvPickSky(cond, isNight, sunElev){
     const base = "/garden/static/sky/ink/";
     const partly = (cond === "partlycloudy");
