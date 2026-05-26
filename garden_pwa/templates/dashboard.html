@@ -10,7 +10,7 @@
 <link rel="manifest" href="/garden/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/garden/static/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/garden/static/icon-192.png">
-<title>Masha's Garden · v1.5.2</title>
+<title>Masha's Garden · v1.6.2</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
   html,body{height:100%;width:100%}
@@ -533,8 +533,12 @@
     background-image:url("/garden/static/sky/watercolor/sky-02.jpg");
   }
   .skin-opt[data-skin="pencil"] .swatch{
-    background:linear-gradient(180deg,#cfd6d8,#94a3b3 70%,#5b6a78);
+    background-image:url("/garden/static/sky/pencil/clearday-01.jpg");
+    background-size:cover;background-position:center;
   }
+  .skin-options-3{grid-template-columns:1fr 1fr 1fr !important;gap:8px !important}
+  .skin-options-3 .skin-opt{padding:8px 6px !important}
+  .skin-options-3 .skin-opt .name{font-size:11px !important}
   .skin-opt .name{font-size:13px;font-weight:600}
   .skin-opt .pencil-soon{font-size:10px;color:#7c8ca3;margin-top:2px}
   .skin-modal .close-row{margin-top:18px;text-align:center}
@@ -1188,6 +1192,813 @@
   /* Footer */
   body[data-ui-skin="watercolor"] .footer{ color: var(--wcv-text-muted) !important; }
 
+
+
+  /* ============================================================
+     v1.6.2 — Pencil icons + UI polish
+     Activated only under body[data-ui-skin="pencil"].
+     Hides original emoji and renders pencil-sketched SVG icon.
+     ============================================================ */
+  /* default: pix span renders its emoji content as-is */
+  .pix { display:inline-block; }
+
+  /* pencil mode: hide the underlying emoji char, swap in SVG ::before */
+  body[data-ui-skin="pencil"] .pix {
+    /* hide the underlying emoji glyph; show SVG via ::before */
+    color: transparent !important;
+    text-shadow: none !important;
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    vertical-align: -5px;
+    position: relative;
+    margin-right: 4px;
+    overflow: hidden;
+    text-indent: -9999px;  /* push emoji glyph offscreen as defense in depth */
+  }
+  body[data-ui-skin="pencil"] .pix::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: contain;
+  }
+  body[data-ui-skin="pencil"] .pix-sprout::before { background-image: url("data:image/svg+xml;utf8,<svg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20width='22'%20height='22'><filter%20id='rgh'><feTurbulence%20type='fractalNoise'%20baseFrequency='1.8'%20numOctaves='2'%20seed='4'/><feDisplacementMap%20in='SourceGraphic'%20scale='1.2'/></filter><g%20filter='url(%23rgh)'><path%20d='M12%2020%20L%2012%2011'%20stroke='%232f6b2a'%20stroke-width='1.6'%20stroke-linecap='round'%20fill='none'/><path%20d='M12%2011%20C%208%2010%206%2012%205%2015%20C%208%2016%2011%2014%2012%2011%20Z'%20fill='%237cb955'%20stroke='%232f6b2a'%20stroke-width='1.2'/><path%20d='M12%2011%20C%2016%2010%2018%2012%2019%2015%20C%2016%2016%2013%2014%2012%2011%20Z'%20fill='%237cb955'%20stroke='%232f6b2a'%20stroke-width='1.2'/><path%20d='M12%2013%20L%2012%2011'%20stroke='%231d4818'%20stroke-width='.8'%20fill='none'/></g></svg>"); }
+  body[data-ui-skin="pencil"] .pix-tomato::before { background-image: url("data:image/svg+xml;utf8,<svg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20width='22'%20height='22'><filter%20id='rgh'><feTurbulence%20type='fractalNoise'%20baseFrequency='1.8'%20numOctaves='2'%20seed='4'/><feDisplacementMap%20in='SourceGraphic'%20scale='1.2'/></filter><g%20filter='url(%23rgh)'><path%20d='M12%207%20C%206%207%204%2011%204%2015%20C%204%2019%207%2021%2012%2021%20C%2017%2021%2020%2019%2020%2015%20C%2020%2011%2018%207%2012%207%20Z'%20fill='%23e85a4f'%20stroke='%237a2018'%20stroke-width='1.3'/><path%20d='M9%207%20C%209.5%205%2010.5%204%2012%204%20C%2013.5%204%2014.5%205%2015%207'%20fill='none'%20stroke='%232f6b2a'%20stroke-width='1.5'%20stroke-linecap='round'/><path%20d='M10%206.5%20L%2011%205.5%20M%2013%205.5%20L%2014%206.5'%20stroke='%232f6b2a'%20stroke-width='1.3'%20stroke-linecap='round'/><path%20d='M8%2012%20Q%209%2011%2010%2012'%20stroke='%23fff8e8'%20stroke-width='1.1'%20fill='none'%20opacity='.7'/></g></svg>"); }
+  body[data-ui-skin="pencil"] .pix-cuc::before    { background-image: url("data:image/svg+xml;utf8,<svg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20width='22'%20height='22'><filter%20id='rgh'><feTurbulence%20type='fractalNoise'%20baseFrequency='1.8'%20numOctaves='2'%20seed='4'/><feDisplacementMap%20in='SourceGraphic'%20scale='1.2'/></filter><g%20filter='url(%23rgh)'><path%20d='M5%2014%20C%205%209%209%205%2014%205%20C%2019%205%2021%207%2020%2011%20C%2019%2015%2015%2019%2010%2019%20C%206%2019%204%2017%205%2014%20Z'%20fill='%236fb340'%20stroke='%232c5a18'%20stroke-width='1.3'/><circle%20cx='9'%20cy='13'%20r='.6'%20fill='%232c5a18'/><circle%20cx='12'%20cy='10'%20r='.6'%20fill='%232c5a18'/><circle%20cx='15'%20cy='8'%20r='.6'%20fill='%232c5a18'/><circle%20cx='13'%20cy='15'%20r='.6'%20fill='%232c5a18'/><path%20d='M7%2012%20Q%208%2011%209%2012'%20stroke='%23fff8e8'%20stroke-width='1'%20fill='none'%20opacity='.6'/></g></svg>"); }
+  body[data-ui-skin="pencil"] .pix-sun::before    { background-image: url("data:image/svg+xml;utf8,<svg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20width='22'%20height='22'><filter%20id='rgh'><feTurbulence%20type='fractalNoise'%20baseFrequency='1.8'%20numOctaves='2'%20seed='4'/><feDisplacementMap%20in='SourceGraphic'%20scale='1.2'/></filter><g%20filter='url(%23rgh)'><circle%20cx='12'%20cy='12'%20r='4.5'%20fill='%23f8c249'%20stroke='%23a85e10'%20stroke-width='1.2'/><g%20stroke='%23d68a1c'%20stroke-width='1.4'%20stroke-linecap='round'><line%20x1='12'%20y1='2.5'%20x2='12'%20y2='5'/><line%20x1='12'%20y1='19'%20x2='12'%20y2='21.5'/><line%20x1='2.5'%20y1='12'%20x2='5'%20y2='12'/><line%20x1='19'%20y1='12'%20x2='21.5'%20y2='12'/><line%20x1='5'%20y1='5'%20x2='6.8'%20y2='6.8'/><line%20x1='17.2'%20y1='17.2'%20x2='19'%20y2='19'/><line%20x1='19'%20y1='5'%20x2='17.2'%20y2='6.8'/><line%20x1='5'%20y1='19'%20x2='6.8'%20y2='17.2'/></g></g></svg>"); }
+  body[data-ui-skin="pencil"] .pix-wind::before   { background-image: url("data:image/svg+xml;utf8,<svg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20width='22'%20height='22'><filter%20id='rgh'><feTurbulence%20type='fractalNoise'%20baseFrequency='1.8'%20numOctaves='2'%20seed='4'/><feDisplacementMap%20in='SourceGraphic'%20scale='1.2'/></filter><g%20filter='url(%23rgh)'%20fill='none'%20stroke='%235a7caa'%20stroke-width='1.6'%20stroke-linecap='round'><path%20d='M3%209%20H%2014%20C%2016%209%2016%206%2014%206%20C%2012.5%206%2012%207%2012%208'/><path%20d='M3%2014%20H%2017%20C%2019.5%2014%2019.5%2011.5%2017%2011.5'/><path%20d='M3%2019%20H%2011%20C%2013%2019%2013%2016.5%2011%2016.5'/></g><g%20fill='%23cdd9e8'%20opacity='.65'%20filter='url(%23rgh)'><ellipse%20cx='8'%20cy='8'%20rx='3'%20ry='1.5'/><ellipse%20cx='10'%20cy='13'%20rx='4'%20ry='1.7'/></g></svg>"); }
+  body[data-ui-skin="pencil"] .pix-rain::before   { background-image: url("data:image/svg+xml;utf8,<svg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20width='22'%20height='22'><filter%20id='rgh'><feTurbulence%20type='fractalNoise'%20baseFrequency='1.8'%20numOctaves='2'%20seed='4'/><feDisplacementMap%20in='SourceGraphic'%20scale='1.2'/></filter><g%20filter='url(%23rgh)'><path%20d='M6%2012%20C%204%2012%203%2010%204%208%20C%205%206%207%206%208%207%20C%208%205%2011%204%2013%205%20C%2015%204%2018%205%2018%208%20C%2020%208%2021%2010%2020%2012%20C%2019%2013%207%2013%206%2012%20Z'%20fill='%23bccddf'%20stroke='%233a5a7c'%20stroke-width='1.2'/><g%20stroke='%232c6db8'%20stroke-width='1.5'%20stroke-linecap='round'><line%20x1='8'%20y1='15'%20x2='7'%20y2='19'/><line%20x1='12'%20y1='15'%20x2='11'%20y2='19'/><line%20x1='16'%20y1='15'%20x2='15'%20y2='19'/></g></g></svg>"); }
+  body[data-ui-skin="pencil"] .pix-drop::before   { background-image: url("data:image/svg+xml;utf8,<svg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20width='22'%20height='22'><filter%20id='rgh'><feTurbulence%20type='fractalNoise'%20baseFrequency='1.8'%20numOctaves='2'%20seed='4'/><feDisplacementMap%20in='SourceGraphic'%20scale='1.2'/></filter><g%20filter='url(%23rgh)'><path%20d='M12%203%20C%208%209%206%2013%206%2016%20C%206%2019.3%208.7%2022%2012%2022%20C%2015.3%2022%2018%2019.3%2018%2016%20C%2018%2013%2016%209%2012%203%20Z'%20fill='%237eb8ec'%20stroke='%231e4d80'%20stroke-width='1.3'/><path%20d='M10%2017%20Q%2011%2019%2013%2018'%20stroke='%23fff8e8'%20stroke-width='1.1'%20fill='none'%20opacity='.7'/></g></svg>"); }
+  body[data-ui-skin="pencil"] .pix-stop::before   { background-image: url("data:image/svg+xml;utf8,<svg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20width='22'%20height='22'><filter%20id='rgh'><feTurbulence%20type='fractalNoise'%20baseFrequency='1.8'%20numOctaves='2'%20seed='4'/><feDisplacementMap%20in='SourceGraphic'%20scale='1.2'/></filter><g%20filter='url(%23rgh)'><polygon%20points='8,3%2016,3%2021,8%2021,16%2016,21%208,21%203,16%203,8'%20fill='%23e64a36'%20stroke='%237a1d10'%20stroke-width='1.4'/><text%20x='12'%20y='15.5'%20text-anchor='middle'%20font-family='Marker%20Felt,%20Bradley%20Hand,%20serif'%20font-size='6.2'%20font-weight='700'%20fill='%23fff8e8'>STOP</text></g></svg>"); }
+
+  /* Larger button icons */
+  body[data-ui-skin="pencil"] .btn .pix { width: 24px; height: 24px; line-height: 24px; vertical-align: -7px; }
+
+  /* ── Stars rating (SUN tile) — pencil-style filled gold stars ── */
+  body[data-ui-skin="pencil"] .stars {
+    font-size: 0;
+    letter-spacing: 0;
+    line-height: 1;
+  }
+  body[data-ui-skin="pencil"] .stars::before {
+    content: "";
+    display: inline-block;
+  }
+  /* We can't reliably parse text content '★★★☆☆' from CSS — but the JS sets
+     it via textContent. Since changing the JS risks breaking realistic skin,
+     we leave the unicode stars and just apply colored-pencil styling: */
+  body[data-ui-skin="pencil"] .stars {
+    font-size: 22px !important;
+    color: #d4a72c !important;
+    text-shadow: 0 1px 0 rgba(255,255,255,.45), 0 0 .5px #7a4a10;
+    letter-spacing: .07em !important;
+    font-family: "Marker Felt","Bradley Hand",serif !important;
+  }
+  body[data-ui-skin="pencil"][data-daypart="night"] .stars {
+    color: #ffd76b !important;
+    text-shadow: 0 1px 0 rgba(0,0,0,.5);
+  }
+
+  /* ── Status pill "Soil OK" — pencil green sketch ── */
+  body[data-ui-skin="pencil"] .pill.ok {
+    background-color: rgba(190,225,170,.85) !important;
+    color: #28571f !important;
+    border: 1.5px solid #4a7a35 !important;
+    box-shadow: 0 2px 6px rgba(80,60,30,.18), 0 1px 0 rgba(255,255,255,.6) inset !important;
+    font-family: "Bradley Hand","Marker Felt",serif !important;
+    font-weight: 600;
+    padding: 4px 14px !important;
+    border-radius: 20px 22px 20px 22px !important;
+  }
+  body[data-ui-skin="pencil"] .pill.warn {
+    background-color: rgba(245,205,135,.85) !important;
+    color: #7a4818 !important;
+    border: 1.5px solid #a86a20 !important;
+  }
+  body[data-ui-skin="pencil"] .pill.alert,
+  body[data-ui-skin="pencil"] .pill.danger {
+    background-color: rgba(245,180,170,.85) !important;
+    color: #7a1f12 !important;
+    border: 1.5px solid #a8341e !important;
+  }
+  body[data-ui-skin="pencil"][data-daypart="night"] .pill.ok {
+    background-color: rgba(120,170,100,.45) !important;
+    color: #d9f0c4 !important;
+    border-color: rgba(160,210,140,.7) !important;
+  }
+
+  /* ── Plant row checkmark badge ── */
+  body[data-ui-skin="pencil"] .z-badge {
+    display: inline-block;
+    width: 16px; height: 16px;
+    vertical-align: middle;
+    background-image: url("data:image/svg+xml;utf8,<svg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20width='14'%20height='14'><path%20d='M4%2013%20L%2010%2018%20L%2020%206'%20fill='none'%20stroke='%232c8a2c'%20stroke-width='2.4'%20stroke-linecap='round'%20stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+  }
+
+  /* ── Soil tile + Sun tile + Wind tile + Rain tile labels ── */
+  body[data-ui-skin="pencil"] .tile {
+    min-width: 0 !important;  /* prevent intrinsic content from forcing tile wider than grid column */
+    overflow: hidden;
+  }
+  body[data-ui-skin="pencil"] .tile .label {
+    color: var(--pcv-text) !important;
+    font-family: "Bradley Hand","Marker Felt","Iowan Old Style",serif !important;
+    font-weight: 600;
+    letter-spacing: .04em;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ── Big values (wind speed, rain today) — slightly pencil-textured ── */
+  body[data-ui-skin="pencil"] .tile .value,
+  body[data-ui-skin="pencil"] .row .v {
+    color: var(--pcv-text) !important;
+    font-family: "Bradley Hand","Iowan Old Style",serif !important;
+    font-weight: 600;
+    letter-spacing: .01em;
+  }
+  body[data-ui-skin="pencil"] .tile .sub,
+  body[data-ui-skin="pencil"] .row .label,
+  body[data-ui-skin="pencil"] .tap-hint {
+    color: var(--pcv-text-soft) !important;
+    font-family: "Bradley Hand","Marker Felt",serif !important;
+  }
+
+  /* ── Plant row layout: keep z-name with icon, percentage in graphite-blue,
+        temp in same row, badge after ── */
+  body[data-ui-skin="pencil"] .soil-zone-row {
+    color: var(--pcv-text) !important;
+    font-family: "Bradley Hand",serif !important;
+    align-items: center !important;
+    font-size: 13px !important;
+    gap: 4px;
+  }
+  body[data-ui-skin="pencil"] .soil-zone-row .z-name {
+    color: var(--pcv-text) !important;
+    min-width: 92px !important;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+    white-space: nowrap;
+    padding-right: 4px;
+  }
+  body[data-ui-skin="pencil"] .soil-zone-row .z-name .pix {
+    flex: 0 0 22px !important;
+    width: 22px !important;
+    height: 22px !important;
+  }
+  body[data-ui-skin="pencil"] .soil-zone-row {
+    justify-content: flex-start !important;
+  }
+  body[data-ui-skin="pencil"] .soil-zone-row .z-moist {
+    font-size: 14px !important;
+    white-space: nowrap;
+    margin-left: auto;
+  }
+  body[data-ui-skin="pencil"] .soil-zone-row .z-temp {
+    font-size: 11px !important;
+    white-space: nowrap;
+    color: var(--pcv-text-soft) !important;
+    margin-left: 6px;
+  }
+  body[data-ui-skin="pencil"] .soil-zone-row .z-badge {
+    margin-left: 4px;
+  }
+  body[data-ui-skin="pencil"] .z-moist,
+  body[data-ui-skin="pencil"] .z-temp {
+    color: var(--pcv-accent) !important;
+    font-weight: 600;
+  }
+
+  /* ── Buttons: pencil-sketch boxed buttons ── */
+  body[data-ui-skin="pencil"] .btn {
+    font-family: "Bradley Hand","Marker Felt",serif !important;
+    font-weight: 600;
+    letter-spacing: .03em;
+    border: 1.5px solid !important;
+    border-radius: 18px 22px 18px 22px !important;
+    background-blend-mode: multiply, normal !important;
+    background-size: 280px 280px, cover !important;
+    background-repeat: repeat, no-repeat !important;
+  }
+  body[data-ui-skin="pencil"] .btn.start {
+    background-color: #bfd6ee !important;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='280'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='4' seed='17'/><feColorMatrix values='0 0 0 0 .15  0 0 0 0 .25  0 0 0 0 .5  0 0 0 .25 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+      linear-gradient(180deg, #d2e3f4, #b1cdec) !important;
+    border-color: #4a7ab8 !important;
+    color: #1d3358 !important;
+  }
+  body[data-ui-skin="pencil"] .btn.stop {
+    background-color: #f0c4bb !important;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='280'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='4' seed='17'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .2  0 0 0 0 .15  0 0 0 .25 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+      linear-gradient(180deg, #f3d2cb, #e8b4a9) !important;
+    border-color: #b1503f !important;
+    color: #6e1f12 !important;
+  }
+  body[data-ui-skin="pencil"] .btn.stop.disabled {
+    opacity: 0.55 !important;
+  }
+  body[data-ui-skin="pencil"][data-daypart="night"] .btn.start {
+    background-color: #2c4a7a !important;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='280'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='4' seed='17'/><feColorMatrix values='0 0 0 0 .6  0 0 0 0 .7  0 0 0 0 .95  0 0 0 .3 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+      linear-gradient(180deg, #3a5a8c, #243d6a) !important;
+    color: #e8eef8 !important;
+    border-color: #6f95cf !important;
+  }
+  body[data-ui-skin="pencil"][data-daypart="night"] .btn.stop {
+    background-color: #5a2a26 !important;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='280'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='4' seed='17'/><feColorMatrix values='0 0 0 0 .95  0 0 0 0 .65  0 0 0 0 .55  0 0 0 .3 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>"),
+      linear-gradient(180deg, #6a302a, #4a201c) !important;
+    color: #f4ddd5 !important;
+    border-color: #b67060 !important;
+  }
+
+  /* ── Hero title — pencil-sketched serif lockup ── */
+  body[data-ui-skin="pencil"] h1 {
+    font-family: "Bradley Hand","Marker Felt","Iowan Old Style",serif !important;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-shadow: 0 1px 0 rgba(255,255,255,.65), 0 2px 4px rgba(80,60,30,.25);
+  }
+  body[data-ui-skin="pencil"][data-daypart="night"] h1 {
+    text-shadow: 0 1px 0 rgba(0,0,0,.7), 0 2px 6px rgba(0,0,0,.5);
+  }
+
+  /* ── Stale rain-sensor warning hint (Hydrawise says wet but Ecowitt dry) ── */
+  body[data-ui-skin="pencil"] .rain-stale-hint {
+    color: var(--pcv-text-muted) !important;
+    font-style: italic;
+    font-size: 11px;
+  }
+
+  /* ── Modal & sheet headings + body text use pencil font ── */
+  body[data-ui-skin="pencil"] .modal h2,
+  body[data-ui-skin="pencil"] .sheet h2,
+  body[data-ui-skin="pencil"] .stats .row-stat {
+    font-family: "Bradley Hand","Marker Felt",serif !important;
+    color: var(--pcv-text) !important;
+  }
+  body[data-ui-skin="pencil"] .modal .body,
+  body[data-ui-skin="pencil"] .sheet .body {
+    font-family: "Bradley Hand","Marker Felt",serif !important;
+    color: var(--pcv-text) !important;
+  }
+
+  /* ── Camera card meta ── */
+  body[data-ui-skin="pencil"] .hp10-meta {
+    color: var(--pcv-text) !important;
+    font-family: "Bradley Hand",serif !important;
+  }
+
+  /* ── "Last watered / Valve / Battery" row labels use small caps look ── */
+  body[data-ui-skin="pencil"] .row .item .label {
+    font-family: "Bradley Hand",serif !important;
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    opacity: .85;
+  }
+
+  /* =====================================================================
+     PENCIL SKIN v1.6.2 — colored-pencil illustration aesthetic
+     Locked layer-model + skin contract from home-assistant skill v2.2:
+       • Every surface gets the same paper texture (multi-layer SVG noise)
+       • Borders use stroke-doodle SVG for hand-drawn feel
+       • Dark variant has HIGH-CONTRAST text (fixing v1.5.6 watercolor debt)
+       • Motion layers are inherited from .wcv-* DOM (sky/sun/rays/moon/stars/
+         wind/rain/snow/lightning) — pencil only changes asset image sources
+     ===================================================================== */
+
+  /* Backdrop asset rules — body[data-bg-skin="pencil"] swaps .wcv-sky image
+     source via renderWxPencil(); CSS below tunes overlay opacity and the
+     sun/moon disc images. */
+  body[data-bg-skin="pencil"] .wcv-sun{
+    background-image:url("/garden/static/sky/pencil/sun-disc.png") !important;
+  }
+  body[data-bg-skin="pencil"] .wcv-moon{
+    background-image:url("/garden/static/sky/pencil/moon-disc.png") !important;
+  }
+  /* Pencil rays = softer than watercolor (it's a pencil drawing, not a sunburst) */
+  body[data-bg-skin="pencil"] .wcv-rays-ring{ filter:contrast(.85) saturate(.7) }
+  body[data-bg-skin="pencil"][data-cond="windy"] .wcv-drift,
+  body[data-bg-skin="pencil"][data-cond="windy-variant"] .wcv-drift{opacity:.6}
+
+  /* CSS variables — light (day) + dark (night) papers */
+  body[data-ui-skin="pencil"]{
+    --pcv-paper-base-a: #f8f1de;   /* cream manila */
+    --pcv-paper-base-b: #ede1c2;
+    --pcv-paper-edge:   rgba(150,120, 70,.32);
+    --pcv-text:         #1d2533;   /* graphite */
+    --pcv-text-soft:    #3e4a5e;
+    --pcv-text-muted:   #5a6b80;
+    --pcv-border:       rgba(95, 80, 55,.55);
+    --pcv-wash-sky:     rgba(110,170,225,.42);
+    --pcv-wash-sky2:    rgba(150,195,230,.36);
+    --pcv-wash-leaf:    rgba(120,180,110,.45);
+    --pcv-wash-honey:   rgba(245,195, 95,.52);
+    --pcv-wash-rose:    rgba(220,150,150,.45);
+    --pcv-wash-sage:    rgba(165,195,150,.46);
+    --pcv-accent:       #2c5b9e;   /* graphite-blue value text */
+    --pcv-accent-rain:  #1f5fa0;
+    --pcv-shadow:       0 5px 14px rgba(80,60,30,.18), 0 1px 0 rgba(255,255,255,.55) inset;
+    color:#1d2533;
+    /* Slightly informal handwriting-leaning serif */
+    font-family:"Bradley Hand","Lucida Handwriting","Marker Felt","Iowan Old Style",Georgia,serif;
+  }
+  /* Dark pencil — deep midnight paper, HIGH CONTRAST cream text
+     (fixes v1.5.6 watercolor dark-text-readability debt) */
+  body[data-ui-skin="pencil"][data-daypart="night"]{
+    --pcv-paper-base-a: #2a3358;
+    --pcv-paper-base-b: #1c2342;
+    --pcv-paper-edge:   rgba(120,140,200,.40);
+    --pcv-text:         #fff6dd;   /* cream — high contrast on midnight */
+    --pcv-text-soft:    #e8d9ad;
+    --pcv-text-muted:   #c2b48a;
+    --pcv-border:       rgba(180,170,140,.55);
+    --pcv-wash-sky:     rgba(120,160,220,.30);
+    --pcv-wash-sky2:    rgba(140,175,225,.26);
+    --pcv-wash-leaf:    rgba(120,180,110,.32);
+    --pcv-wash-honey:   rgba(245,195, 95,.36);
+    --pcv-wash-rose:    rgba(220,150,150,.30);
+    --pcv-wash-sage:    rgba(165,195,150,.32);
+    --pcv-accent:       #cfe2ff;
+    --pcv-accent-rain:  #a8c8ff;
+    --pcv-shadow:       0 6px 18px rgba(0,0,0,.55), 0 1px 0 rgba(255,255,255,.10) inset;
+  }
+
+  /* Hero title */
+  body[data-ui-skin="pencil"] h1{
+    color: var(--pcv-text) !important;
+    font-weight: 600;
+    letter-spacing: .015em;
+    text-shadow: 0 1px 0 rgba(255,255,255,.45);
+  }
+  body[data-ui-skin="pencil"][data-daypart="night"] h1{
+    text-shadow: 0 1px 0 rgba(0,0,0,.6);
+  }
+  body[data-ui-skin="pencil"] .pill{
+    background-color: var(--pcv-paper-base-a) !important;
+    color: var(--pcv-text) !important;
+    border: 1px solid var(--pcv-border) !important;
+    box-shadow: var(--pcv-shadow) !important;
+    backdrop-filter: none !important;
+  }
+
+  /* ===== UNIVERSAL PAPER SURFACE =====
+     Multi-layer cream paper: SVG fractal-noise grain (multiply blend)
+     + radial paper-edge vignette + linear base-color gradient. */
+  body[data-ui-skin="pencil"] .tile,
+  body[data-ui-skin="pencil"] .row,
+  body[data-ui-skin="pencil"] .hp10-card,
+  body[data-ui-skin="pencil"] .freeze,
+  body[data-ui-skin="pencil"] .wind-alert,
+  body[data-ui-skin="pencil"] .now-card,
+  body[data-ui-skin="pencil"] .forecast,
+  body[data-ui-skin="pencil"] .forecast .fc,
+  body[data-ui-skin="pencil"] .zones,
+  body[data-ui-skin="pencil"] .h24,
+  body[data-ui-skin="pencil"] .modal,
+  body[data-ui-skin="pencil"] .sheet,
+  body[data-ui-skin="pencil"] .stats,
+  body[data-ui-skin="pencil"] .chart-wrap{
+    background-color: var(--pcv-paper-base-b) !important;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23574028' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g><g opacity='.32' stroke-width='.38'><line x1='10' y1='8' x2='42' y2='-8'/><line x1='25' y1='25' x2='62' y2='5'/><line x1='40' y1='42' x2='80' y2='22'/><line x1='55' y1='58' x2='98' y2='38'/><line x1='70' y1='72' x2='115' y2='55'/><line x1='85' y1='90' x2='132' y2='72'/><line x1='100' y1='108' x2='148' y2='88'/><line x1='118' y1='128' x2='165' y2='110'/><line x1='135' y1='148' x2='175' y2='130'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .33  0 0 0 0 .22  0 0 0 .14 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      radial-gradient(ellipse 120% 50% at 50% 0%,  var(--pcv-paper-edge), transparent 60%),
+      radial-gradient(ellipse 120% 50% at 50% 100%,var(--pcv-paper-edge), transparent 60%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+    background-blend-mode: multiply, normal, normal, normal !important;
+    background-size: 160px 160px, cover, cover, cover !important;
+    background-repeat: repeat, no-repeat, no-repeat, no-repeat !important;
+    /* Wobbly hand-drawn frame — feDisplacementMap on stroked rect.
+       Override clean 1.5px solid with border-image. */
+    border-radius: 14px 16px 13px 15px !important;
+    border: 3px solid transparent !important;
+    border-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'><filter id='wob'><feTurbulence type='fractalNoise' baseFrequency='.07' numOctaves='3' seed='7'/><feDisplacementMap in='SourceGraphic' scale='6'/></filter><g filter='url(%23wob)'><rect x='7' y='7' width='106' height='106' rx='11' ry='11' fill='none' stroke='%23574028' stroke-width='2.4' stroke-linejoin='round' stroke-linecap='round'/><rect x='5' y='5' width='110' height='110' rx='13' ry='13' fill='none' stroke='%236b5236' stroke-width='.9' opacity='.55' stroke-dasharray='4 2.5'/></g></svg>") 32 / 16px / 0 round !important;
+    box-shadow: var(--pcv-shadow) !important;
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+    color: var(--pcv-text) !important;
+    position: relative;
+  }
+  /* Forecast container — transparent (3-col grid); per-fc gets paper */
+  body[data-ui-skin="pencil"] .forecast{
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  body[data-ui-skin="pencil"] .forecast .fc{
+    padding: 12px 8px !important;
+    text-align: center;
+  }
+
+  /* ===== Per-tile color washes — different scribbled-pencil mood per data-type =====
+     Same 3-layer recipe (turbulence grain + wash gradient + base) like watercolor,
+     just tuned for pencil pigments (more saturated, less translucent). */
+  body[data-ui-skin="pencil"] .grid2 > .tile:nth-child(1){
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23574028' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g><g opacity='.32' stroke-width='.38'><line x1='10' y1='8' x2='42' y2='-8'/><line x1='25' y1='25' x2='62' y2='5'/><line x1='40' y1='42' x2='80' y2='22'/><line x1='55' y1='58' x2='98' y2='38'/><line x1='70' y1='72' x2='115' y2='55'/><line x1='85' y1='90' x2='132' y2='72'/><line x1='100' y1='108' x2='148' y2='88'/><line x1='118' y1='128' x2='165' y2='110'/><line x1='135' y1='148' x2='175' y2='130'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .33  0 0 0 0 .22  0 0 0 .14 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-wash-leaf) 0%, rgba(180,200,150,.20) 55%, transparent 85%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+  }
+  body[data-ui-skin="pencil"] .tile.tile-yellow{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23574028' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g><g opacity='.32' stroke-width='.38'><line x1='10' y1='8' x2='42' y2='-8'/><line x1='25' y1='25' x2='62' y2='5'/><line x1='40' y1='42' x2='80' y2='22'/><line x1='55' y1='58' x2='98' y2='38'/><line x1='70' y1='72' x2='115' y2='55'/><line x1='85' y1='90' x2='132' y2='72'/><line x1='100' y1='108' x2='148' y2='88'/><line x1='118' y1='128' x2='165' y2='110'/><line x1='135' y1='148' x2='175' y2='130'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .33  0 0 0 0 .22  0 0 0 .14 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-wash-honey) 0%, rgba(245,210,150,.22) 55%, transparent 85%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+  }
+  body[data-ui-skin="pencil"] #wind-tile{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23574028' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g><g opacity='.32' stroke-width='.38'><line x1='10' y1='8' x2='42' y2='-8'/><line x1='25' y1='25' x2='62' y2='5'/><line x1='40' y1='42' x2='80' y2='22'/><line x1='55' y1='58' x2='98' y2='38'/><line x1='70' y1='72' x2='115' y2='55'/><line x1='85' y1='90' x2='132' y2='72'/><line x1='100' y1='108' x2='148' y2='88'/><line x1='118' y1='128' x2='165' y2='110'/><line x1='135' y1='148' x2='175' y2='130'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .33  0 0 0 0 .22  0 0 0 .14 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-wash-sky2) 0%, rgba(180,200,220,.20) 55%, transparent 85%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+  }
+  body[data-ui-skin="pencil"] #rain-tile{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23574028' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g><g opacity='.32' stroke-width='.38'><line x1='10' y1='8' x2='42' y2='-8'/><line x1='25' y1='25' x2='62' y2='5'/><line x1='40' y1='42' x2='80' y2='22'/><line x1='55' y1='58' x2='98' y2='38'/><line x1='70' y1='72' x2='115' y2='55'/><line x1='85' y1='90' x2='132' y2='72'/><line x1='100' y1='108' x2='148' y2='88'/><line x1='118' y1='128' x2='165' y2='110'/><line x1='135' y1='148' x2='175' y2='130'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .33  0 0 0 0 .22  0 0 0 .14 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-wash-sky) 0%, rgba(170,195,220,.20) 55%, transparent 85%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+  }
+  body[data-ui-skin="pencil"] .row.grid3{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23574028' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g><g opacity='.32' stroke-width='.38'><line x1='10' y1='8' x2='42' y2='-8'/><line x1='25' y1='25' x2='62' y2='5'/><line x1='40' y1='42' x2='80' y2='22'/><line x1='55' y1='58' x2='98' y2='38'/><line x1='70' y1='72' x2='115' y2='55'/><line x1='85' y1='90' x2='132' y2='72'/><line x1='100' y1='108' x2='148' y2='88'/><line x1='118' y1='128' x2='165' y2='110'/><line x1='135' y1='148' x2='175' y2='130'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .33  0 0 0 0 .22  0 0 0 .14 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-wash-rose) 0%, rgba(220,180,170,.16) 55%, transparent 85%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+  }
+  body[data-ui-skin="pencil"] .hp10-card{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23574028' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g><g opacity='.32' stroke-width='.38'><line x1='10' y1='8' x2='42' y2='-8'/><line x1='25' y1='25' x2='62' y2='5'/><line x1='40' y1='42' x2='80' y2='22'/><line x1='55' y1='58' x2='98' y2='38'/><line x1='70' y1='72' x2='115' y2='55'/><line x1='85' y1='90' x2='132' y2='72'/><line x1='100' y1='108' x2='148' y2='88'/><line x1='118' y1='128' x2='165' y2='110'/><line x1='135' y1='148' x2='175' y2='130'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .33  0 0 0 0 .22  0 0 0 .14 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-wash-sage) 0%, rgba(180,200,180,.20) 55%, transparent 85%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+  }
+  body[data-ui-skin="pencil"] .now-card.now-real{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23574028' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g><g opacity='.32' stroke-width='.38'><line x1='10' y1='8' x2='42' y2='-8'/><line x1='25' y1='25' x2='62' y2='5'/><line x1='40' y1='42' x2='80' y2='22'/><line x1='55' y1='58' x2='98' y2='38'/><line x1='70' y1='72' x2='115' y2='55'/><line x1='85' y1='90' x2='132' y2='72'/><line x1='100' y1='108' x2='148' y2='88'/><line x1='118' y1='128' x2='165' y2='110'/><line x1='135' y1='148' x2='175' y2='130'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .33  0 0 0 0 .22  0 0 0 .14 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-wash-sky) 0%, rgba(180,200,220,.18) 55%, transparent 85%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+  }
+  body[data-ui-skin="pencil"] .now-card.now-fc{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23574028' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g><g opacity='.32' stroke-width='.38'><line x1='10' y1='8' x2='42' y2='-8'/><line x1='25' y1='25' x2='62' y2='5'/><line x1='40' y1='42' x2='80' y2='22'/><line x1='55' y1='58' x2='98' y2='38'/><line x1='70' y1='72' x2='115' y2='55'/><line x1='85' y1='90' x2='132' y2='72'/><line x1='100' y1='108' x2='148' y2='88'/><line x1='118' y1='128' x2='165' y2='110'/><line x1='135' y1='148' x2='175' y2='130'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .33  0 0 0 0 .22  0 0 0 .14 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-wash-honey) 0%, rgba(245,210,150,.18) 55%, transparent 85%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+  }
+
+  /* Typography — strong contrast for legibility on both papers */
+  body[data-ui-skin="pencil"] .tile *,
+  body[data-ui-skin="pencil"] .row *,
+  body[data-ui-skin="pencil"] .hp10-card *,
+  body[data-ui-skin="pencil"] .now-card *,
+  body[data-ui-skin="pencil"] .forecast *,
+  body[data-ui-skin="pencil"] .zones *,
+  body[data-ui-skin="pencil"] .h24 *,
+  body[data-ui-skin="pencil"] .modal *,
+  body[data-ui-skin="pencil"] .sheet *,
+  body[data-ui-skin="pencil"] .stats *{ color: inherit; }
+  body[data-ui-skin="pencil"] .tile .label,
+  body[data-ui-skin="pencil"] .row .label{
+    color: var(--pcv-text-soft) !important;
+    font-weight: 700; letter-spacing: .05em;
+  }
+  body[data-ui-skin="pencil"] .tile .value{
+    color: var(--pcv-accent) !important;
+    font-weight: 700;
+  }
+  body[data-ui-skin="pencil"] .tile .sub,
+  body[data-ui-skin="pencil"] .tap-hint{ color: var(--pcv-text-muted) !important; }
+  body[data-ui-skin="pencil"] .stars{ color: #c89020; }
+
+  /* now-card meta */
+  body[data-ui-skin="pencil"] .now-card .lbl,
+  body[data-ui-skin="pencil"] .now-card .meta,
+  body[data-ui-skin="pencil"] .now-card .meta .rain-off{ color: var(--pcv-text-soft) !important; }
+  body[data-ui-skin="pencil"] .now-card .meta .rain-on{ color: var(--pcv-accent-rain) !important; font-weight: 600; }
+  body[data-ui-skin="pencil"] .now-card .big{ color: var(--pcv-text) !important; font-weight: 700 !important; }
+  body[data-ui-skin="pencil"] .now-card .meta .rain-detected{ color: #7c3a9c !important; }
+  body[data-ui-skin="pencil"][data-daypart="night"] .now-card .meta .rain-detected{ color: #cbb7f0 !important; }
+  body[data-ui-skin="pencil"] .forecast .fc .day{ color: var(--pcv-text-soft) !important; }
+  body[data-ui-skin="pencil"] .forecast .fc .hilo{ color: var(--pcv-text) !important; font-weight: 600; }
+  body[data-ui-skin="pencil"] .forecast .fc .rain{ color: var(--pcv-accent-rain) !important; }
+
+  /* h24 + spark legend */
+  body[data-ui-skin="pencil"] .h24 .line .lab{ color: var(--pcv-text-soft) !important; }
+  body[data-ui-skin="pencil"] .h24 .line .val{ color: var(--pcv-text) !important; font-weight: 600; }
+  body[data-ui-skin="pencil"] .spark-legend{ color: var(--pcv-text-soft) !important; }
+
+
+  /* ===== v1.6.2 DARK PENCIL OVERRIDE =====
+     Re-paint UI surfaces with cream graphite on midnight paper.
+     Also overrides wobbly border to cream stroke. */
+  body[data-ui-skin="pencil"][data-daypart="night"] .tile,
+  body[data-ui-skin="pencil"][data-daypart="night"] .row,
+  body[data-ui-skin="pencil"][data-daypart="night"] .hp10-card,
+  body[data-ui-skin="pencil"][data-daypart="night"] .freeze,
+  body[data-ui-skin="pencil"][data-daypart="night"] .wind-alert,
+  body[data-ui-skin="pencil"][data-daypart="night"] .now-card,
+  body[data-ui-skin="pencil"][data-daypart="night"] .forecast .fc,
+  body[data-ui-skin="pencil"][data-daypart="night"] .zones,
+  body[data-ui-skin="pencil"][data-daypart="night"] .h24,
+  body[data-ui-skin="pencil"][data-daypart="night"] .modal,
+  body[data-ui-skin="pencil"][data-daypart="night"] .sheet,
+  body[data-ui-skin="pencil"][data-daypart="night"] .stats,
+  body[data-ui-skin="pencil"][data-daypart="night"] .chart-wrap{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23e8d9ad' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45' stroke='%23c2b48a'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .8  0 0 0 0 .7  0 0 0 0 .55  0 0 0 .10 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      radial-gradient(ellipse 120% 50% at 50% 0%, var(--pcv-paper-edge), transparent 60%),
+      radial-gradient(ellipse 120% 50% at 50% 100%, var(--pcv-paper-edge), transparent 60%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+    border-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'><filter id='wob'><feTurbulence type='fractalNoise' baseFrequency='.07' numOctaves='3' seed='7'/><feDisplacementMap in='SourceGraphic' scale='6'/></filter><g filter='url(%23wob)'><rect x='7' y='7' width='106' height='106' rx='11' ry='11' fill='none' stroke='%23e8d9ad' stroke-width='2.4' stroke-linejoin='round' stroke-linecap='round'/><rect x='5' y='5' width='110' height='110' rx='13' ry='13' fill='none' stroke='%23c2b48a' stroke-width='.9' opacity='.55' stroke-dasharray='4 2.5'/></g></svg>") 32 / 16px / 0 round !important;
+  }
+  /* Per-tile dark color washes — keep dark hatch + add wash on top */
+  body[data-ui-skin="pencil"][data-daypart="night"] .grid2 > .tile:nth-child(1){
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23e8d9ad' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45' stroke='%23c2b48a'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .8  0 0 0 0 .7  0 0 0 0 .55  0 0 0 .10 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-wash-leaf) 0%, rgba(180,200,150,.14) 55%, transparent 85%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+  }
+  body[data-ui-skin="pencil"][data-daypart="night"] .tile.tile-yellow{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23e8d9ad' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45' stroke='%23c2b48a'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .8  0 0 0 0 .7  0 0 0 0 .55  0 0 0 .10 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-wash-honey) 0%, rgba(245,210,150,.14) 55%, transparent 85%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+  }
+  body[data-ui-skin="pencil"][data-daypart="night"] #wind-tile{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23e8d9ad' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45' stroke='%23c2b48a'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .8  0 0 0 0 .7  0 0 0 0 .55  0 0 0 .10 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-wash-sky2) 0%, rgba(180,200,220,.14) 55%, transparent 85%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+  }
+  body[data-ui-skin="pencil"][data-daypart="night"] #rain-tile{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23e8d9ad' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45' stroke='%23c2b48a'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .8  0 0 0 0 .7  0 0 0 0 .55  0 0 0 .10 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-wash-sky) 0%, rgba(170,195,220,.14) 55%, transparent 85%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+  }
+  body[data-ui-skin="pencil"][data-daypart="night"] .row.grid3{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23e8d9ad' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45' stroke='%23c2b48a'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .8  0 0 0 0 .7  0 0 0 0 .55  0 0 0 .10 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-wash-rose) 0%, rgba(220,180,170,.12) 55%, transparent 85%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+  }
+  body[data-ui-skin="pencil"][data-daypart="night"] .hp10-card{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23e8d9ad' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45' stroke='%23c2b48a'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .8  0 0 0 0 .7  0 0 0 0 .55  0 0 0 .10 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-wash-sage) 0%, rgba(180,200,180,.14) 55%, transparent 85%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+  }
+  body[data-ui-skin="pencil"][data-daypart="night"] .now-card.now-real{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23e8d9ad' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45' stroke='%23c2b48a'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .8  0 0 0 0 .7  0 0 0 0 .55  0 0 0 .10 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-wash-sky) 0%, rgba(180,200,220,.12) 55%, transparent 85%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+  }
+  body[data-ui-skin="pencil"][data-daypart="night"] .now-card.now-fc{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23e8d9ad' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45' stroke='%23c2b48a'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .8  0 0 0 0 .7  0 0 0 0 .55  0 0 0 .10 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-wash-honey) 0%, rgba(245,210,150,.12) 55%, transparent 85%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+  }
+
+  /* v1.6.2 — Soften SOIL/WIND/RAIN tile labels (Pavel's sample uses graphite-soft, not bold dark) */
+  body[data-ui-skin="pencil"] .tile .label{
+    color: var(--pcv-text-muted) !important;
+    font-weight: 600 !important;
+    letter-spacing: .055em !important;
+  }
+
+  /* SVG chart shadow — pencil drop-shadow keeps strokes from disappearing on paper */
+  body[data-ui-skin="pencil"] .spark,
+  body[data-ui-skin="pencil"] #big-chart{
+    filter: drop-shadow(0 1.5px 2.5px rgba(50,40,15,.30)) drop-shadow(0 0 .5px rgba(50,40,15,.4));
+  }
+  body[data-ui-skin="pencil"][data-daypart="night"] .spark,
+  body[data-ui-skin="pencil"][data-daypart="night"] #big-chart{
+    filter: drop-shadow(0 1.5px 3px rgba(0,0,0,.5)) drop-shadow(0 0 .8px rgba(0,0,0,.6));
+  }
+
+  /* Chart modal pills (24h/48h/7d) */
+  body[data-ui-skin="pencil"] .modal .pills button{
+    background: var(--pcv-paper-base-a) !important;
+    color: var(--pcv-text-soft) !important;
+    border: 1px solid var(--pcv-border) !important;
+  }
+  body[data-ui-skin="pencil"] .modal .pills button.on{
+    background-image:
+      linear-gradient(180deg, var(--pcv-wash-sky), transparent 90%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+    color: var(--pcv-text) !important;
+    border-color: rgba(95,80,55,.7) !important;
+    font-weight: 700 !important;
+  }
+  body[data-ui-skin="pencil"] .modal .stats .stat{
+    background: transparent !important; color: var(--pcv-text) !important;
+  }
+  body[data-ui-skin="pencil"] .modal .stats .lab{ color: var(--pcv-text-soft) !important; }
+  body[data-ui-skin="pencil"] .modal .stats .val{ color: var(--pcv-text) !important; font-weight: 700 !important; }
+  body[data-ui-skin="pencil"] .modal .top .ttl{ color: var(--pcv-text) !important; }
+  body[data-ui-skin="pencil"] .modal .top .x{
+    background: var(--pcv-paper-base-a) !important;
+    border: 1px solid var(--pcv-border) !important;
+    color: var(--pcv-text) !important;
+  }
+  body[data-ui-skin="pencil"] .modal .sub{ color: var(--pcv-text-soft) !important; }
+  body[data-ui-skin="pencil"] .modal .grab{ background: var(--pcv-border) !important; }
+  /* Chart modal backdrop dim — warm sepia, not cold black */
+  body[data-ui-skin="pencil"] .modal-bg{ background: rgba(45,30,10,.55) !important; }
+
+  /* Buttons — start (Soil OK blue) + stop (red) */
+  body[data-ui-skin="pencil"] .btn.start{
+    background:
+      linear-gradient(180deg, rgba(155,200,235,.95), rgba(115,170,215,.95)) !important;
+    color: #0e1d35 !important;
+    border: 1.5px solid rgba(70,110,165,.55) !important;
+    border-radius: 12px 14px 12px 14px !important;
+    box-shadow: 0 5px 14px rgba(60,90,140,.22), inset 0 1px 0 rgba(255,255,255,.5) !important;
+    font-weight: 700;
+  }
+  body[data-ui-skin="pencil"] .btn.stop{
+    background:
+      linear-gradient(180deg, rgba(235,170,170,.95), rgba(215,135,135,.95)) !important;
+    color: #3a0e0e !important;
+    border: 1.5px solid rgba(165,75,75,.55) !important;
+    border-radius: 12px 14px 12px 14px !important;
+    box-shadow: 0 5px 14px rgba(150,60,60,.22), inset 0 1px 0 rgba(255,255,255,.45) !important;
+    font-weight: 700;
+  }
+  body[data-ui-skin="pencil"][data-daypart="night"] .btn.start,
+  body[data-ui-skin="pencil"][data-daypart="night"] .btn.stop{
+    /* Dark variant keeps button gradients lit (they're action affordances) but
+       beefs up border so they stand out on midnight paper */
+    border-width: 1.5px !important;
+    box-shadow: 0 5px 16px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.4) !important;
+  }
+
+  /* Skin-gear */
+  body[data-ui-skin="pencil"] .skin-gear{
+    background: linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+    border: 1.5px solid var(--pcv-border) !important;
+    color: var(--pcv-text) !important;
+    box-shadow: var(--pcv-shadow) !important;
+  }
+
+  /* Pin/status pill (Soil OK chip) */
+  body[data-ui-skin="pencil"] .pill{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23574028' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g><g opacity='.32' stroke-width='.38'><line x1='10' y1='8' x2='42' y2='-8'/><line x1='25' y1='25' x2='62' y2='5'/><line x1='40' y1='42' x2='80' y2='22'/><line x1='55' y1='58' x2='98' y2='38'/><line x1='70' y1='72' x2='115' y2='55'/><line x1='85' y1='90' x2='132' y2='72'/><line x1='100' y1='108' x2='148' y2='88'/><line x1='118' y1='128' x2='165' y2='110'/><line x1='135' y1='148' x2='175' y2='130'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .33  0 0 0 0 .22  0 0 0 .14 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-wash-leaf), transparent 80%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+    background-blend-mode: multiply, normal, normal !important;
+    color: var(--pcv-text) !important;
+    border: 1.5px solid var(--pcv-border) !important;
+    box-shadow: var(--pcv-shadow) !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Freeze/wind alert banners */
+  body[data-ui-skin="pencil"] .freeze{
+    background-image:
+      linear-gradient(180deg, var(--pcv-wash-sky), transparent 85%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+    color: var(--pcv-text) !important;
+    border: 1.5px solid rgba(80,120,170,.6) !important;
+  }
+  body[data-ui-skin="pencil"] .wind-alert{
+    background-image:
+      linear-gradient(180deg, var(--pcv-wash-honey), transparent 85%),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+    color: var(--pcv-text) !important;
+    border: 1.5px solid rgba(165,120,40,.55) !important;
+  }
+
+  /* ===== FULL-SCREEN MODALS (sun, wx, wx-hist, wr, cam, hp10) ===== */
+  body[data-ui-skin="pencil"] #sun-modal,
+  body[data-ui-skin="pencil"] #wx-modal,
+  body[data-ui-skin="pencil"] #wx-hist-modal,
+  body[data-ui-skin="pencil"] #wr-modal,
+  body[data-ui-skin="pencil"] #cam-modal,
+  body[data-ui-skin="pencil"] #hp10-modal{
+    background-color: var(--pcv-paper-base-b) !important;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23574028' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g><g opacity='.32' stroke-width='.38'><line x1='10' y1='8' x2='42' y2='-8'/><line x1='25' y1='25' x2='62' y2='5'/><line x1='40' y1='42' x2='80' y2='22'/><line x1='55' y1='58' x2='98' y2='38'/><line x1='70' y1='72' x2='115' y2='55'/><line x1='85' y1='90' x2='132' y2='72'/><line x1='100' y1='108' x2='148' y2='88'/><line x1='118' y1='128' x2='165' y2='110'/><line x1='135' y1='148' x2='175' y2='130'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .33  0 0 0 0 .22  0 0 0 .14 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+    background-blend-mode: multiply, normal !important;
+    background-repeat: repeat, no-repeat !important;
+    color: var(--pcv-text) !important;
+  }
+  body[data-ui-skin="pencil"] #sun-modal .top,
+  body[data-ui-skin="pencil"] #wx-modal .top,
+  body[data-ui-skin="pencil"] #wx-hist-modal .top,
+  body[data-ui-skin="pencil"] #wr-modal .top,
+  body[data-ui-skin="pencil"] #cam-modal .top,
+  body[data-ui-skin="pencil"] #hp10-modal .top{
+    background: var(--pcv-paper-base-a) !important;
+    border-bottom: 1.5px solid var(--pcv-border) !important;
+    color: var(--pcv-text) !important;
+    backdrop-filter: none !important;
+  }
+  body[data-ui-skin="pencil"] #sun-modal .top h2,
+  body[data-ui-skin="pencil"] #wx-modal .top h2,
+  body[data-ui-skin="pencil"] #wx-hist-modal .top h2,
+  body[data-ui-skin="pencil"] #wr-modal .top h2,
+  body[data-ui-skin="pencil"] #cam-modal .top h2,
+  body[data-ui-skin="pencil"] #hp10-modal .top h2{ color: var(--pcv-text) !important; }
+  body[data-ui-skin="pencil"] #sun-modal .close,
+  body[data-ui-skin="pencil"] #wx-modal .close,
+  body[data-ui-skin="pencil"] #wx-hist-modal .close,
+  body[data-ui-skin="pencil"] #wr-modal .close,
+  body[data-ui-skin="pencil"] #cam-modal .close,
+  body[data-ui-skin="pencil"] #hp10-modal .close{
+    background: var(--pcv-paper-base-a) !important;
+    border: 1.5px solid var(--pcv-border) !important;
+    color: var(--pcv-text) !important;
+  }
+  body[data-ui-skin="pencil"] #sun-modal .body,
+  body[data-ui-skin="pencil"] #wx-modal .body,
+  body[data-ui-skin="pencil"] #wx-hist-modal .body,
+  body[data-ui-skin="pencil"] #wr-modal .body,
+  body[data-ui-skin="pencil"] #cam-modal .body,
+  body[data-ui-skin="pencil"] #hp10-modal .body{ color: var(--pcv-text) !important; }
+  body[data-ui-skin="pencil"] #sun-modal .body *,
+  body[data-ui-skin="pencil"] #wx-modal .body *,
+  body[data-ui-skin="pencil"] #wx-hist-modal .body *,
+  body[data-ui-skin="pencil"] #wr-modal .body *,
+  body[data-ui-skin="pencil"] #cam-modal .body *,
+  body[data-ui-skin="pencil"] #hp10-modal .body *{ color: inherit; }
+  body[data-ui-skin="pencil"] #sun-modal .body > div,
+  body[data-ui-skin="pencil"] #wx-modal .body > div,
+  body[data-ui-skin="pencil"] #wr-modal .body > div{
+    background-color: var(--pcv-paper-base-a) !important;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23574028' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g><g opacity='.32' stroke-width='.38'><line x1='10' y1='8' x2='42' y2='-8'/><line x1='25' y1='25' x2='62' y2='5'/><line x1='40' y1='42' x2='80' y2='22'/><line x1='55' y1='58' x2='98' y2='38'/><line x1='70' y1='72' x2='115' y2='55'/><line x1='85' y1='90' x2='132' y2='72'/><line x1='100' y1='108' x2='148' y2='88'/><line x1='118' y1='128' x2='165' y2='110'/><line x1='135' y1='148' x2='175' y2='130'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .33  0 0 0 0 .22  0 0 0 .14 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+    background-blend-mode: multiply, normal !important;
+    border: 1.5px solid var(--pcv-border) !important;
+    border-radius: 12px 14px 12px 14px !important;
+    color: var(--pcv-text) !important;
+    box-shadow: var(--pcv-shadow) !important;
+  }
+  /* Language toggle inside sun-modal */
+  body[data-ui-skin="pencil"] #sun-modal .lang-toggle{
+    background: var(--pcv-paper-base-a) !important;
+    border: 1.5px solid var(--pcv-border) !important;
+  }
+  body[data-ui-skin="pencil"] #sun-modal .lang-btn{ color: var(--pcv-text-soft) !important; }
+  body[data-ui-skin="pencil"] #sun-modal .lang-btn.active{
+    background: var(--pcv-wash-honey) !important;
+    color: var(--pcv-text) !important;
+  }
+
+  /* Skin-picker modal */
+  body[data-ui-skin="pencil"] .skin-modal-bg{ background: rgba(45,30,10,.55) !important; }
+  body[data-ui-skin="pencil"] .skin-modal{
+    background-color: var(--pcv-paper-base-b) !important;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><defs><filter id='rgh'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='5'/><feDisplacementMap in='SourceGraphic' scale='1.8'/></filter></defs><g filter='url(%23rgh)' stroke='%23574028' stroke-linecap='round'><g opacity='.55' stroke-width='.55'><line x1='-10' y1='15' x2='40' y2='-20'/><line x1='-5' y1='30' x2='50' y2='-8'/><line x1='8' y1='45' x2='62' y2='5'/><line x1='20' y1='60' x2='78' y2='18'/><line x1='32' y1='78' x2='90' y2='35'/><line x1='44' y1='95' x2='105' y2='50'/><line x1='58' y1='112' x2='118' y2='65'/><line x1='70' y1='128' x2='132' y2='82'/><line x1='84' y1='145' x2='145' y2='98'/><line x1='98' y1='160' x2='160' y2='115'/><line x1='115' y1='175' x2='170' y2='132'/><line x1='5' y1='80' x2='45' y2='52'/><line x1='15' y1='100' x2='58' y2='70'/><line x1='28' y1='125' x2='75' y2='92'/><line x1='40' y1='150' x2='90' y2='115'/><line x1='52' y1='170' x2='105' y2='135'/></g><g opacity='.42' stroke-width='.45'><line x1='170' y1='5' x2='115' y2='-20'/><line x1='170' y1='22' x2='105' y2='-10'/><line x1='170' y1='42' x2='95' y2='2'/><line x1='170' y1='62' x2='82' y2='14'/><line x1='170' y1='80' x2='70' y2='28'/><line x1='170' y1='102' x2='60' y2='42'/><line x1='170' y1='122' x2='48' y2='56'/><line x1='170' y1='145' x2='38' y2='72'/><line x1='168' y1='168' x2='28' y2='90'/><line x1='150' y1='170' x2='18' y2='105'/><line x1='130' y1='170' x2='10' y2='118'/></g><g opacity='.32' stroke-width='.38'><line x1='10' y1='8' x2='42' y2='-8'/><line x1='25' y1='25' x2='62' y2='5'/><line x1='40' y1='42' x2='80' y2='22'/><line x1='55' y1='58' x2='98' y2='38'/><line x1='70' y1='72' x2='115' y2='55'/><line x1='85' y1='90' x2='132' y2='72'/><line x1='100' y1='108' x2='148' y2='88'/><line x1='118' y1='128' x2='165' y2='110'/><line x1='135' y1='148' x2='175' y2='130'/></g></g><filter id='paper'><feTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='2' seed='12'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .33  0 0 0 0 .22  0 0 0 .14 0'/></filter><rect width='100%25' height='100%25' filter='url(%23paper)'/></svg>"),
+      linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+    background-blend-mode: multiply, normal !important;
+    color: var(--pcv-text) !important;
+    border: 1.5px solid var(--pcv-border) !important;
+    border-radius: 12px 14px 12px 14px !important;
+    box-shadow: var(--pcv-shadow) !important;
+  }
+  body[data-ui-skin="pencil"] .skin-modal h2,
+  body[data-ui-skin="pencil"] .skin-modal .sub,
+  body[data-ui-skin="pencil"] .skin-modal .group-label,
+  body[data-ui-skin="pencil"] .skin-modal *{ color: inherit !important; }
+  body[data-ui-skin="pencil"] .skin-opt{
+    background: var(--pcv-paper-base-a) !important;
+    border: 1.5px solid var(--pcv-border) !important;
+  }
+  body[data-ui-skin="pencil"] .skin-opt.active{
+    border-color: var(--pcv-accent) !important;
+    background:
+      linear-gradient(180deg, var(--pcv-wash-sky), transparent 70%),
+      var(--pcv-paper-base-a) !important;
+  }
+  body[data-ui-skin="pencil"] .skin-modal .close-btn{
+    background: linear-gradient(180deg, var(--pcv-paper-base-a), var(--pcv-paper-base-b)) !important;
+    color: var(--pcv-text) !important;
+    border: 1.5px solid var(--pcv-border) !important;
+  }
+
+  /* Footer */
+  body[data-ui-skin="pencil"] .footer{ color: var(--pcv-text-muted) !important; }
+
+  /* End of pencil skin block ============================================ */
+
 </style>
 </head>
 <body>
@@ -1210,16 +2021,16 @@
   <div class="grid2">
     <!-- SOIL: 2-zone card (tap = chart for CH1/Tomato) -->
     <div class="tile tappable" onclick="openChart('moisture')">
-      <div class="label">🌱 Soil</div>
+      <div class="label"><span class="pix pix-sprout">🌱</span> Soil</div>
       <div class="soil-zones">
         <div class="soil-zone-row">
-          <span class="z-name">🍅 Tomato</span>
+          <span class="z-name"><span class="pix pix-tomato">🍅</span> Tomato</span>
           <span class="z-moist"><span id="moist-tomato">--</span>%</span>
           <span class="z-temp"><span id="temp-tomato">--</span>°C</span>
           <span class="z-badge" id="badge-tomato"></span>
         </div>
         <div class="soil-zone-row">
-          <span class="z-name">🥒 Cucumber</span>
+          <span class="z-name"><span class="pix pix-cuc">🥒</span> Cucumber</span>
           <span class="z-moist"><span id="moist-cuc">--</span>%</span>
           <span class="z-temp"><span id="temp-cuc">--</span>°C</span>
           <span class="z-badge" id="badge-cuc"></span>
@@ -1229,7 +2040,7 @@
     </div>
     <!-- SUN tile -->
     <div class="tile tile-yellow tappable" id="solar-tile" onclick="openSunModal()">
-      <div class="label" id="sun-label">☀️ Sun</div>
+      <div class="label" id="sun-label"><span class="pix pix-sun">☀️</span> Sun</div>
       <div class="stars" id="sun-stars">★★★☆☆</div>
       <div class="sub" id="solar-sub">—</div>
       <div class="tap-hint" id="sun-tap-hint">Tap →</div>
@@ -1240,7 +2051,7 @@
   <div class="grid2" style="margin-top:12px">
     <!-- WIND tile -->
     <div class="tile tappable" id="wind-tile" onclick="openWindRainModal('wind')">
-      <div class="label">💨 Wind <span class="tap-hint">· tap</span></div>
+      <div class="label"><span class="pix pix-wind">💨</span> Wind <span class="tap-hint">· tap</span></div>
       <div class="value" id="wind-speed" style="font-size:28px">--</div>
       <div class="sub" id="wind-dir">—</div>
       <div class="sub" id="wind-gust" style="font-size:11px">Gust —</div>
@@ -1248,7 +2059,7 @@
     </div>
     <!-- RAIN tile -->
     <div class="tile tappable" id="rain-tile" onclick="openWindRainModal('rain')">
-      <div class="label">🌧️ Rain <span class="tap-hint">· tap</span></div>
+      <div class="label"><span class="pix pix-rain">🌧️</span> Rain <span class="tap-hint">· tap</span></div>
       <div class="value" id="rain-today" style="font-size:28px">--</div>
       <div class="sub" id="rain-today-lbl" style="font-size:11px">today mm</div>
       <div class="sub" id="rain-week" style="font-size:11px">Week —</div>
@@ -1263,8 +2074,8 @@
   </div>
 
   <div class="btns">
-    <button class="btn start" id="btn-start" onclick="confirmStart()">💧 Start drip 5 min</button>
-    <button class="btn stop disabled" id="btn-stop" onclick="doStop()">🛑 Stop watering</button>
+    <button class="btn start" id="btn-start" onclick="confirmStart()"><span class="pix pix-drop">💧</span> Start drip 5 min</button>
+    <button class="btn stop disabled" id="btn-stop" onclick="doStop()"><span class="pix pix-stop">🛑</span> Stop watering</button>
   </div>
 
   <!-- HP10 garden camera tile (NEW v1.3.0) - replaces removed Eufy cam-card -->
@@ -1427,7 +2238,7 @@
     <div class="line"><span class="lab">Rain</span><span class="val" id="h24-rain">—</span></div>
   </div>
 
-  <div class="footer small">v1.5.5 · Pull down to refresh · <span id="updated">--</span></div>
+  <div class="footer small">v1.6.2 · Pull down to refresh · <span id="updated">--</span></div>
 </div>
 
 <!-- ===== zoom modal ===== -->
@@ -1985,7 +2796,7 @@
       console.error("renderWx failed:", e);
       // Visible breadcrumb in footer so we can spot a backdrop fault without DevTools
       const f = document.querySelector(".footer");
-      if (f) f.textContent = "v1.5.5 \u00b7 bg err: " + (e.message || e);
+      if (f) f.textContent = "v1.6.2 \u00b7 bg err: " + (e.message || e);
     }
   }
   /* ============================================================
@@ -1993,8 +2804,8 @@
      ============================================================ */
   const SKIN_DEFAULTS = { bg:"realistic", ui:"realistic" };
   const SKIN_AVAILABLE = {
-    bg: ["realistic","watercolor"],   // pencil deferred
-    ui: ["realistic","watercolor"],
+    bg: ["realistic","watercolor","pencil"],
+    ui: ["realistic","watercolor","pencil"],
   };
   function _skinGet(){
     try{
@@ -2356,6 +3167,158 @@
     document.body.dataset.season = _seasonNow();
   }
 
+  /* ----------- Pencil renderer (v1.6.2) -----------
+     Same layer model as renderWxWatercolor:
+       sky base → sun + rotating rays → moon → stars sparkle
+       → wind streaks → cloud drift → rain → snow → lightning flash.
+     The DOM nodes (.wcv-sky/.wcv-sun/.wcv-moon/.wcv-stars/.wcv-rain/.wcv-snow/
+     .wcv-wind/.wcv-drift/.wcv-flash/.wcv-rays-ring) are SHARED across skins.
+     CSS rules under body[data-bg-skin="pencil"] swap the visual assets.
+     Trigger logic is IDENTICAL to watercolor — never gate one motion layer
+     off because another is active (locked v1.5.6 rule). */
+  function _pcvPickSky(cond, isNight, sunElev){
+    const base = "/garden/static/sky/pencil/";
+    const partly = (cond === "partlycloudy");
+    const stormy = ["lightning","lightning-rainy","pouring"].includes(cond);
+    const overcast = ["cloudy","rainy","snowy","snowy-rainy","hail","fog"].includes(cond);
+    if(isNight){
+      if(stormy)   return base + "sky-10.jpg";
+      if(overcast) return base + "sky-09.jpg";
+      if(partly)   return base + "sky-07.jpg";
+      const h = new Date().getHours();
+      if(h >= 20 && h <= 22) return base + "clearnight-02.jpg";
+      if(h >= 5  && h <= 6)  return base + "clearnight-02.jpg";
+      return base + "clearnight-01.jpg";
+    } else {
+      if(stormy)   return base + "sky-05.jpg";
+      if(overcast) return base + "sky-04.jpg";
+      if(partly)   return base + "sky-02.jpg";
+      const h = new Date().getHours();
+      if(h <= 6 || h >= 20) return base + "clearday-05.jpg";
+      if(h <= 8 || h >= 18) return base + "clearday-03.jpg";
+      return base + "clearday-01.jpg";
+    }
+  }
+  function renderWxPencil(cond, daypart, opts){
+    opts = opts || {};
+    const wx = document.getElementById("wx");
+    if(!wx) return;
+    _wcvEnsureStack(wx);
+
+    const isNight = daypart === "night";
+    const isRainy = (cond === "rainy" || cond === "pouring" || cond === "lightning-rainy" || cond === "snowy-rainy");
+    const isSnowy = (cond === "snowy" || cond === "snowy-rainy");
+    const isClearDay = (cond === "sunny" && !isNight);
+    const isClearNight = (cond === "clear-night" || (cond === "sunny" && isNight));
+    const sunElev = (opts.sun_elev != null) ? opts.sun_elev : null;
+
+    // Sky base — pencil asset set
+    _wcvSetSky(_pcvPickSky(cond, isNight, sunElev));
+
+    // Sun + rays (locked v1.5.6 rule: independent layer, no cross-gating)
+    const sunEl = document.getElementById("wcv-sun");
+    const ringEl = document.getElementById("wcv-rays-ring");
+    const sunVisible = !isNight && (cond === "sunny" || cond === "partlycloudy" || cond === "exceptional");
+    if(sunVisible){
+      const pos = _wcvSunPosition();
+      if(pos.visible){
+        document.body.style.setProperty("--sun-x", pos.x);
+        document.body.style.setProperty("--sun-y", pos.y);
+        sunEl.classList.add("show");
+        ringEl.classList.add("show");
+        ringEl.style.setProperty("--rays-alpha", (cond === "sunny") ? "1" : "0.65");
+      } else {
+        sunEl.classList.remove("show");
+        ringEl.classList.remove("show");
+      }
+    } else {
+      sunEl.classList.remove("show");
+      ringEl.classList.remove("show");
+    }
+
+    // Moon — pencil disc asset
+    const moonEl = document.getElementById("wcv-moon");
+    const haloEl = document.getElementById("wcv-moon-halo");
+    const showMoon = isNight && (isClearNight || cond === "partlycloudy" || cond === "clear-night");
+    if(showMoon){
+      const pos = _wcvMoonPosition();
+      document.body.style.setProperty("--moon-x", pos.x);
+      document.body.style.setProperty("--moon-y", pos.y);
+      moonEl.style.backgroundImage = `url("/garden/static/sky/pencil/moon-disc.png")`;
+      moonEl.classList.add("show");
+      haloEl.classList.add("show");
+    } else {
+      moonEl.classList.remove("show");
+      haloEl.classList.remove("show");
+    }
+
+    // Stars sparkle (clear night full, partly cloudy night dim)
+    const starsEl = document.getElementById("wcv-stars");
+    if(isClearNight){
+      starsEl.classList.add("show");
+      starsEl.style.setProperty("--stars-alpha", "0.9");
+    } else if(isNight && cond === "partlycloudy"){
+      starsEl.classList.add("show");
+      starsEl.style.setProperty("--stars-alpha", "0.55");
+    } else {
+      starsEl.classList.remove("show");
+    }
+
+    // Rain
+    let dropCount = 0;
+    if(cond === "pouring") dropCount = 70;
+    else if(cond === "rainy" || cond === "lightning-rainy") dropCount = 45;
+    else if(cond === "snowy-rainy") dropCount = 25;
+    const rainBoost = (opts.rain_rate_mm_h || 0) > 0 ? Math.min(40, Math.round(opts.rain_rate_mm_h * 8)) : 0;
+    _wcvSetParticles("rain", isRainy ? Math.max(dropCount, dropCount + rainBoost) : 0);
+
+    // Snow
+    _wcvSetParticles("snow", isSnowy ? (cond === "snowy-rainy" ? 40 : 70) : 0);
+
+    // Wind streaks
+    const windKmh = Math.max(0, Math.min(120, opts.wind_kmh || 0));
+    const isWindyCond = (cond === "windy" || cond === "windy-variant" || cond === "exceptional");
+    const showWind = isWindyCond || windKmh >= 18;
+    const windEl = document.getElementById("wcv-wind");
+    if(windEl){
+      if(showWind){
+        const baseCount = isWindyCond ? 22 : 0;
+        const speedCount = Math.round(Math.max(0, (windKmh - 12)) * 0.6);
+        const count = Math.max(8, Math.min(32, baseCount + speedCount));
+        const speed = Math.max(15, windKmh || 25);
+        const baseDur = Math.max(4, Math.min(14, 280 / speed));
+        let html = "";
+        for(let i=0; i<count; i++){
+          const top = Math.random() * 75;
+          const w = 18 + Math.random() * 28;
+          const dur = baseDur * (0.75 + Math.random() * 0.7);
+          const delay = -Math.random() * dur;
+          const op = 0.55 + Math.random() * 0.45;
+          html += `<div class="wcv-streak" style="top:${top.toFixed(1)}%;left:-30vw;width:${w.toFixed(0)}vw;opacity:${op.toFixed(2)};animation-duration:${dur.toFixed(1)}s;animation-delay:${delay.toFixed(1)}s"></div>`;
+        }
+        windEl.innerHTML = html;
+        windEl.classList.add("show");
+      } else {
+        windEl.classList.remove("show");
+        windEl.innerHTML = "";
+      }
+    }
+
+    // Cloud drift speed
+    const driftEl = document.getElementById("wcv-drift");
+    if(driftEl){
+      const puffs = driftEl.querySelectorAll(".wcv-puff");
+      const factor = showWind ? Math.max(0.25, Math.min(1.0, 30 / Math.max(20, windKmh || 30))) : 1.0;
+      const baseDurs = [90, 140, 180];
+      puffs.forEach((p, i) => {
+        const d = (baseDurs[i] || 120) * factor;
+        p.style.animationDuration = d.toFixed(0) + "s";
+      });
+    }
+
+    document.body.dataset.season = _seasonNow();
+  }
+
   /* ----------- Skin-aware backdrop dispatch ----------- */
   // We don't replace the original renderWx; we just gate it by skin.
   function applyBackdropSkinAware(d){
@@ -2377,9 +3340,9 @@
     const skin = _skinGet().bg;
     try {
       if(skin === "watercolor") {
-        // Clear legacy SVG layer (CSS hides it but we also wipe content)
-        // Actually we leave it; CSS display:none handles it.
         renderWxWatercolor(cond, daypart, opts);
+      } else if(skin === "pencil") {
+        renderWxPencil(cond, daypart, opts);
       } else {
         // realistic — call original
         renderWx(cond, daypart, opts);
@@ -2387,7 +3350,7 @@
     } catch(e){
       console.error("backdrop render failed:", e);
       const f = document.querySelector(".footer");
-      if(f) f.textContent = "v1.5.5 \u00b7 bg err: " + (e.message || e);
+      if(f) f.textContent = "v1.6.2 \u00b7 bg err: " + (e.message || e);
     }
   }
 
@@ -3903,38 +4866,30 @@
 
     <div class="group">
       <div class="group-label">Background</div>
-      <div class="skin-options">
+      <div class="skin-options skin-options-3">
         <div class="skin-opt" data-kind="bg" data-skin="realistic" onclick="_skinPick('bg','realistic')">
           <div class="swatch"></div><div class="name">Realistic</div>
         </div>
         <div class="skin-opt" data-kind="bg" data-skin="watercolor" onclick="_skinPick('bg','watercolor')">
           <div class="swatch"></div><div class="name">Watercolor</div>
         </div>
+        <div class="skin-opt" data-kind="bg" data-skin="pencil" onclick="_skinPick('bg','pencil')">
+          <div class="swatch"></div><div class="name">Pencil</div>
+        </div>
       </div>
     </div>
 
     <div class="group">
       <div class="group-label">Tiles</div>
-      <div class="skin-options">
+      <div class="skin-options skin-options-3">
         <div class="skin-opt" data-kind="ui" data-skin="realistic" onclick="_skinPick('ui','realistic')">
           <div class="swatch"></div><div class="name">Realistic</div>
         </div>
         <div class="skin-opt" data-kind="ui" data-skin="watercolor" onclick="_skinPick('ui','watercolor')">
           <div class="swatch"></div><div class="name">Watercolor</div>
         </div>
-      </div>
-    </div>
-
-    <div class="group">
-      <div class="group-label">Coming soon</div>
-      <div class="skin-options">
-        <div class="skin-opt" data-kind="bg" data-skin="pencil" data-disabled="1">
+        <div class="skin-opt" data-kind="ui" data-skin="pencil" onclick="_skinPick('ui','pencil')">
           <div class="swatch"></div><div class="name">Pencil</div>
-          <div class="pencil-soon">v1.6.0</div>
-        </div>
-        <div class="skin-opt" data-kind="ui" data-skin="pencil" data-disabled="1">
-          <div class="swatch"></div><div class="name">Pencil</div>
-          <div class="pencil-soon">v1.6.0</div>
         </div>
       </div>
     </div>

@@ -1,0 +1,317 @@
+[
+  {
+    "entity_id": "input_boolean.greenhouse_plastic_on",
+    "state": "on",
+    "unit": ""
+  },
+  {
+    "entity_id": "input_boolean.crop_tomatoes_planted",
+    "state": "on",
+    "unit": ""
+  },
+  {
+    "entity_id": "input_boolean.crop_cucumbers_planted",
+    "state": "off",
+    "unit": ""
+  },
+  {
+    "entity_id": "input_boolean.crop_peppers_planted",
+    "state": "off",
+    "unit": ""
+  },
+  {
+    "entity_id": "input_boolean.crop_lettuce_planted",
+    "state": "off",
+    "unit": ""
+  },
+  {
+    "entity_id": "sensor.solar_riemann_daily",
+    "state": "58.550",
+    "unit": "kWh"
+  },
+  {
+    "entity_id": "sun.sun",
+    "state": "above_horizon",
+    "unit": ""
+  },
+  {
+    "entity_id": "sensor.sun_next_dawn",
+    "state": "2026-05-26T09:07:08+00:00",
+    "unit": ""
+  },
+  {
+    "entity_id": "sensor.sun_next_dusk",
+    "state": "2026-05-26T01:21:34+00:00",
+    "unit": ""
+  },
+  {
+    "entity_id": "sensor.sun_next_midnight",
+    "state": "2026-05-26T05:14:34+00:00",
+    "unit": ""
+  },
+  {
+    "entity_id": "sensor.sun_next_noon",
+    "state": "2026-05-26T17:14:29+00:00",
+    "unit": ""
+  },
+  {
+    "entity_id": "sensor.sun_next_rising",
+    "state": "2026-05-26T09:42:20+00:00",
+    "unit": ""
+  },
+  {
+    "entity_id": "sensor.sun_next_setting",
+    "state": "2026-05-26T00:46:22+00:00",
+    "unit": ""
+  },
+  {
+    "entity_id": "media_player.samsung_office_monitor_49_odyssey_oled_g9",
+    "state": "idle",
+    "unit": ""
+  },
+  {
+    "entity_id": "device_tracker.samsung",
+    "state": "home",
+    "unit": ""
+  },
+  {
+    "entity_id": "sensor.veg_soil_battery",
+    "state": "100",
+    "unit": "%"
+  },
+  {
+    "entity_id": "sensor.veg_soil_temperature",
+    "state": "27.69",
+    "unit": "\u00b0C"
+  },
+  {
+    "entity_id": "sensor.veg_soil_moisture",
+    "state": "82.6",
+    "unit": "%"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_indoor_humidity",
+    "state": "44",
+    "unit": "%"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_humidity",
+    "state": "61",
+    "unit": "%"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_wind_direction",
+    "state": "263",
+    "unit": "\u00b0"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_wind_direction_10m_avg",
+    "state": "239",
+    "unit": "\u00b0"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_solar_radiation",
+    "state": "307.02",
+    "unit": "W/m\u00b2"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_uv_index",
+    "state": "2",
+    "unit": "UV index"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_soil_moisture_1",
+    "state": "46",
+    "unit": "%"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_wh90_capacitor",
+    "state": "5.3",
+    "unit": "V"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_vapour_pressure_deficit",
+    "state": "10.4300770122503",
+    "unit": "hPa"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_wh40_battery",
+    "state": "1.5",
+    "unit": "V"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_soil_battery_1",
+    "state": "1.6",
+    "unit": "V"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_soil_temperature_1_battery",
+    "state": "1.58",
+    "unit": "V"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_wh90_battery",
+    "state": "3.18",
+    "unit": "V"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_solar_lux",
+    "state": "38863.3",
+    "unit": "lx"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_outdoor_temperature",
+    "state": "22.2",
+    "unit": "\u00b0C"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_indoor_temperature",
+    "state": "23.6",
+    "unit": "\u00b0C"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_soil_temperature_1",
+    "state": "15.4",
+    "unit": "\u00b0C"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_wind_speed",
+    "state": "2.9",
+    "unit": "km/h"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_wind_gust",
+    "state": "13.3",
+    "unit": "km/h"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_max_daily_gust",
+    "state": "24.1",
+    "unit": "km/h"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_event_rain",
+    "state": "0.0",
+    "unit": "mm"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_hourly_rain",
+    "state": "0.0",
+    "unit": "mm"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_daily_rain",
+    "state": "0.6",
+    "unit": "mm"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_weekly_rain",
+    "state": "0.6",
+    "unit": "mm"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_monthly_rain",
+    "state": "0.6",
+    "unit": "mm"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_yearly_rain",
+    "state": "0.6",
+    "unit": "mm"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_rain_rate",
+    "state": "0.0",
+    "unit": "mm/h"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_24h_rain",
+    "state": "0.6",
+    "unit": "mm"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_event_rain_piezo",
+    "state": "0.0",
+    "unit": "mm"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_hourly_rain_piezo",
+    "state": "0.0",
+    "unit": "mm"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_daily_rain_piezo",
+    "state": "0.0",
+    "unit": "mm"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_weekly_rain_piezo",
+    "state": "0.0",
+    "unit": "mm"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_monthly_rain_piezo",
+    "state": "1000.0",
+    "unit": "mm"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_yearly_rain_piezo",
+    "state": "0.0",
+    "unit": "mm"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_rain_rate_piezo",
+    "state": "0.0",
+    "unit": "mm/h"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_24h_rain_piezo",
+    "state": "0.0",
+    "unit": "mm"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_relative_pressure",
+    "state": "999.9",
+    "unit": "hPa"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_absolute_pressure",
+    "state": "999.9",
+    "unit": "hPa"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_windchill",
+    "state": "unavailable",
+    "unit": "\u00b0C"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_dewpoint",
+    "state": "14.3",
+    "unit": "\u00b0C"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_indoor_dewpoint",
+    "state": "10.6",
+    "unit": "\u00b0C"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_feels_like_temperature",
+    "state": "22.2",
+    "unit": "\u00b0C"
+  },
+  {
+    "entity_id": "camera.192_168_50_52",
+    "state": "idle",
+    "unit": ""
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_soil_moisture_2",
+    "state": "54",
+    "unit": "%"
+  },
+  {
+    "entity_id": "sensor.hp2564bu_pro_v2_1_1_soil_battery_2",
+    "state": "1.6",
+    "unit": "V"
+  }
+]

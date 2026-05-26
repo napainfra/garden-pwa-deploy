@@ -511,7 +511,18 @@ def api_state(request: Request):
         "last_watered_age": humanize_age(last_watered_iso),
         "last_watered_local": fmt_local(last_watered_iso),
         "last_watered_source": last_watered_source,
-        "rain_outdoor_now": rain.get("state") == "on",
+        # rain_outdoor_now: AUTHORITATIVE source is Ecowitt rain_rate (real-time mm/h).
+        # Previously used binary_sensor.allview_sprinklers_rain_sensor (Hydrawise)
+        # which can stick "wet" for days after the cup dries; Ecowitt updates every cycle.
+        # We still consider the Hydrawise sensor as a secondary signal but require
+        # Ecowitt agreement (rain_rate > 0 OR event_rain > 0 in current event).
+        "rain_outdoor_now": (
+            (_float_state(E_RAIN_RATE) or 0) > 0.0
+            or (_float_state("sensor.hp2564bu_pro_v2_1_1_event_rain") or 0) > 0.0
+        ),
+        # Keep the Hydrawise binary exposed as a separate, secondary signal so
+        # the UI can surface a "stuck rain sensor" hint if they disagree.
+        "rain_sensor_hydrawise": rain.get("state") == "on",
         "solar_panel_w": round(panel_w_now, 0),
         "solar_pct": round(panel_pct, 0),
         "solar_kwh_today": round(panel_kwh_today, 2),
