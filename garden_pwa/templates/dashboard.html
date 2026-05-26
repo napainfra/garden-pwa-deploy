@@ -566,6 +566,20 @@
     opacity:0;transition:opacity 2.5s ease;will-change:opacity}
   .wcv-sky.show{opacity:1}
 
+  /* ====================================================================
+     v1.5.6 MOTION LAYERS — TEMPLATE FOR ALL SKINS
+     ====================================================================
+     Each weather phenomenon is an INDEPENDENT layer. Layers compose freely:
+       sun + rays  — when daytime AND cond in (sunny, partlycloudy, exceptional)
+       wind streaks — when wind_kmh >= 18 OR cond is windy
+       rain drops   — when rain_rate_mm_h > 0 OR cond in (rainy, pouring, lightning-rainy)
+       snowflakes   — when cond in (snowy, snowy-rainy)
+       moon         — when night AND cond NOT in (cloudy, overcast)
+       stars sparkle — when clear night (full) OR partly-cloudy night (dim)
+       lightning flash — when cond is lightning-rainy / lightning
+     Each layer reads its own CSS opacity variable (--rays-alpha, --stars-alpha, ...)
+     so skins can tune intensity without re-implementing the trigger logic.
+     ==================================================================== */
   /* Sun disc — positioned by JS via --x/--y CSS vars; rays orbit around it */
   .wcv-sun{position:absolute;width:42vw;max-width:240px;aspect-ratio:1/1;
     left:calc(var(--sun-x,80) * 1%);top:calc(var(--sun-y,15) * 1%);
@@ -600,7 +614,7 @@
             mask:radial-gradient(circle,transparent 18%,#000 22%,#000 60%,transparent 80%);
     animation:wcv-ray-spin 38s linear infinite;
     filter:blur(.5px)}
-  .wcv-rays-ring.show{opacity:1}
+  .wcv-rays-ring.show{opacity:var(--rays-alpha,1)}
   @keyframes wcv-ray-spin{ from{transform:translate(-50%,-50%) rotate(0deg)}
                             to  {transform:translate(-50%,-50%) rotate(360deg)} }
 
@@ -629,7 +643,7 @@
 
   /* Star layer (CSS dots) — for clear nights to add twinkle */
   .wcv-stars{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 2s ease}
-  .wcv-stars.show{opacity:.9}
+  .wcv-stars.show{opacity:var(--stars-alpha,.9)}
   .wcv-star{position:absolute;width:2px;height:2px;border-radius:50%;background:#fffce8;
     box-shadow:0 0 4px #fffce8,0 0 8px rgba(255,252,232,.45);
     animation:wcv-twinkle 4s ease-in-out infinite}
@@ -2223,18 +2237,22 @@
     const skyUrl = _wcvPickSky(cond, isNight, sunElev);
     _wcvSetSky(skyUrl);
 
-    // v1.5.2: sun + ray ring positioned by time-of-day on clear & partly-cloudy days
+    // v1.5.6: INDEPENDENT MOTION LAYERS — each phenomenon activates on its own signal.
+    // Sun + rays: show whenever sun is visible (sunny OR partlycloudy), NOT gated by clouds.
+    // Rays at 65% opacity when partly cloudy so they read as filtering through cloud cover.
     const sunEl = document.getElementById("wcv-sun");
     const ringEl = document.getElementById("wcv-rays-ring");
-    const showSun = !isNight && (cond === "sunny" || cond === "partlycloudy");
-    if(showSun){
+    const sunVisible = !isNight && (cond === "sunny" || cond === "partlycloudy" || cond === "exceptional");
+    if(sunVisible){
       const pos = _wcvSunPosition();
       if(pos.visible){
         document.body.style.setProperty("--sun-x", pos.x);
         document.body.style.setProperty("--sun-y", pos.y);
         sunEl.classList.add("show");
-        if(cond === "sunny") ringEl.classList.add("show");
-        else ringEl.classList.remove("show"); // no big rays through clouds
+        // Rays ALWAYS rotate when sun is visible — Pavel's rule: "if sun is there, rays moving"
+        ringEl.classList.add("show");
+        // Dim rays through cloud cover so they don't overpower partly-cloudy mood
+        ringEl.style.setProperty("--rays-alpha", (cond === "sunny") ? "1" : "0.65");
       } else {
         sunEl.classList.remove("show");
         ringEl.classList.remove("show");
@@ -2265,9 +2283,18 @@
       haloEl.classList.remove("show");
     }
 
-    // Stars (clear night enhancement on top of painted stars)
+    // v1.5.6: Stars layer — sparkle on clear night (full) AND partly cloudy night (dimmed).
+    // Pavel: "if partly cloudy, clouds partly cover night sky, some moon visible, some sparkle in stars"
     const starsEl = document.getElementById("wcv-stars");
-    if(isClearNight) starsEl.classList.add("show"); else starsEl.classList.remove("show");
+    if(isClearNight){
+      starsEl.classList.add("show");
+      starsEl.style.setProperty("--stars-alpha", "0.9");
+    } else if(isNight && cond === "partlycloudy"){
+      starsEl.classList.add("show");
+      starsEl.style.setProperty("--stars-alpha", "0.55");
+    } else {
+      starsEl.classList.remove("show");
+    }
 
     // Rain
     let dropCount = 0;
