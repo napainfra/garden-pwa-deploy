@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Masha's Garden">
+<meta name="theme-color" content="#0b1117">
+<link rel="manifest" href="/garden/manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="/garden/static/icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/garden/static/icon-192.png">
+<title>Masha's Garden — Unlock</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;width:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+    background:radial-gradient(ellipse at top,#1a2530 0%,#0b1117 60%);
+    color:#fff;display:flex;align-items:center;justify-content:center;
+    padding:env(safe-area-inset-top) 24px env(safe-area-inset-bottom);
+  }
+  .card{
+    width:100%;max-width:360px;text-align:center;
+  }
+  .hero{font-size:96px;margin-bottom:8px;line-height:1;filter:drop-shadow(0 12px 30px rgba(0,0,0,.5))}
+  h1{font-size:24px;font-weight:600;margin-bottom:4px}
+  p.sub{color:#8a96a3;font-size:14px;margin-bottom:32px}
+  .pin-input{
+    width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+    color:#fff;font-size:32px;letter-spacing:18px;text-align:center;padding:18px 12px 18px 30px;
+    border-radius:18px;outline:none;-webkit-appearance:none;
+  }
+  .pin-input:focus{border-color:#4caf50;background:rgba(76,175,80,.1)}
+  .err{color:#ff6b6b;font-size:14px;margin-top:14px;min-height:20px}
+  button{
+    margin-top:18px;width:100%;background:linear-gradient(135deg,#4caf50,#2e7d32);
+    color:#fff;border:0;font-size:18px;font-weight:600;padding:16px;border-radius:18px;
+    cursor:pointer;-webkit-appearance:none;
+  }
+  button:active{transform:scale(.98)}
+</style>
+</head>
+<body>
+  <form class="card" method="POST" action="/garden/pin">
+    <div class="hero">🍅🥒</div>
+    <h1>Masha's Garden</h1>
+    <p class="sub">Enter PIN to continue</p>
+    <input class="pin-input" type="password" name="pin" inputmode="numeric"
+           pattern="[0-9]*" maxlength="4" autofocus required autocomplete="off">
+    <div class="err">{% if error %}Wrong PIN, try again{% endif %}</div>
+    <button type="submit">Unlock</button>
+  </form>
+  <script>
+    // Auto-submit when 4 digits entered
+    const i=document.querySelector('.pin-input');
+    i.addEventListener('input',()=>{ if(i.value.length===4) i.form.submit(); });
+  </script>
+</body>
+</html>

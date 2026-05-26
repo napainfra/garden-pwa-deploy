@@ -1,0 +1,3491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Masha's Garden">
+<meta name="theme-color" content="#0b1117">
+<link rel="manifest" href="/garden/manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="/garden/static/icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/garden/static/icon-192.png">
+<title>Masha's Garden · v1.5.2</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
+  html,body{height:100%;width:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+    color:#fff;min-height:100vh;position:relative;overflow-x:hidden;
+    padding:env(safe-area-inset-top) 18px env(safe-area-inset-bottom);
+    background:radial-gradient(ellipse at top,#1a2530 0%,#0b1117 60%);
+    transition:background 1.2s ease;
+  }
+  /* ===== weather backgrounds — POSTCARD intensity ===== */
+  body[data-cond="sunny"][data-daypart="day"]         { background: radial-gradient(ellipse 90% 60% at 50% -5%, #8a5a28 0%, #3a2810 30%, #14110a 65%, #0b1117 90%); }
+  body[data-cond="clear-night"], body[data-cond="sunny"][data-daypart="night"]
+                                                       { background: radial-gradient(ellipse 90% 60% at 50% -5%, #2a3066 0%, #131a3a 35%, #070a18 75%, #060814 95%); }
+  body[data-cond="partlycloudy"][data-daypart="day"]  { background: radial-gradient(ellipse 90% 60% at 50% -5%, #3d556e 0%, #1a2638 45%, #0b1117 85%); }
+  body[data-cond="partlycloudy"][data-daypart="night"]{ background: radial-gradient(ellipse 90% 60% at 50% -5%, #283356 0%, #121a2e 45%, #060810 85%); }
+  body[data-cond="cloudy"]                            { background: radial-gradient(ellipse 90% 60% at 50% -5%, #4a5560 0%, #1d2228 45%, #0a0c10 90%); }
+  body[data-cond="rainy"], body[data-cond="pouring"]  { background: radial-gradient(ellipse 90% 60% at 50% -5%, #2c5870 0%, #122838 45%, #060c10 90%); }
+  body[data-cond="snowy"], body[data-cond="snowy-rainy"]{ background: radial-gradient(ellipse 90% 60% at 50% -5%, #4a5a82 0%, #1a2138 45%, #07090f 90%); }
+  body[data-cond="lightning"], body[data-cond="lightning-rainy"]
+                                                       { background: radial-gradient(ellipse 90% 60% at 50% -5%, #463468 0%, #1a132e 45%, #060410 90%); }
+  body[data-cond="fog"]                               { background: radial-gradient(ellipse 90% 60% at 50% -5%, #4a5058 0%, #1c2026 50%, #0a0c0e 95%); }
+  body[data-cond="windy"]                             { background: radial-gradient(ellipse 90% 60% at 50% -5%, #355a6c 0%, #142632 45%, #06090c 90%); }
+  /* ===== animated weather layer ===== */
+  .wx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  /* aquarelle (watercolor) backdrop — layered SVG with paper grain + bleeding edges */
+  .wx svg{width:100%;height:100%;display:block}
+  .wx .sky-grad{position:absolute;inset:0;transition:opacity 2s ease,background 2s ease;mix-blend-mode:normal}
+  .wx .paper{position:absolute;inset:0;opacity:.07;mix-blend-mode:overlay;pointer-events:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.95  0 0 0 0 0.92  0 0 0 0 0.85  0 0 0 .6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");}
+  /* aquarelle keyframes — slow organic motion, no sharp transitions */
+  @keyframes aq-sun-pulse { 0%,100%{filter:blur(.5px) saturate(1);opacity:.92} 50%{filter:blur(.8px) saturate(1.1);opacity:1} }
+  .wx .aq-sun{transform-origin:50% 50%;animation:aq-sun-pulse 9s ease-in-out infinite}
+  @keyframes aq-moon-pulse { 0%,100%{opacity:.85;filter:blur(.4px)} 50%{opacity:1;filter:blur(.6px)} }
+  .wx .aq-moon{animation:aq-moon-pulse 7s ease-in-out infinite}
+  @keyframes aq-star-twinkle { 0%,100%{opacity:.3} 50%{opacity:.95} }
+  .wx .aq-star{animation:aq-star-twinkle 4s ease-in-out infinite}
+  @keyframes aq-cloud-driftA { from{transform:translateX(-35%)} to{transform:translateX(135%)} }
+  @keyframes aq-cloud-driftB { from{transform:translateX(135%)} to{transform:translateX(-35%)} }
+  .wx .aq-cloud-far{animation:aq-cloud-driftA 180s linear infinite;opacity:.6;transform-origin:50% 50%}
+  .wx .aq-cloud-mid{animation:aq-cloud-driftB 120s linear infinite;opacity:.78;transform-origin:50% 50%}
+  .wx .aq-cloud-near{animation:aq-cloud-driftA 80s linear infinite;opacity:.9;transform-origin:50% 50%}
+  /* v1.3.5: shooting stars — keyframes for streak across sky */
+  @keyframes aq-meteor { 0%{transform:translate(0,0) rotate(-25deg);opacity:0} 5%{opacity:1} 60%{opacity:1} 100%{transform:translate(40vw,18vw) rotate(-25deg);opacity:0} }
+  .wx .aq-meteor{position:absolute;width:80px;height:1.5px;background:linear-gradient(to right,transparent,#fffce8,#fffce8);border-radius:1px;
+    box-shadow:0 0 4px #fffce8,0 0 8px rgba(255,252,232,.6);animation:aq-meteor 1.8s ease-out forwards;pointer-events:none}
+  .wx .aq-meteor::after{content:"";position:absolute;right:-3px;top:-2px;width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 8px #fff,0 0 14px #ffe680}
+  @keyframes aq-rain { from{transform:translateY(-15%)} to{transform:translateY(115%)} }
+  .wx .aq-drop{animation:aq-rain linear infinite}
+  @keyframes aq-snow { 0%{transform:translate(0,-20%) rotate(0);opacity:0} 8%{opacity:.92} 92%{opacity:.92} 100%{transform:translate(var(--dx,0),120%) rotate(var(--rot,360deg));opacity:0} }
+  .wx .aq-flake{animation:aq-snow linear infinite}
+  @keyframes aq-hail { 0%{transform:translateY(-15%);opacity:0} 6%{opacity:1} 94%{opacity:1} 100%{transform:translateY(120%);opacity:1} }
+  .wx .aq-hail{animation:aq-hail linear infinite}
+  @keyframes aq-fog-drift { 0%,100%{transform:translateX(-8%)} 50%{transform:translateX(8%)} }
+  .wx .aq-fog{animation:aq-fog-drift 18s ease-in-out infinite}
+  @keyframes aq-flash { 0%,93%,100%{opacity:0} 93.5%{opacity:.85} 94%{opacity:0} 94.3%{opacity:.6} 94.7%{opacity:0} }
+  .wx .aq-flash{position:absolute;inset:0;background:radial-gradient(ellipse at 65% 25%,rgba(255,240,200,.7),transparent 55%);animation:aq-flash 11s linear infinite;mix-blend-mode:screen}
+  @keyframes aq-bolt { 0%,93%,100%{opacity:0} 93.5%,94.3%{opacity:1} 94%,94.7%{opacity:0} }
+  .wx .aq-bolt{animation:aq-bolt 11s linear infinite}
+  .wx svg{width:100%;height:100%;display:block}
+  /* sun rays sweep — POSTCARD */
+  @keyframes sunsweep { 0%,100%{opacity:.55;transform:rotate(0deg)} 50%{opacity:.85;transform:rotate(8deg)} }
+  .wx .sun{transform-origin:50% 0%;animation:sunsweep 8s ease-in-out infinite}
+  /* moon glow */
+  @keyframes moonpulse { 0%,100%{opacity:.85} 50%{opacity:1} }
+  .wx .moon{animation:moonpulse 6s ease-in-out infinite}
+  /* drifting clouds */
+  @keyframes clouddriftA { from{transform:translateX(-30%)} to{transform:translateX(130%)} }
+  @keyframes clouddriftB { from{transform:translateX(130%)} to{transform:translateX(-30%)} }
+  .wx .cloudA{animation:clouddriftA 70s linear infinite;opacity:.42}
+  .wx .cloudB{animation:clouddriftB 95s linear infinite;opacity:.32}
+  /* rain streaks */
+  @keyframes rainfall { from{transform:translateY(-20%)} to{transform:translateY(120%)} }
+  .wx .drop{animation:rainfall linear infinite}
+  /* snowflakes */
+  @keyframes snowfall { 0%{transform:translate(0,-20%);opacity:0} 10%{opacity:.85} 90%{opacity:.85} 100%{transform:translate(var(--dx,0),120%);opacity:0} }
+  .wx .flake{animation:snowfall linear infinite}
+  /* lightning flash */
+  @keyframes flash { 0%,93%,100%{opacity:0} 94%{opacity:.6} 95%{opacity:0} 96%{opacity:.4} 97%{opacity:0} }
+  .wx .flash{position:absolute;inset:0;background:radial-gradient(ellipse at 70% 30%,rgba(220,220,255,.6),transparent 50%);animation:flash 9s linear infinite}
+  /* ===== camera card ===== */
+  .cam-card{
+    margin-top:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;padding:0;overflow:hidden;cursor:pointer;
+    transition:transform .15s ease;
+    -webkit-tap-highlight-color:rgba(255,255,255,.08);
+  }
+  .cam-card:active{transform:scale(.985)}
+  .cam-img{display:block;width:100%;height:auto;background:#000;min-height:180px}
+  .cam-meta{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#8a96a3}
+  .cam-meta .live-dot{width:6px;height:6px;border-radius:50%;background:#5fd17e;display:inline-block;margin-right:6px;box-shadow:0 0 6px #5fd17e}
+  .cam-meta .age{color:#5e6a78}
+  /* ===== fullscreen modal (camera live + weather full) =====
+     IDs are used for higher specificity — a later .modal block exists for
+     the chart bottom-sheet and would otherwise clobber padding/background.
+     Dynamic Island fix: env(safe-area-inset-top) + 14px breathing room and
+     a 48×48 close hit-target (Apple HIG ≥ 44). */
+  #cam-modal,#wx-modal,#wx-hist-modal,#wr-modal{position:fixed !important;inset:0 !important;z-index:100;background:rgba(0,0,0,.94) !important;
+         display:none !important;flex-direction:column !important;max-width:none !important;border:0 !important;
+         border-radius:0 !important;animation:none !important;
+         padding:calc(env(safe-area-inset-top) + 14px) 0 env(safe-area-inset-bottom) !important;
+         overflow-y:auto !important;max-height:none !important}
+  #cam-modal.open,#wx-modal.open,#wx-hist-modal.open,#wr-modal.open{display:flex !important}
+  #cam-modal .top,#wx-modal .top,#wx-hist-modal .top,#wr-modal .top{display:flex;justify-content:space-between;align-items:center;
+              padding:10px 14px 12px 18px;background:rgba(11,17,23,.8);backdrop-filter:blur(14px);
+              -webkit-backdrop-filter:blur(14px);position:sticky;top:0;z-index:1;min-height:56px;margin:0}
+  #cam-modal .top h2,#wx-modal .top h2,#wx-hist-modal .top h2,#wr-modal .top h2{font-size:18px;font-weight:600;margin:0}
+  #cam-modal .close,#wx-modal .close,#wx-hist-modal .close,#wr-modal .close{background:rgba(255,255,255,.14);border:0;color:#fff;width:48px;height:48px;
+                border-radius:50%;font-size:26px;line-height:1;cursor:pointer;display:flex;align-items:center;
+                justify-content:center;-webkit-tap-highlight-color:transparent;flex-shrink:0;margin-left:8px;padding:0}
+  #cam-modal .close:active,#wx-modal .close:active,#wx-hist-modal .close:active,#wr-modal .close:active{background:rgba(255,255,255,.24);transform:scale(.94)}
+  .tap-hint{opacity:.45;font-weight:400;font-size:11px;margin-left:4px}
+  .modal .body{flex:1;padding:0 18px 24px;display:flex;flex-direction:column;gap:14px}
+  .modal .stream-box{width:100%;background:#000;border-radius:14px;overflow:hidden;min-height:240px;
+                     display:flex;align-items:center;justify-content:center}
+  .modal .stream-box img,.modal .stream-box video{width:100%;height:auto;display:block}
+  .modal .stream-msg{color:#8a96a3;font-size:13px;text-align:center;padding:30px}
+  .modal .stream-msg .spinner{width:24px;height:24px;border:3px solid rgba(255,255,255,.15);
+                              border-top-color:#63b3ed;border-radius:50%;
+                              animation:spin 1s linear infinite;margin:0 auto 12px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  /* weather modal layout */
+  .wx-day{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
+          border-radius:14px;padding:14px;display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center}
+  .wx-day .ico{font-size:28px;text-align:center}
+  .wx-day .nm{font-weight:600;font-size:14px}
+  .wx-day .desc{font-size:12px;color:#8a96a3;margin-top:2px}
+  .wx-day .hilo{text-align:right;font-size:14px}
+  .wx-day .hi{color:#f0e0a0;font-weight:600}
+  .wx-day .lo{color:#8ab4ff}
+  .wx-day .rain{font-size:11px;color:#8ecbff;text-align:right;margin-top:2px}
+  .wx-now{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+          border-radius:14px;padding:18px;display:grid;grid-template-columns:1fr auto;gap:12px}
+  .wx-now .big{font-size:48px;line-height:1;font-weight:700;margin-bottom:4px}
+  .wx-now .cond{font-size:14px;color:#cfd6e0;margin-bottom:10px}
+  .wx-now .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+  .wx-now .grid .it .lab{font-size:11px;color:#7d8a9d;text-transform:uppercase;letter-spacing:.5px}
+  .wx-now .grid .it .vl{font-size:14px;font-weight:600;margin-top:2px}
+  .wx-now .ico-big{font-size:64px;align-self:center}
+  .now-card{cursor:pointer;-webkit-tap-highlight-color:rgba(255,255,255,.08);transition:transform .15s ease}
+  .now-card:active{transform:scale(.985)}
+  /* fog wash */
+  @keyframes fogdrift { 0%,100%{transform:translateX(-5%)} 50%{transform:translateX(5%)} }
+  .wx .fog{animation:fogdrift 14s ease-in-out infinite;opacity:.35}
+  .wrap{position:relative;z-index:1}
+  .wrap{max-width:440px;margin:0 auto;padding:18px 0 32px}
+  .tile{cursor:pointer;transition:transform .15s ease}
+  .tile.tappable:active{transform:scale(.97)}
+  .tile .tap-hint{font-size:10px;color:#5e6a78;margin-top:2px;letter-spacing:.4px}
+  /* ===== zoom modal ===== */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    display:none;align-items:flex-end;justify-content:center;z-index:50;animation:fadein .2s ease}
+  .modal-bg.show{display:flex}
+  @keyframes fadein{from{opacity:0}to{opacity:1}}
+  @keyframes slideup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .modal{width:100%;max-width:480px;background:#0b1117;border-top-left-radius:24px;border-top-right-radius:24px;
+    border:1px solid rgba(255,255,255,.08);border-bottom:0;padding:18px 18px 28px;
+    animation:slideup .25s cubic-bezier(.2,.8,.3,1);max-height:92vh;overflow-y:auto}
+  .modal .grab{width:38px;height:4px;background:rgba(255,255,255,.18);border-radius:2px;margin:0 auto 14px}
+  .modal .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .modal .top .ttl{font-size:18px;font-weight:600}
+  .modal .top .x{background:rgba(255,255,255,.08);border:0;color:#fff;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer}
+  .modal .sub{font-size:12px;color:#8a96a3;margin-bottom:14px}
+  .modal .pills{display:flex;gap:8px;margin-bottom:12px}
+  .modal .pills button{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#cfd6e0;
+    padding:10px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer}
+  .modal .pills button.on{background:rgba(99,179,237,.22);border-color:rgba(99,179,237,.5);color:#bcdcff}
+  .modal .chart-wrap{position:relative;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+    border-radius:14px;padding:10px 8px 18px;margin-bottom:14px}
+  .modal .chart-wrap svg{width:100%;height:240px;display:block;touch-action:pan-y}
+  .modal .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
+  .modal .stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px;text-align:center}
+  .modal .stat .lab{font-size:10px;color:#8a96a3;text-transform:uppercase;letter-spacing:.06em}
+  .modal .stat .val{font-size:18px;font-weight:600;margin-top:3px}
+  .modal .crosshair-readout{position:absolute;top:8px;right:10px;background:rgba(0,0,0,.55);
+    border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 8px;font-size:11px;color:#cfd6e0;
+    font-variant-numeric:tabular-nums;pointer-events:none;display:none}
+  .modal .crosshair-readout.show{display:block}
+  .hero-block{display:flex;flex-direction:column;align-items:center;text-align:center;padding:14px 0 8px}
+  .hero-img{width:160px;height:160px;object-fit:contain;filter:drop-shadow(0 14px 30px rgba(0,0,0,.5));margin-bottom:8px}
+  .hero-emoji{font-size:120px;line-height:1;filter:drop-shadow(0 12px 28px rgba(0,0,0,.5));margin-bottom:8px}
+  h1{font-size:26px;font-weight:600;margin-bottom:4px}
+  .pill{display:inline-block;font-size:14px;padding:6px 14px;border-radius:999px;margin-top:6px;
+        background:rgba(255,255,255,.08);color:#cfd6e0}
+  .pill.ok{background:rgba(76,175,80,.18);color:#9ed99e}
+  .pill.thirsty{background:rgba(255,152,0,.18);color:#ffd089}
+  .pill.watering{background:rgba(33,150,243,.2);color:#8ecbff}
+  .freeze{
+    margin:14px 0 0;background:linear-gradient(135deg,#4a1f1f,#2a0f0f);
+    border:1px solid rgba(255,82,82,.4);padding:14px;border-radius:16px;
+    display:flex;align-items:center;gap:12px;
+  }
+  .freeze .icon{font-size:28px}
+  .freeze .text{font-size:14px;color:#ffb3b3;line-height:1.3}
+  .freeze .text strong{color:#fff}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
+  .grid3 .tile{padding:14px 10px}
+  .grid3 .tile .label{font-size:10px;letter-spacing:.4px}
+  .grid3 .tile.big .value{font-size:30px}
+  .grid3 .tile .sub{font-size:11px}
+  .grid3 .tile .tap-hint{font-size:9px}
+  .tile{
+    background:rgba(15,20,28,.72);border:1px solid rgba(255,255,255,.08);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    border-radius:18px;padding:18px 16px;display:flex;flex-direction:column;gap:6px;
+  }
+  .tile .label{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#8a96a3}
+  .tile .value{font-size:32px;font-weight:600;line-height:1.1}
+  .tile .sub{font-size:12px;color:#8a96a3}
+  .tile.big .value{font-size:48px}
+  .tile-blue .value{color:#80c8ff}
+  .tile-orange .value{color:#ffb96b}
+  .tile-orange.cold .value{color:#7ad9ff}
+  .tile-orange.freeze .value{color:#ff8a8a}
+  .tile-yellow .value{color:#ffe16b}
+  .tile-yellow.dim .value{color:#cfb95a}
+  .tile-yellow.night .value{color:#7d8a9d}
+  .row{
+    display:flex;justify-content:space-between;gap:12px;margin-top:12px;
+    background:rgba(15,20,28,.72);border:1px solid rgba(255,255,255,.08);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    border-radius:18px;padding:14px 16px;
+  }
+  .row .item{flex:1;text-align:center}
+  .row .label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:#8a96a3;margin-bottom:4px}
+  .row .v{font-size:15px;font-weight:600}
+  .btns{margin-top:20px;display:flex;flex-direction:column;gap:10px}
+  button.btn{
+    width:100%;border:0;font-size:18px;font-weight:600;padding:18px;border-radius:18px;
+    color:#fff;cursor:pointer;-webkit-appearance:none;display:flex;align-items:center;justify-content:center;gap:10px;
+    transition:transform .08s ease;
+  }
+  button.btn:active{transform:scale(.98)}
+  .btn.start{background:linear-gradient(135deg,#1976d2,#0d47a1)}
+  .btn.stop{background:linear-gradient(135deg,#e53935,#b71c1c)}
+  .btn.disabled{opacity:.4;pointer-events:none}
+  .forecast{margin-top:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  /* v1.3.2: REAL tile gets a green-tinted gradient to distinguish from forecast */
+  .now-real{background:linear-gradient(135deg,rgba(95,209,126,.18),rgba(95,209,126,.05)) !important;
+           border:1px solid rgba(95,209,126,.25) !important}
+  .now-real .lbl{color:#9bd8ad !important}
+  .now-real .big{color:#eef9ef}
+  .now-card .row2 > div:first-child{flex:1;overflow:hidden}
+  .now-card{background:linear-gradient(135deg,rgba(99,179,237,.18),rgba(99,179,237,.05));
+    border:1px solid rgba(99,179,237,.35);border-radius:14px;padding:14px}
+  .wx-pair .now-card{margin-top:0}
+  .now-card .lbl{font-size:11px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em}
+  .now-card .row2{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+  .now-card .big{font-size:34px;font-weight:600}
+  .now-card .ico{font-size:42px}
+  .now-card .meta{font-size:12px;color:#8aa1c2;margin-top:4px;display:flex;gap:14px;flex-wrap:wrap}
+  .now-card .meta .rain-on{color:#63b3ed}
+  .now-card .meta .rain-off{color:#7d8a9d}
+  .zones{margin-top:18px}
+  .zones .head{font-size:11px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+  .zone{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;
+    border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+  .zone:last-child{border-bottom:none}
+  .zone.veg{background:rgba(99,179,237,.06);border-radius:8px;border-bottom:none;padding:10px 12px;margin:2px 0}
+  .zone .nm{flex:1}
+  .zone .st{font-size:11px;color:#7d8a9d;text-align:right}
+  .zone .st.scheduled{color:#9ee19e}
+  .zone .st.suspended{color:#e1a79e}
+  .zone .st.watering{color:#63b3ed;font-weight:600}
+  .zone .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#7d8a9d;margin-right:8px;vertical-align:middle}
+  .zone .dot.scheduled{background:#9ee19e}
+  .zone .dot.suspended{background:#e1a79e}
+  .zone .dot.watering{background:#63b3ed;box-shadow:0 0 8px #63b3ed}
+  .fc{
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
+    border-radius:14px;padding:12px 8px;text-align:center;
+  }
+  .fc .day{font-size:12px;color:#8a96a3;margin-bottom:4px}
+  .fc .ico{font-size:22px;line-height:1.1}
+  .fc .hilo{font-size:13px;margin-top:4px;color:#cfd6e0}
+  .fc .rain{font-size:11px;color:#8ecbff;margin-top:2px;min-height:14px}
+  .h24{margin-top:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
+       border-radius:18px;padding:16px}
+  .h24 .head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .h24 .head .ttl{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:#8a96a3}
+  .h24 .head .sub{font-size:11px;color:#5e6a78}
+  .h24 .line{display:flex;justify-content:space-between;align-items:center;
+             padding:8px 0;border-top:1px solid rgba(255,255,255,.05);font-size:13px}
+  .h24 .line:first-of-type{border-top:0}
+  .h24 .line .lab{color:#8a96a3}
+  .h24 .line .val{color:#cfd6e0;font-weight:500}
+  .h24 .line .val .arrow{margin-left:4px;font-size:11px;opacity:.7}
+  .h24 .line .val.up{color:#9ed99e}
+  .h24 .line .val.down{color:#ffb96b}
+  .spark{margin-top:6px;height:80px;width:100%;display:block}
+  .spark-legend{display:flex;justify-content:space-between;font-size:10px;color:#5e6a78;margin-top:2px;letter-spacing:.4px}
+  .spark-legend .lg{display:inline-flex;align-items:center;gap:4px}
+  .spark-legend .dot{width:8px;height:8px;border-radius:2px}
+  .spark-legend .dot.bar{background:rgba(128,200,255,.55)}
+  .spark-legend .dot.line{background:#ffb96b}
+  .footer{text-align:center;color:#5e6a78;font-size:11px;margin-top:24px}
+  .small{font-size:12px;color:#8a96a3}
+  .pulse{animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+  /* ===== Solar Literacy v1.2.0 ===== */
+  .tile #sun-stars{font-size:26px;letter-spacing:2px;line-height:1.1;margin:4px 0 2px;color:#ffe16b}
+  /* Sun modal — full-screen overlay, same pattern as cam-modal/wx-modal */
+  #sun-modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.94);
+    display:none;flex-direction:column;
+    padding:calc(env(safe-area-inset-top) + 14px) 0 env(safe-area-inset-bottom)}
+  #sun-modal.open{display:flex}
+  #sun-modal .top{display:flex;justify-content:space-between;align-items:center;
+    padding:10px 14px 12px 18px;background:rgba(11,17,23,.8);backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);position:sticky;top:0;z-index:1;min-height:56px;margin:0;
+    border-bottom:1px solid rgba(255,255,255,.06)}
+  #sun-modal .top h2{font-size:18px;font-weight:600;margin:0}
+  #sun-modal .close{background:rgba(255,255,255,.14);border:0;color:#fff;width:48px;height:48px;
+    border-radius:50%;font-size:26px;line-height:1;cursor:pointer;display:flex;align-items:center;
+    justify-content:center;-webkit-tap-highlight-color:transparent;flex-shrink:0;padding:0}
+  #sun-modal .close:active{background:rgba(255,255,255,.24);transform:scale(.94)}
+  #sun-modal .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 18px 32px}
+  /* Lang toggle */
+  .lang-toggle{display:flex;background:rgba(255,255,255,.06);border-radius:18px;padding:2px;
+    border:1px solid rgba(255,255,255,.08)}
+  .lang-btn{background:transparent;border:0;color:#8a96a3;padding:5px 12px;border-radius:14px;
+    font-size:11px;font-weight:600;cursor:pointer;letter-spacing:.05em}
+  .lang-btn.on{background:rgba(255,225,107,.18);color:#ffe16b}
+  /* Section cards */
+  .sun-section{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
+    border-radius:16px;padding:16px;margin-bottom:12px}
+  .sun-section h3{margin:0 0 12px;font-size:12px;font-weight:600;color:#8a96a3;
+    text-transform:uppercase;letter-spacing:.06em}
+  /* Section 1 — Right now ring */
+  .sun-now-circle{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+  .sun-now-circle .ring{width:80px;height:80px;border-radius:50%;display:flex;
+    align-items:center;justify-content:center;font-size:20px;font-weight:700;
+    background:conic-gradient(#ffe16b var(--p,0%),rgba(255,255,255,.08) 0);
+    position:relative;flex-shrink:0}
+  .sun-now-circle .ring::before{content:"";position:absolute;inset:6px;
+    background:#0b1117;border-radius:50%}
+  .sun-now-circle .ring span{position:relative;z-index:1;font-size:16px}
+  .sun-now-circle .meta{flex:1;font-size:13px;color:#cfd6e0;line-height:1.6}
+  .sun-stat-row{display:flex;justify-content:space-between;padding:7px 0;
+    font-size:13px;border-top:1px solid rgba(255,255,255,.05)}
+  .sun-stat-row .lab{color:#8a96a3}
+  .sun-stat-row .val{color:#cfd6e0;font-weight:600}
+  /* Section 3 — Week bars */
+  .week-bars{display:flex;gap:5px;align-items:flex-end;height:120px;margin:8px 0 12px}
+  .week-bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+  .week-bar .bar-wrap{flex:1;width:100%;display:flex;align-items:flex-end}
+  .week-bar .bar{width:100%;border-radius:4px 4px 0 0;background:rgba(255,225,107,.45);
+    min-height:2px;transition:all .3s}
+  .week-bar.today .bar{background:#ffe16b;box-shadow:0 0 12px rgba(255,225,107,.4)}
+  .week-bar .day{font-size:10px;color:#5e6a78;font-weight:600}
+  .week-bar .pct{font-size:9px;color:#8a96a3}
+  .week-bar.today .day,.week-bar.today .pct{color:#ffe16b}
+  /* Section 4 — Crop cards */
+  .crop-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+    border-radius:14px;padding:14px;margin-bottom:10px}
+  .crop-card .head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .crop-card .ico{font-size:24px}
+  .crop-card .name{font-size:15px;font-weight:600;color:#cfd6e0;flex:1}
+  .crop-card .pill{font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;
+    text-transform:uppercase;letter-spacing:.04em}
+  .crop-card .pill.happy{background:rgba(123,255,150,.18);color:#7bff96}
+  .crop-card .pill.border{background:rgba(255,225,107,.18);color:#ffe16b}
+  .crop-card .pill.dim{background:rgba(255,123,123,.18);color:#ff7b7b}
+  .crop-card .gh-tag{display:inline-block;font-size:10px;background:rgba(99,179,237,.16);
+    color:#bcdcff;padding:2px 8px;border-radius:8px;margin-left:5px}
+  .crop-card .cstats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+  .crop-card .cstat{background:rgba(0,0,0,.2);border-radius:8px;padding:8px;text-align:center}
+  .crop-card .cstat .lab{font-size:9px;color:#5e6a78;text-transform:uppercase;letter-spacing:.04em}
+  .crop-card .cstat .val{font-size:14px;font-weight:600;color:#cfd6e0;margin-top:2px}
+  .crop-card .verdict{font-size:12px;color:#8a96a3;line-height:1.5;font-style:italic;margin-top:6px}
+  .coming-soon{font-size:12px;color:#5e6a78;text-align:center;margin-top:8px;padding:10px;
+    border-top:1px solid rgba(255,255,255,.05)}
+  /* Today hero text */
+  .sun-today-big{font-size:22px;font-weight:700;color:#ffe16b;margin:4px 0 8px;line-height:1.2}
+  .sun-tomorrow{font-size:13px;color:#cfd6e0;padding:8px 10px;background:rgba(255,255,255,.04);
+    border-radius:10px;margin-top:8px}
+  /* ===== v1.3.0 new tiles ===== */
+  .soil-zones{display:flex;flex-direction:column;gap:4px;margin-top:2px}
+  .soil-zone-row{display:flex;justify-content:space-between;align-items:baseline;font-size:12px}
+  .soil-zone-row .z-name{color:#cfd6e0;font-weight:600;min-width:80px}
+  .soil-zone-row .z-moist{font-size:16px;font-weight:700;color:#80c8ff}
+  .soil-zone-row .z-temp{font-size:11px;color:#ffb96b;margin-left:4px}
+  .wind-alert{background:linear-gradient(135deg,rgba(255,82,82,.18),rgba(180,30,30,.12));
+    border:1px solid rgba(255,82,82,.4);border-radius:10px;padding:6px 10px;
+    font-size:11px;color:#ffb3b3;margin-top:4px;line-height:1.3}
+  /* HP10 cam card */
+  .hp10-card{margin-top:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;padding:0;overflow:hidden;cursor:pointer;
+    transition:transform .15s ease;-webkit-tap-highlight-color:rgba(255,255,255,.08)}
+  .hp10-card:active{transform:scale(.985)}
+  .hp10-img{display:block;width:100%;height:auto;background:#000;min-height:180px;object-fit:cover}
+  .hp10-meta{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;
+    font-size:12px;color:#8a96a3}
+  .hp10-meta .live-dot{width:6px;height:6px;border-radius:50%;background:#5fd17e;
+    display:inline-block;margin-right:6px;box-shadow:0 0 6px #5fd17e}
+  /* HP10 fullscreen modal */
+  #hp10-modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.96);
+    display:none;flex-direction:column;
+    /* v1.3.2: outer padding cleared; .top header handles its own safe-area inset */
+    padding:0 0 env(safe-area-inset-bottom) 0}
+  #hp10-modal.open{display:flex}
+  /* v1.3.2: .top header has its OWN safe-area-inset-top so the close X is never under
+     the iPhone status bar / Dynamic Island. Adds extra 8px breathing room. */
+  #hp10-modal .top{display:flex;justify-content:space-between;align-items:center;
+    padding:calc(env(safe-area-inset-top) + 12px) 14px 12px 18px;
+    background:rgba(11,17,23,.92);backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);position:sticky;top:0;z-index:1;
+    min-height:calc(env(safe-area-inset-top) + 60px);
+    border-bottom:1px solid rgba(255,255,255,.06)}
+  #hp10-modal .top h2{font-size:18px;font-weight:600;margin:0}
+  #hp10-modal .close{background:rgba(255,255,255,.14);border:0;color:#fff;width:48px;height:48px;
+    border-radius:50%;font-size:26px;line-height:1;cursor:pointer;display:flex;align-items:center;
+    justify-content:center;-webkit-tap-highlight-color:transparent;flex-shrink:0;padding:0}
+  #hp10-modal .close:active{background:rgba(255,255,255,.24);transform:scale(.94)}
+  #hp10-modal .body{flex:1;overflow-y:auto;padding:16px 18px 32px;display:flex;flex-direction:column;gap:14px}
+  #hp10-modal .full-img{width:100%;border-radius:14px;display:block}
+  .timelapse-btn{width:100%;border:0;background:linear-gradient(135deg,rgba(99,179,237,.25),rgba(99,179,237,.1));
+    border:1px solid rgba(99,179,237,.35);color:#bcdcff;font-size:16px;font-weight:600;
+    padding:16px;border-radius:14px;cursor:pointer;display:flex;align-items:center;
+    justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent}
+  .timelapse-btn:active{transform:scale(.97)}
+  #hp10-timelapse-wrap{display:none}
+  #hp10-timelapse-wrap video{width:100%;border-radius:12px;display:block;margin-top:12px}
+  /* v1.3.9: date selector bar (‹ 📅 2026-05-25 ›) */
+  .tl-datebar{display:grid;grid-template-columns:48px 1fr 48px;gap:8px;align-items:stretch;margin-top:6px}
+  .tl-arrow,.tl-date{background:linear-gradient(135deg,rgba(99,179,237,.20),rgba(99,179,237,.08));
+    border:1px solid rgba(99,179,237,.30);color:#cfe2f7;border-radius:14px;
+    display:flex;align-items:center;justify-content:center;font-weight:600;
+    cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;
+    transition:transform .08s ease, opacity .15s ease}
+  .tl-arrow{font-size:22px;padding:0}
+  .tl-date{font-size:15px;padding:14px 12px;gap:8px;flex-direction:column;line-height:1.25;position:relative}
+  .tl-date .tl-date-main{font-size:16px;font-weight:700;color:#e6f0fb}
+  .tl-date .tl-date-sub{font-size:11px;color:#8aa1c2;font-weight:500;letter-spacing:.3px}
+  .tl-arrow:active,.tl-date:active{transform:scale(.94)}
+  .tl-arrow[aria-disabled="true"]{opacity:.28;pointer-events:none}
+  .tl-date input[type="date"]{position:absolute;inset:0;opacity:0;width:100%;height:100%;
+    border:0;background:transparent;font-size:16px;cursor:pointer;color-scheme:dark}
+  .tl-today-pill{align-self:center;justify-self:center;background:rgba(99,179,237,.18);
+    border:1px solid rgba(99,179,237,.35);color:#bcdcff;font-size:12px;font-weight:600;
+    padding:6px 12px;border-radius:999px;margin-top:8px;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;display:inline-flex;align-items:center;gap:6px}
+  .tl-today-pill:active{transform:scale(.95)}
+  .tl-today-pill[hidden]{display:none}
+  .tl-latest-link{display:block;margin-top:14px;background:rgba(99,179,237,.10);
+    border:1px dashed rgba(99,179,237,.35);border-radius:12px;padding:14px;
+    color:#cfe2f7;font-size:14px;text-align:center;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;font-weight:600}
+  .tl-latest-link:active{transform:scale(.98)}
+  .tl-latest-link .arrow{color:#7fb6e0;margin-left:6px}
+  /* ============================================================
+     v1.5.0 — SKINS SYSTEM
+     Two independent dimensions on <body>:
+       data-bg-skin  = realistic | watercolor   (background)
+       data-ui-skin  = realistic | watercolor   (tile chrome)
+     Defaults (no attr) = realistic, identical to v1.4.0.
+     ============================================================ */
+
+  /* ---------- Gear icon (top-right of hero) ---------- */
+  .skin-gear{
+    position:absolute;top:max(env(safe-area-inset-top),10px);right:14px;
+    width:36px;height:36px;border-radius:18px;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,.08);backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,.12);
+    color:#cfe2f7;font-size:18px;cursor:pointer;z-index:50;
+    transition:transform .15s ease,background .2s ease;
+  }
+  .skin-gear:active{transform:scale(.92)}
+
+  /* ---------- Skin settings modal ---------- */
+  .skin-modal-bg{
+    position:fixed;inset:0;z-index:200;display:none;
+    background:rgba(8,10,14,.78);backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    align-items:center;justify-content:center;padding:20px;
+  }
+  .skin-modal-bg.open{display:flex}
+  .skin-modal{
+    width:100%;max-width:420px;border-radius:22px;
+    background:linear-gradient(180deg,#1b2230,#0f141d);
+    border:1px solid rgba(255,255,255,.08);
+    box-shadow:0 30px 60px rgba(0,0,0,.5);
+    padding:20px 18px;color:#e9eef5;
+  }
+  .skin-modal h2{font-size:18px;font-weight:700;margin-bottom:4px}
+  .skin-modal .sub{font-size:12px;color:#8a96a6;margin-bottom:16px}
+  .skin-modal .group{margin-top:14px}
+  .skin-modal .group-label{
+    font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:#7c8ca3;margin-bottom:8px;
+  }
+  .skin-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .skin-opt{
+    border-radius:14px;padding:10px;cursor:pointer;
+    background:rgba(255,255,255,.04);
+    border:2px solid rgba(255,255,255,.08);
+    transition:border-color .15s ease,background .15s ease,transform .1s ease;
+    text-align:center;
+  }
+  .skin-opt:active{transform:scale(.97)}
+  .skin-opt[data-disabled="1"]{opacity:.4;cursor:not-allowed}
+  .skin-opt.active{border-color:#7fb6e0;background:rgba(127,182,224,.12)}
+  .skin-opt .swatch{
+    width:100%;aspect-ratio:1.4/1;border-radius:8px;margin-bottom:6px;
+    background-size:cover;background-position:center;
+    background-color:#0f141d;
+  }
+  .skin-opt[data-skin="realistic"] .swatch{
+    background:radial-gradient(ellipse 90% 60% at 50% -5%, #3d556e 0%, #1a2638 60%, #0b1117 100%);
+  }
+  .skin-opt[data-skin="watercolor"] .swatch{
+    background-image:url("/garden/static/sky/watercolor/sky-02.jpg");
+  }
+  .skin-opt[data-skin="pencil"] .swatch{
+    background:linear-gradient(180deg,#cfd6d8,#94a3b3 70%,#5b6a78);
+  }
+  .skin-opt .name{font-size:13px;font-weight:600}
+  .skin-opt .pencil-soon{font-size:10px;color:#7c8ca3;margin-top:2px}
+  .skin-modal .close-row{margin-top:18px;text-align:center}
+  .skin-modal .close-btn{
+    background:#243246;color:#e9eef5;border:none;border-radius:12px;
+    padding:10px 22px;font-size:14px;font-weight:600;cursor:pointer;
+  }
+
+  /* ============================================================
+     WATERCOLOR — BACKGROUND
+     ============================================================ */
+  body[data-bg-skin="watercolor"]{
+    background:#eaeaf0 !important;
+    transition:background 1.6s ease;
+  }
+  /* The watercolor wx is a stack of layers we control via JS by toggling
+     class names and inline opacities on .wcv-* children. */
+  body[data-bg-skin="watercolor"] .wx{
+    position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+  }
+  /* When watercolor is active, fade out the legacy SVG layer. */
+  body[data-bg-skin="watercolor"] .wx > svg,
+  body[data-bg-skin="watercolor"] .wx > .sky-grad,
+  body[data-bg-skin="watercolor"] .wx > .paper,
+  body[data-bg-skin="watercolor"] .wx > .aq-flash{ display:none !important; }
+
+  /* Sky base — two stacked tiles for crossfade. */
+  .wcv-sky{position:absolute;inset:0;background-size:cover;background-position:center;
+    opacity:0;transition:opacity 2.5s ease;will-change:opacity}
+  .wcv-sky.show{opacity:1}
+
+  /* Sun disc — positioned by JS via --x/--y CSS vars; rays orbit around it */
+  .wcv-sun{position:absolute;width:42vw;max-width:240px;aspect-ratio:1/1;
+    left:calc(var(--sun-x,80) * 1%);top:calc(var(--sun-y,15) * 1%);
+    transform:translate(-50%,-50%);
+    background:url("/garden/static/sky/watercolor/sun-disc.png") center/contain no-repeat;
+    mix-blend-mode:multiply;
+    opacity:0;transition:opacity 2s ease,left 2s ease,top 2s ease;
+    pointer-events:none;will-change:left,top,opacity;
+    filter:saturate(1.1)}
+  .wcv-sun.show{opacity:.95}
+  /* Rotating ray crown — concentric with sun, larger, multiplies onto sky */
+  .wcv-rays-ring{position:absolute;width:90vw;max-width:520px;aspect-ratio:1/1;
+    left:calc(var(--sun-x,80) * 1%);top:calc(var(--sun-y,15) * 1%);
+    transform:translate(-50%,-50%);
+    pointer-events:none;mix-blend-mode:screen;opacity:0;
+    transition:opacity 2s ease,left 2s ease,top 2s ease;
+    background:conic-gradient(from 0deg,
+      transparent 0deg, rgba(255,235,170,.45) 6deg, transparent 14deg,
+      transparent 30deg, rgba(255,235,170,.35) 36deg, transparent 44deg,
+      transparent 60deg, rgba(255,235,170,.40) 66deg, transparent 74deg,
+      transparent 90deg, rgba(255,235,170,.30) 96deg, transparent 104deg,
+      transparent 120deg, rgba(255,235,170,.45) 126deg, transparent 134deg,
+      transparent 150deg, rgba(255,235,170,.35) 156deg, transparent 164deg,
+      transparent 180deg, rgba(255,235,170,.40) 186deg, transparent 194deg,
+      transparent 210deg, rgba(255,235,170,.30) 216deg, transparent 224deg,
+      transparent 240deg, rgba(255,235,170,.45) 246deg, transparent 254deg,
+      transparent 270deg, rgba(255,235,170,.35) 276deg, transparent 284deg,
+      transparent 300deg, rgba(255,235,170,.40) 306deg, transparent 314deg,
+      transparent 330deg, rgba(255,235,170,.45) 336deg, transparent 344deg,
+      transparent 360deg);
+    -webkit-mask:radial-gradient(circle,transparent 18%,#000 22%,#000 60%,transparent 80%);
+            mask:radial-gradient(circle,transparent 18%,#000 22%,#000 60%,transparent 80%);
+    animation:wcv-ray-spin 38s linear infinite;
+    filter:blur(.5px)}
+  .wcv-rays-ring.show{opacity:1}
+  @keyframes wcv-ray-spin{ from{transform:translate(-50%,-50%) rotate(0deg)}
+                            to  {transform:translate(-50%,-50%) rotate(360deg)} }
+
+  /* Moon disc — positioned by JS via --moon-x/--moon-y */
+  .wcv-moon{position:absolute;width:30vw;max-width:180px;aspect-ratio:1/1;
+    left:calc(var(--moon-x,85) * 1%);top:calc(var(--moon-y,15) * 1%);
+    transform:translate(-50%,-50%);
+    background-size:contain;background-position:center;background-repeat:no-repeat;
+    mix-blend-mode:screen;opacity:0;transition:opacity 2.5s ease,left 2s ease,top 2s ease;
+    filter:drop-shadow(0 0 22px rgba(255,255,240,.32));pointer-events:none}
+  .wcv-moon.show{opacity:1}
+  /* Moon halo — soft pulsing glow */
+  .wcv-moon-halo{position:absolute;width:55vw;max-width:340px;aspect-ratio:1/1;
+    left:calc(var(--moon-x,85) * 1%);top:calc(var(--moon-y,15) * 1%);
+    transform:translate(-50%,-50%);
+    background:radial-gradient(circle,rgba(220,230,255,.25) 0%,rgba(220,230,255,0) 60%);
+    pointer-events:none;mix-blend-mode:screen;opacity:0;transition:opacity 2.5s ease;
+    animation:wcv-moon-pulse 6s ease-in-out infinite}
+  .wcv-moon-halo.show{opacity:1}
+  @keyframes wcv-moon-pulse{ 0%,100%{filter:blur(0)} 50%{filter:blur(4px)} }
+
+  /* Paper texture, very subtle, sits on top of everything painted */
+  .wcv-paper{position:absolute;inset:0;pointer-events:none;opacity:.10;
+    mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='5'/><feColorMatrix values='0 0 0 0 .82  0 0 0 0 .78  0 0 0 0 .7  0 0 0 .55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>");}
+
+  /* Star layer (CSS dots) — for clear nights to add twinkle */
+  .wcv-stars{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 2s ease}
+  .wcv-stars.show{opacity:.9}
+  .wcv-star{position:absolute;width:2px;height:2px;border-radius:50%;background:#fffce8;
+    box-shadow:0 0 4px #fffce8,0 0 8px rgba(255,252,232,.45);
+    animation:wcv-twinkle 4s ease-in-out infinite}
+  @keyframes wcv-twinkle{0%,100%{opacity:.35}50%{opacity:1}}
+
+  /* Rain — CSS streaks with watercolor-blue tint */
+  .wcv-rain{position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:0;transition:opacity 1.2s ease}
+  .wcv-rain.show{opacity:1}
+  .wcv-drop{position:absolute;top:-12%;width:1.5px;height:18px;
+    background:linear-gradient(to bottom,transparent,rgba(110,150,200,.55),rgba(110,150,200,.85));
+    border-radius:1px;filter:blur(.4px);
+    animation:wcv-rain linear infinite}
+  @keyframes wcv-rain{from{transform:translateY(-20%)}to{transform:translateY(120vh)}}
+
+  /* Snow — soft dots */
+  .wcv-snow{position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:0;transition:opacity 1.2s ease}
+  .wcv-snow.show{opacity:1}
+  .wcv-flake{position:absolute;top:-8%;width:6px;height:6px;border-radius:50%;
+    background:rgba(255,255,255,.9);box-shadow:0 0 4px rgba(255,255,255,.6);
+    filter:blur(.5px);animation:wcv-snow linear infinite}
+  @keyframes wcv-snow{0%{transform:translate(0,-20%) rotate(0);opacity:0}
+    8%{opacity:.92}92%{opacity:.92}
+    100%{transform:translate(var(--dx,20px),120vh) rotate(360deg);opacity:0}}
+
+  /* Thunder flash */
+  .wcv-flash{position:absolute;inset:0;pointer-events:none;opacity:0;
+    background:radial-gradient(ellipse at 65% 25%,rgba(255,250,220,.75),transparent 55%);
+    mix-blend-mode:screen}
+  body[data-bg-skin="watercolor"][data-cond="lightning"] .wcv-flash,
+  body[data-bg-skin="watercolor"][data-cond="lightning-rainy"] .wcv-flash{
+    animation:wcv-flash 11s linear infinite;
+  }
+  @keyframes wcv-flash{
+    0%,93%,100%{opacity:0}
+    93.5%{opacity:.85}94%{opacity:0}
+    94.3%{opacity:.6}94.7%{opacity:0}
+  }
+
+  /* Season tint — gentle filter applied to the whole watercolor stack */
+  body[data-bg-skin="watercolor"][data-season="winter"] .wx{filter:saturate(.82) hue-rotate(-6deg) brightness(1.02)}
+  body[data-bg-skin="watercolor"][data-season="summer"] .wx{filter:saturate(1.12) brightness(1.03)}
+  body[data-bg-skin="watercolor"][data-season="autumn"] .wx{filter:sepia(.12) saturate(1.05)}
+  /* spring = no filter (default) */
+
+  
+  /* v1.5.2: ray motion handled by .wcv-rays-ring (above) */
+  .wcv-drift{position:absolute;inset:0;pointer-events:none;opacity:0;
+    transition:opacity 2s ease;mix-blend-mode:screen}
+  body[data-bg-skin="watercolor"][data-daypart="day"] .wcv-drift{opacity:.55}
+  .wcv-drift .wcv-puff{position:absolute;width:35%;height:18%;border-radius:50%;
+    background:radial-gradient(ellipse,rgba(255,255,255,.7),rgba(255,255,255,0) 70%);
+    filter:blur(8px);animation:wcv-puff-drift linear infinite}
+  @keyframes wcv-puff-drift{
+    from{transform:translateX(-40%)}
+    to{transform:translateX(140%)}
+  }
+
+  /* Wind — horizontal streaks across the sky (live motion) */
+  .wcv-wind{position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:0;
+    transition:opacity 1.2s ease;mix-blend-mode:screen}
+  .wcv-wind.show{opacity:1}
+  .wcv-streak{position:absolute;height:1.5px;border-radius:1px;
+    background:linear-gradient(to right,
+      transparent 0%,
+      rgba(235,240,250,.55) 35%,
+      rgba(255,255,255,.85) 55%,
+      rgba(235,240,250,.55) 75%,
+      transparent 100%);
+    filter:blur(.6px);
+    animation:wcv-wind-streak linear infinite}
+  @keyframes wcv-wind-streak{
+    from{transform:translateX(-30vw)}
+    to  {transform:translateX(130vw)}
+  }
+  /* Wind also nudges the cloud drift slightly */
+  body[data-bg-skin="watercolor"][data-cond="windy"] .wcv-drift,
+  body[data-bg-skin="watercolor"][data-cond="windy-variant"] .wcv-drift{opacity:.75}
+
+  /* Keep watercolor tiles styled inside modals (modal-bg darkens but tiles inside
+     are the same .tile class — already covered. But add modal-card overrides.) */
+  body[data-ui-skin="watercolor"] .modal-card,
+  body[data-ui-skin="watercolor"] .modal,
+  body[data-ui-skin="watercolor"] .sheet{
+    background:rgba(252,250,245,.96) !important;color:#1a2438 !important;
+    border:1px solid rgba(120,130,150,.28) !important;
+  }
+  body[data-ui-skin="watercolor"] .modal-card *,
+  body[data-ui-skin="watercolor"] .modal *,
+  body[data-ui-skin="watercolor"] .sheet *{ color:inherit }
+
+  /* ============================================================
+     WATERCOLOR — UI TILES
+     ============================================================ */
+  body[data-ui-skin="watercolor"]{
+    color:#1a2438;
+    font-family:"Iowan Old Style","Palatino",Georgia,"Times New Roman",serif;
+  }
+  body[data-ui-skin="watercolor"] h1{
+    color:#1a2438;font-weight:600;letter-spacing:.01em;
+    text-shadow:0 1px 0 rgba(255,255,255,.5);
+  }
+  body[data-ui-skin="watercolor"] .pill{
+    background:rgba(255,255,255,.55);color:#2a4a3a;
+    border:1px solid rgba(60,90,70,.25);backdrop-filter:blur(4px);
+  }
+  body[data-ui-skin="watercolor"] .tile,
+  body[data-ui-skin="watercolor"] .row,
+  body[data-ui-skin="watercolor"] .hp10-card{
+    background:rgba(252,250,245,.78) !important;
+    border:1px solid rgba(120,130,150,.28) !important;
+    box-shadow:0 6px 18px rgba(40,55,80,.12),inset 0 0 0 1px rgba(255,255,255,.4);
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    color:#1a2438 !important;
+    border-radius:18px;
+  }
+  body[data-ui-skin="watercolor"] .tile *,
+  body[data-ui-skin="watercolor"] .row *,
+  body[data-ui-skin="watercolor"] .hp10-card *{ color:inherit }
+  body[data-ui-skin="watercolor"] .tile .label,
+  body[data-ui-skin="watercolor"] .row .label{ color:#3a4658 !important; font-weight:600 }
+  body[data-ui-skin="watercolor"] .tile .value{ color:#1f3a8a !important; font-weight:700 }
+  body[data-ui-skin="watercolor"] .tile .sub,
+  body[data-ui-skin="watercolor"] .tap-hint{ color:#5a6678 !important }
+  body[data-ui-skin="watercolor"] .tile.tile-yellow{
+    background:rgba(255,250,225,.82) !important;
+    border-color:rgba(180,150,80,.35) !important;
+  }
+  body[data-ui-skin="watercolor"] .stars{ color:#c8a020 }
+  body[data-ui-skin="watercolor"] .btn.start{
+    background:linear-gradient(180deg,rgba(180,210,240,.92),rgba(140,180,225,.92));
+    color:#0f2238;border:1px solid rgba(80,120,170,.4);
+    text-shadow:0 1px 0 rgba(255,255,255,.4);
+  }
+  body[data-ui-skin="watercolor"] .btn.stop{
+    background:linear-gradient(180deg,rgba(240,180,180,.92),rgba(220,140,140,.92));
+    color:#3a0e0e;border:1px solid rgba(170,80,80,.4);
+    text-shadow:0 1px 0 rgba(255,255,255,.35);
+  }
+  body[data-ui-skin="watercolor"] .footer{ color:rgba(40,55,80,.55) }
+  body[data-ui-skin="watercolor"] .skin-gear{
+    background:rgba(255,255,255,.55);border:1px solid rgba(120,130,150,.3);color:#1a2438;
+  }
+  body[data-ui-skin="watercolor"] .freeze{
+    background:rgba(220,235,250,.85) !important;color:#0f2238 !important;
+    border:1px solid rgba(80,120,170,.4) !important;
+  }
+  body[data-ui-skin="watercolor"] .wind-alert{
+    background:rgba(255,220,200,.85) !important;color:#3a1808 !important;
+  }
+
+</style>
+</head>
+<body>
+<!-- animated weather backdrop -->
+<div class="wx" id="wx"></div>
+<div class="wrap" id="app">
+  <div class="hero-block">
+    <img class="hero-img" src="/garden/static/hero.png" alt="" onerror="this.style.display='none';document.getElementById('emoji').style.display='block'">
+    <div class="hero-emoji" id="emoji" style="display:none">🍅🥒</div>
+    <h1>Masha's Garden</h1>
+    <div class="pill" id="status">Loading…</div>
+  </div>
+
+  <div id="freeze" class="freeze" style="display:none">
+    <div class="icon">❄️</div>
+    <div class="text"><strong>Freeze warning.</strong> Soil at <span id="freeze-temp">?</span>°C — protect tomatoes.</div>
+  </div>
+
+  <!-- Soil 2-zone tile + Sun tile -->
+  <div class="grid2">
+    <!-- SOIL: 2-zone card (tap = chart for CH1/Tomato) -->
+    <div class="tile tappable" onclick="openChart('moisture')">
+      <div class="label">🌱 Soil</div>
+      <div class="soil-zones">
+        <div class="soil-zone-row">
+          <span class="z-name">🍅 Tomato</span>
+          <span class="z-moist"><span id="moist-tomato">--</span>%</span>
+          <span class="z-temp"><span id="temp-tomato">--</span>°C</span>
+          <span class="z-badge" id="badge-tomato"></span>
+        </div>
+        <div class="soil-zone-row">
+          <span class="z-name">🥒 Cucumber</span>
+          <span class="z-moist"><span id="moist-cuc">--</span>%</span>
+          <span class="z-temp"><span id="temp-cuc">--</span>°C</span>
+          <span class="z-badge" id="badge-cuc"></span>
+        </div>
+      </div>
+      <div class="tap-hint">Tap → chart</div>
+    </div>
+    <!-- SUN tile -->
+    <div class="tile tile-yellow tappable" id="solar-tile" onclick="openSunModal()">
+      <div class="label" id="sun-label">☀️ Sun</div>
+      <div class="stars" id="sun-stars">★★★☆☆</div>
+      <div class="sub" id="solar-sub">—</div>
+      <div class="tap-hint" id="sun-tap-hint">Tap →</div>
+    </div>
+  </div>
+
+  <!-- WIND + RAIN tiles -->
+  <div class="grid2" style="margin-top:12px">
+    <!-- WIND tile -->
+    <div class="tile tappable" id="wind-tile" onclick="openWindRainModal('wind')">
+      <div class="label">💨 Wind <span class="tap-hint">· tap</span></div>
+      <div class="value" id="wind-speed" style="font-size:28px">--</div>
+      <div class="sub" id="wind-dir">—</div>
+      <div class="sub" id="wind-gust" style="font-size:11px">Gust —</div>
+      <div id="wind-alert-banner" class="wind-alert" style="display:none"></div>
+    </div>
+    <!-- RAIN tile -->
+    <div class="tile tappable" id="rain-tile" onclick="openWindRainModal('rain')">
+      <div class="label">🌧️ Rain <span class="tap-hint">· tap</span></div>
+      <div class="value" id="rain-today" style="font-size:28px">--</div>
+      <div class="sub" id="rain-today-lbl" style="font-size:11px">today mm</div>
+      <div class="sub" id="rain-week" style="font-size:11px">Week —</div>
+      <div class="sub" id="rain-rate" style="font-size:11px">Rate —</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="item"><div class="label">Last watered</div><div class="v" id="last">—</div></div>
+    <div class="item"><div class="label">Valve</div><div class="v" id="valve">—</div></div>
+    <div class="item"><div class="label">Battery</div><div class="v" id="bat">—</div></div>
+  </div>
+
+  <div class="btns">
+    <button class="btn start" id="btn-start" onclick="confirmStart()">💧 Start drip 5 min</button>
+    <button class="btn stop disabled" id="btn-stop" onclick="doStop()">🛑 Stop watering</button>
+  </div>
+
+  <!-- HP10 garden camera tile (NEW v1.3.0) - replaces removed Eufy cam-card -->
+  <div class="hp10-card" id="hp10-card" onclick="openHp10Modal()">
+    <img id="hp10-img" class="hp10-img" alt="Garden view (HP10)"
+         src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'><rect width='16' height='9' fill='%23070b10'/></svg>">
+    <div class="hp10-meta">
+      <div><span class="live-dot"></span>📷 Garden cam · HP10 <span id="hp10-age" style="color:#5e6a78">loading…</span></div>
+      <div id="hp10-badge" style="font-size:11px;color:#8a96a3"></div>
+    </div>
+  </div>
+
+  <!-- HP10 fullscreen modal -->
+  <div id="hp10-modal">
+    <div class="top">
+      <h2 id="hp10-modal-title">📷 Garden</h2>
+      <button class="close" onclick="closeHp10Modal()">×</button>
+    </div>
+    <div class="body">
+      <img id="hp10-modal-img" class="full-img" alt="Garden full view" src="">
+      <!-- v1.3.9: date-aware timelapse picker -->
+      <div class="tl-datebar" id="tl-datebar">
+        <div class="tl-arrow" id="tl-prev" role="button" aria-label="Previous day" onclick="tlStepDay(-1)">‹</div>
+        <div class="tl-date" id="tl-date" role="button" aria-label="Pick date">
+          <span class="tl-date-main" id="tl-date-main">🎬 —</span>
+          <span class="tl-date-sub" id="tl-date-sub">tap to choose day</span>
+          <input type="date" id="tl-date-input" onchange="tlPickDate(this.value)">
+        </div>
+        <div class="tl-arrow" id="tl-next" role="button" aria-label="Next day" onclick="tlStepDay(1)">›</div>
+      </div>
+      <button class="tl-today-pill" id="tl-today-pill" hidden onclick="tlGoToday()">↶ Jump to today</button>
+      <div id="hp10-timelapse-wrap">
+        <video controls playsinline id="hp10-video"></video>
+      </div>
+    </div>
+  </div>
+
+  <!-- v1.3.2: Two side-by-side weather tiles. REAL = Ecowitt (tap = past 7d).
+       FORECAST = weather.forecast_home (tap = next 7d). -->
+  <div class="wx-pair" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px">
+    <!-- REAL (Ecowitt sensor) -->
+    <div class="now-card now-real" id="now-real" onclick="openWxHistoryModal()">
+      <div class="lbl">📡 Real · sensor</div>
+      <div class="row2">
+        <div style="min-width:0">
+          <div class="big"><span id="real-temp">--</span>°C</div>
+          <div class="meta" style="flex-direction:column;gap:2px;font-size:11px">
+            <span><span id="real-hum">--</span>% humidity</span>
+            <span>UV <span id="real-uv">--</span></span>
+            <span id="real-rain" class="rain-off">No rain</span>
+          </div>
+        </div>
+        <div class="ico" style="font-size:34px">🌡️</div>
+      </div>
+      <div class="tap-hint" style="font-size:10px;color:#5fd17e;margin-top:6px">Tap → past 7d</div>
+    </div>
+    <!-- FORECAST (weather.forecast_home) -->
+    <div class="now-card now-fc" id="now-card" onclick="openWxModal()">
+      <div class="lbl">☁️ Forecast</div>
+      <div class="row2">
+        <div style="min-width:0">
+          <div class="big"><span id="now-temp">--</span>°C</div>
+          <div class="meta" style="flex-direction:column;gap:2px;font-size:11px">
+            <span id="now-cond-text">—</span>
+            <span id="now-humidity">--% humidity</span>
+            <span id="now-rain" class="rain-off">No rain in forecast</span>
+          </div>
+        </div>
+        <div class="ico" id="now-ico" style="font-size:34px">⋯</div>
+      </div>
+      <div class="tap-hint" style="font-size:10px;color:#8aa1c2;margin-top:6px">Tap → next 7d</div>
+    </div>
+  </div>
+
+  <div class="forecast" id="forecast"></div>
+
+  <!-- Hydrawise zones -->
+  <div class="zones" id="zones-block">
+    <div class="head">Hydrawise zones</div>
+    <div id="zones-list"></div>
+  </div>
+
+  <!-- Weather full-forecast modal (NEXT 7 days from forecast_home) -->
+  <div class="modal" id="wx-modal">
+    <div class="top">
+      <h2>☁️ Next 7 days · forecast</h2>
+      <button class="close" onclick="closeWxModal()">×</button>
+    </div>
+    <div class="body" id="wx-modal-body">
+      <div class="stream-msg"><div class="spinner"></div>Loading forecast…</div>
+    </div>
+  </div>
+
+  <!-- v1.3.2: REAL history modal (PAST 7 days from Ecowitt + Enphase) -->
+  <div class="modal" id="wx-hist-modal">
+    <div class="top">
+      <h2>📡 Past 7 days · real sensors</h2>
+      <button class="close" onclick="closeWxHistoryModal()">×</button>
+    </div>
+    <div class="body" id="wx-hist-body">
+      <div class="stream-msg"><div class="spinner"></div>Loading history…</div>
+    </div>
+  </div>
+
+  <!-- v1.3.2: Wind/Rain stats modal -->
+  <div class="modal" id="wr-modal">
+    <div class="top">
+      <h2 id="wr-modal-title">💨 Wind · past 7 days</h2>
+      <button class="close" onclick="closeWindRainModal()">×</button>
+    </div>
+    <div class="body" id="wr-modal-body">
+      <div class="stream-msg"><div class="spinner"></div>Loading stats…</div>
+    </div>
+  </div>
+
+  <!-- Camera live-stream modal -->
+  <div class="modal" id="cam-modal">
+    <div class="top">
+      <h2>Live garden</h2>
+      <button class="close" onclick="closeCamModal()">×</button>
+    </div>
+    <div class="body">
+      <div class="stream-box" id="stream-box">
+        <div class="stream-msg"><div class="spinner"></div>Starting live stream…</div>
+      </div>
+      <div class="cam-meta" style="padding:0 4px">
+        <span id="stream-status">Connecting…</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sun explainer modal (Solar Literacy v1.2.0) -->
+  <div id="sun-modal">
+    <div class="top">
+      <h2 id="sun-modal-title">☀️ Sun &amp; garden</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="lang-toggle">
+          <button class="lang-btn" data-lang="en" id="lang-en" onclick="setLang('en')">EN</button>
+          <button class="lang-btn" data-lang="ru" id="lang-ru" onclick="setLang('ru')">RU</button>
+        </div>
+        <button class="close" onclick="closeSunModal()">×</button>
+      </div>
+    </div>
+    <div class="body" id="sun-modal-body">
+      <div style="color:#8a96a3;text-align:center;padding:40px 0">Loading…</div>
+    </div>
+  </div>
+
+  <div class="h24" id="h24" style="display:none">
+    <div class="head"><div class="ttl">📈 Last 24 hours</div><div class="sub" id="h24-count"></div></div>
+    <svg class="spark" id="spark-combo" viewBox="0 0 100 80" preserveAspectRatio="none"></svg>
+    <div class="spark-legend">
+      <span class="lg"><span class="dot bar"></span>Moisture %</span>
+      <span id="spark-range"></span>
+      <span class="lg"><span class="dot line"></span>Soil temp °C</span>
+    </div>
+    <div class="line"><span class="lab">Moisture</span><span class="val" id="h24-moist">—</span></div>
+    <div class="line"><span class="lab">Temp</span><span class="val" id="h24-temp">—</span></div>
+    <div class="line"><span class="lab">Watered</span><span class="val" id="h24-water">—</span></div>
+    <div class="line"><span class="lab">Rain</span><span class="val" id="h24-rain">—</span></div>
+  </div>
+
+  <div class="footer small">v1.5.2 · Pull down to refresh · <span id="updated">--</span></div>
+</div>
+
+<!-- ===== zoom modal ===== -->
+<div class="modal-bg" id="modal-bg" onclick="if(event.target.id==='modal-bg')closeChart()">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="grab"></div>
+    <div class="top">
+      <div class="ttl" id="m-title">Moisture</div>
+      <button class="x" onclick="closeChart()">×</button>
+    </div>
+    <div class="sub" id="m-sub">Last 48 hours</div>
+    <div class="pills">
+      <button data-h="24" onclick="setRange(24)">24h</button>
+      <button data-h="48" class="on" onclick="setRange(48)">48h</button>
+      <button data-h="168" onclick="setRange(168)">7d</button>
+    </div>
+    <div class="chart-wrap">
+      <svg id="big-chart" viewBox="0 0 400 240" preserveAspectRatio="none"></svg>
+      <div class="crosshair-readout" id="xh-readout"></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="lab">Min</div><div class="val" id="m-min">—</div></div>
+      <div class="stat"><div class="lab">Max</div><div class="val" id="m-max">—</div></div>
+      <div class="stat"><div class="lab">Now</div><div class="val" id="m-now">—</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const ICONS = {
+    "sunny":"☀️","clear-night":"🌙","partlycloudy":"⛅","cloudy":"☁️","fog":"🌫️",
+    "rainy":"🌧️","pouring":"🌧️","snowy":"❄️","snowy-rainy":"🌨️","lightning":"⛈️",
+    "lightning-rainy":"⛈️","windy":"💨","windy-variant":"💨","exceptional":"⚠️",
+  };
+  // ===== v1.3.4: aquarelle weather backdrop =====
+  // Watercolor-style SVG primitives. Soft edges via Gaussian blur + turbulence
+  // displacement (bleeding paint). Sensor-driven density/speed/color.
+  //
+  // Layers (z order):
+  //   1. .sky-grad  — full-bleed CSS gradient sky tint
+  //   2. svg  — sun/moon/stars + cloud layers + precipitation + bolt
+  //   3. .paper — noise grain overlay (gives canvas/paper feel)
+  //   4. .aq-flash  — thunderstorm screen flash
+  //
+  // Conditions handled: sunny, partlycloudy, cloudy, clear-night, rainy,
+  //   pouring, snowy, snowy-rainy, hail, lightning, lightning-rainy, fog, windy.
+  function _aqDefs() {
+    // v1.3.6: iOS Safari struggles with feTurbulence+feDisplacementMap at scale (the
+    // whole filter chain silently fails to render on real devices). Use plain Gaussian
+    // blur only — still gives a soft watercolor wash, no painterly displacement bleed.
+    return `<defs>
+      <filter id="aq-bleed" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation=".7"/>
+      </filter>
+      <filter id="aq-bleed-heavy" x="-25%" y="-25%" width="150%" height="150%">
+        <feGaussianBlur stdDeviation="1.6"/>
+      </filter>
+      <filter id="aq-soft" x="-10%" y="-10%" width="120%" height="120%">
+        <feGaussianBlur stdDeviation=".4"/>
+      </filter>
+      <!-- Watercolor paint puddles — dark center + soft halo -->
+      <radialGradient id="aq-sun-disc" cx="45%" cy="45%" r="55%">
+        <stop offset="0%" stop-color="#fff4c4"/>
+        <stop offset="40%" stop-color="#ffd278"/>
+        <stop offset="75%" stop-color="#f6a44b"/>
+        <stop offset="100%" stop-color="#e07c1c" stop-opacity=".7"/>
+      </radialGradient>
+      <radialGradient id="aq-sun-halo" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#ffd278" stop-opacity=".55"/>
+        <stop offset="50%" stop-color="#ff9a3c" stop-opacity=".18"/>
+        <stop offset="100%" stop-color="#ff7a1a" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="aq-moon-disc" cx="38%" cy="38%" r="62%">
+        <stop offset="0%" stop-color="#fffaf0"/>
+        <stop offset="55%" stop-color="#dfe4f0"/>
+        <stop offset="100%" stop-color="#9ba8c4" stop-opacity=".85"/>
+      </radialGradient>
+      <radialGradient id="aq-moon-halo" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#cfd9f2" stop-opacity=".55"/>
+        <stop offset="100%" stop-color="#cfd9f2" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="aq-cloud-light" cx="35%" cy="35%" r="75%">
+        <stop offset="0%" stop-color="#fbfcfe" stop-opacity=".95"/>
+        <stop offset="60%" stop-color="#dde4ee" stop-opacity=".85"/>
+        <stop offset="100%" stop-color="#bcc6d3" stop-opacity=".55"/>
+      </radialGradient>
+      <!-- v1.3.5: night clouds — brighter, more visible against dark sky -->
+      <radialGradient id="aq-cloud-night" cx="35%" cy="35%" r="75%">
+        <stop offset="0%" stop-color="#a8b4cc" stop-opacity=".85"/>
+        <stop offset="60%" stop-color="#7889a8" stop-opacity=".7"/>
+        <stop offset="100%" stop-color="#4a5468" stop-opacity=".45"/>
+      </radialGradient>
+      <radialGradient id="aq-cloud-night-thin" cx="35%" cy="35%" r="75%">
+        <stop offset="0%" stop-color="#c4cee0" stop-opacity=".55"/>
+        <stop offset="60%" stop-color="#8a98b4" stop-opacity=".4"/>
+        <stop offset="100%" stop-color="#5a6478" stop-opacity=".2"/>
+      </radialGradient>
+      <radialGradient id="aq-cloud-grey" cx="40%" cy="35%" r="75%">
+        <stop offset="0%" stop-color="#c8cfdb" stop-opacity=".9"/>
+        <stop offset="60%" stop-color="#8e98a8" stop-opacity=".85"/>
+        <stop offset="100%" stop-color="#5d6678" stop-opacity=".65"/>
+      </radialGradient>
+      <radialGradient id="aq-cloud-storm" cx="40%" cy="30%" r="80%">
+        <stop offset="0%" stop-color="#6b7689" stop-opacity=".95"/>
+        <stop offset="50%" stop-color="#3e4659" stop-opacity=".9"/>
+        <stop offset="100%" stop-color="#1f2433" stop-opacity=".7"/>
+      </radialGradient>
+      <linearGradient id="aq-drop" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#a8d8ff" stop-opacity="0"/>
+        <stop offset="45%" stop-color="#7eb8e8" stop-opacity=".85"/>
+        <stop offset="100%" stop-color="#5a8cba" stop-opacity=".95"/>
+      </linearGradient>
+      <radialGradient id="aq-hail" cx="35%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="60%" stop-color="#d6e4f1"/>
+        <stop offset="100%" stop-color="#7a8fa8" stop-opacity=".9"/>
+      </radialGradient>
+    </defs>`;
+  }
+  function _aqWatercolorBlob(cx, cy, radius, fill, opacity, seedShift) {
+    // Draws a watercolor "puddle": main paint + irregular splotches around the rim
+    // for that hand-painted, organic feel.
+    let s = `<g opacity="${opacity}">`;
+    s += `<ellipse cx="${cx}" cy="${cy}" rx="${radius}" ry="${radius*0.78}" fill="${fill}"/>`;
+    // 4 satellite splotches (smaller, offset, slightly different opacity)
+    for (let i = 0; i < 4; i++) {
+      const a = ((i + seedShift) * (Math.PI * 2 / 4)) + 0.7;
+      const r = radius * (0.55 + ((i + seedShift) % 3) * 0.12);
+      const ox = cx + Math.cos(a) * radius * 0.65;
+      const oy = cy + Math.sin(a) * radius * 0.48;
+      const sr = radius * (0.22 + ((i + seedShift) % 2) * 0.08);
+      s += `<ellipse cx="${ox.toFixed(1)}" cy="${oy.toFixed(1)}" rx="${sr.toFixed(1)}" ry="${(sr*0.7).toFixed(1)}" fill="${fill}" opacity=".65"/>`;
+    }
+    s += `</g>`;
+    return s;
+  }
+  function _aqCloud(cx, cy, scale, gradId, classes, durationSec) {
+    // A watercolor cloud: 5–7 overlapping puddles in roughly horizontal shape.
+    // v1.3.5: animation-duration applied to element itself (not wrapper <g>).
+    const durStyle = durationSec ? ` style="animation-duration:${durationSec}s"` : "";
+    let s = `<g class="${classes}"${durStyle}>`;
+    const blobs = [
+      [0,       0,    1.0],
+      [-1.1,    0.15, 0.85],
+      [1.0,     0.10, 0.82],
+      [-0.55,  -0.35, 0.70],
+      [0.50,   -0.30, 0.72],
+      [-1.7,    0.30, 0.50],
+      [1.6,     0.25, 0.55],
+    ];
+    blobs.forEach(b => {
+      const x = cx + b[0] * scale * 8;
+      const y = cy + b[1] * scale * 5;
+      const r = b[2] * scale * 7;
+      s += `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${r.toFixed(1)}" ry="${(r*0.62).toFixed(1)}" fill="url(#${gradId})"/>`;
+    });
+    s += `</g>`;
+    return s;
+  }
+  function _aqSun(cx, cy, size) {
+    // Watercolor sun: irregular halo (paint splatter) + main disc + soft inner glow.
+    let s = `<g class="aq-sun">`;
+    // Outer halo — large soft puddle
+    s += `<g>`;
+    s += `<circle cx="${cx}" cy="${cy}" r="${size*2.6}" fill="url(#aq-sun-halo)"/>`;
+    s += `</g>`;
+    // 6 painterly rays (irregular blobs around the disc)
+    s += `<g opacity=".55">`;
+    for (let i = 0; i < 6; i++) {
+      const a = (i * 60 + 15) * Math.PI / 180;
+      const r1 = size * 1.4;
+      const r2 = size * 2.2;
+      const x1 = cx + Math.cos(a) * r1;
+      const y1 = cy + Math.sin(a) * r1;
+      const x2 = cx + Math.cos(a) * r2;
+      const y2 = cy + Math.sin(a) * r2;
+      const mx = (x1+x2)/2 + Math.cos(a+Math.PI/2)*1.5;
+      const my = (y1+y2)/2 + Math.sin(a+Math.PI/2)*1.5;
+      s += `<path d="M${x1.toFixed(1)},${y1.toFixed(1)} Q${mx.toFixed(1)},${my.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}" stroke="#ffc26b" stroke-width="${(size*0.4).toFixed(1)}" stroke-linecap="round" fill="none" opacity=".7"/>`;
+    }
+    s += `</g>`;
+    // Disc — main paint puddle
+    s += `<g>`;
+    s += `<ellipse cx="${cx}" cy="${cy}" rx="${size}" ry="${size*0.92}" fill="url(#aq-sun-disc)"/>`;
+    s += `</g>`;
+    s += `</g>`;
+    return s;
+  }
+  function _aqMoon(cx, cy, size, phase) {
+    // v1.3.5: Watercolor moon with REAL phase illumination.
+    // phase: 0.0=new, 0.25=first qtr, 0.5=full, 0.75=last qtr, 1.0=new
+    // Algorithm: draw full bright disc, then overlay shadow ellipse offset based on phase.
+    //   - phase 0–0.5 (waxing): shadow on left side, shrinking
+    //   - phase 0.5–1.0 (waning): shadow on right side, growing
+    if (phase == null) phase = 0.5; // default to full moon if unknown
+    let s = `<g class="aq-moon">`;
+    // Halo
+    s += `<g>`;
+    s += `<circle cx="${cx}" cy="${cy}" r="${size*2.8}" fill="url(#aq-moon-halo)"/>`;
+    s += `</g>`;
+    // Disc (full bright base)
+    s += `<g>`;
+    s += `<ellipse cx="${cx}" cy="${cy}" rx="${size}" ry="${size*0.97}" fill="url(#aq-moon-disc)"/>`;
+    // Phase shadow — elliptical mask that covers unlit portion
+    // illumFrac: 0 = new (all shadow), 1 = full (no shadow)
+    const illumFrac = (phase < 0.5) ? (phase * 2) : ((1 - phase) * 2);
+    // Shadow horizontal radius determines crescent thickness:
+    //   illum=0 → shadow rx = size (fully covers)
+    //   illum=0.5 (half moon) → shadow rx = 0 (straight terminator line, but we use small ellipse for soft edge)
+    //   illum=1 (full) → shadow rx negative (no shadow drawn)
+    const shadowRx = size * (1 - 2 * illumFrac);  // can be negative
+    if (illumFrac < 0.98) {
+      // For waxing (phase < 0.5), shadow is on LEFT; for waning, shadow is on RIGHT
+      const waxing = phase < 0.5;
+      // Shadow ellipse offset: when illumFrac is high (near full), small offset; when low (near new), zero offset (covers fully)
+      const shadowCx = cx + (waxing ? -1 : 1) * Math.abs(shadowRx);
+      // If illumFrac > 0.5 (gibbous), shadow is smaller than disc and inside it
+      // If illumFrac < 0.5 (crescent), shadow is larger; we use the disc-side shadow ellipse
+      if (illumFrac > 0.5) {
+        // Gibbous: small shadow ellipse offset to side
+        const sr = size * (1 - 2 * (1 - illumFrac));
+        s += `<ellipse cx="${(cx + (waxing ? -1 : 1) * (size - sr)).toFixed(1)}" cy="${cy}" rx="${sr.toFixed(1)}" ry="${(size*0.97).toFixed(1)}" fill="#0e1426" opacity=".82"/>`;
+      } else {
+        // Crescent / half: shadow covers most of disc, leaves only crescent
+        // We draw a shadow ellipse that's just slightly smaller than the disc, offset so it covers all but the crescent
+        const sr = size * 0.97;
+        const offsetX = (waxing ? -1 : 1) * sr * (1 - 2 * illumFrac) * 0.5;
+        // Wait — simpler: shadow is FULL size, offset so the unshadowed crescent has correct width
+        const crescentWidth = size * 2 * illumFrac;  // 0 at new, size at half
+        const shadowOffsetX = (waxing ? 1 : -1) * (sr - crescentWidth);
+        s += `<ellipse cx="${(cx + shadowOffsetX).toFixed(1)}" cy="${cy}" rx="${sr.toFixed(1)}" ry="${(size*0.97).toFixed(1)}" fill="#0e1426" opacity=".88"/>`;
+      }
+    }
+    // Craters (subtle paint dots) — only show on illuminated side, faint
+    s += `<ellipse cx="${(cx-size*0.25).toFixed(1)}" cy="${(cy-size*0.15).toFixed(1)}" rx="${(size*0.12).toFixed(1)}" ry="${(size*0.10).toFixed(1)}" fill="#9ba8c4" opacity=".45"/>`;
+    s += `<ellipse cx="${(cx+size*0.05).toFixed(1)}" cy="${(cy+size*0.30).toFixed(1)}" rx="${(size*0.08).toFixed(1)}" ry="${(size*0.07).toFixed(1)}" fill="#9ba8c4" opacity=".35"/>`;
+    s += `</g></g>`;
+    return s;
+  }
+  function _moonPhaseName(p) {
+    if (p < 0.03 || p > 0.97) return "New moon";
+    if (p < 0.22) return "Waxing crescent";
+    if (p < 0.28) return "First quarter";
+    if (p < 0.47) return "Waxing gibbous";
+    if (p < 0.53) return "Full moon";
+    if (p < 0.72) return "Waning gibbous";
+    if (p < 0.78) return "Last quarter";
+    return "Waning crescent";
+  }
+  function _aqStars(count) {
+    let s = "";
+    for (let i = 0; i < count; i++) {
+      const cx = (Math.random() * 100).toFixed(1);
+      const cy = (Math.random() * 70).toFixed(1);
+      const r  = (Math.random() * 0.55 + 0.2).toFixed(2);
+      const op = (Math.random() * 0.55 + 0.45).toFixed(2);
+      const dly = (Math.random() * 4).toFixed(1);
+      // Brighter highlights for ~15% of stars (give some "big" stars character)
+      const bright = Math.random() < 0.15;
+      const fill = bright ? "#ffffff" : "#fffce8";
+      const finalR = bright ? (parseFloat(r) + 0.3).toFixed(2) : r;
+      s += `<circle class="aq-star" cx="${cx}" cy="${cy}" r="${finalR}" fill="${fill}" opacity="${op}" style="animation-delay:-${dly}s"/>`;
+      // Add cross-shaped glow on bright stars
+      if (bright) {
+        s += `<line x1="${cx}" y1="${(parseFloat(cy)-1.2).toFixed(1)}" x2="${cx}" y2="${(parseFloat(cy)+1.2).toFixed(1)}" stroke="#ffffff" stroke-width=".15" opacity=".5"/>`;
+        s += `<line x1="${(parseFloat(cx)-1.2).toFixed(1)}" y1="${cy}" x2="${(parseFloat(cx)+1.2).toFixed(1)}" y2="${cy}" stroke="#ffffff" stroke-width=".15" opacity=".5"/>`;
+      }
+    }
+    return s;
+  }
+  // v1.3.5: shooting star scheduler — fires DOM-level meteors at random intervals
+  let _meteorTimer = null;
+  function _startMeteors() {
+    if (_meteorTimer) clearTimeout(_meteorTimer);
+    function fire() {
+      const wx = $("wx");
+      if (!wx) return;
+      // Only spawn if we're still in a night-sky condition
+      const cond = document.body.dataset.cond;
+      const daypart = document.body.dataset.daypart;
+      if (daypart !== "night" || (cond !== "clear-night" && cond !== "sunny" && cond !== "partlycloudy")) {
+        _meteorTimer = setTimeout(fire, 8000);
+        return;
+      }
+      const m = document.createElement("div");
+      m.className = "aq-meteor";
+      // Start position: random across top 60% of screen, left half
+      m.style.left  = (Math.random() * 40) + "vw";
+      m.style.top   = (Math.random() * 25 + 5) + "vh";
+      wx.appendChild(m);
+      setTimeout(() => m.remove(), 2200);
+      // Next meteor in 10–20 seconds
+      _meteorTimer = setTimeout(fire, 10000 + Math.random() * 10000);
+    }
+    _meteorTimer = setTimeout(fire, 3000 + Math.random() * 5000);
+  }
+  function _stopMeteors() {
+    if (_meteorTimer) { clearTimeout(_meteorTimer); _meteorTimer = null; }
+  }
+  function _aqRain(count, intensity, windSlant) {
+    // Watercolor rain — painterly streaks of varying length/opacity.
+    let s = "";
+    const slantTransform = windSlant ? `transform="rotate(${windSlant})"` : "";
+    for (let i = 0; i < count; i++) {
+      const x = (Math.random() * 110 - 5).toFixed(1);
+      const len = (6 + Math.random() * 6 * intensity).toFixed(1);
+      const dur = (0.45 + Math.random() * 0.55 / Math.max(0.5,intensity)).toFixed(2);
+      const delay = (Math.random() * -2.5).toFixed(2);
+      const sw  = (0.55 + Math.random() * 0.65).toFixed(2);
+      s += `<line class="aq-drop" x1="${x}" y1="0" x2="${x}" y2="${len}" stroke="url(#aq-drop)" stroke-width="${sw}" stroke-linecap="round" style="animation-duration:${dur}s;animation-delay:${delay}s" ${slantTransform}/>`;
+    }
+    return s;
+  }
+  function _aqSnow(count) {
+    let s = "";
+    for (let i = 0; i < count; i++) {
+      const x   = (Math.random() * 100).toFixed(1);
+      const dur = (6 + Math.random() * 7).toFixed(2);
+      const dly = (Math.random() * -6).toFixed(2);
+      const dx  = (-9 + Math.random() * 18).toFixed(1);
+      const rot = (180 + Math.random() * 540).toFixed(0);
+      const r   = (0.55 + Math.random() * 0.9).toFixed(2);
+      // 6-point watercolor flake — just a soft circle with bleed filter for painterly feel
+      s += `<circle class="aq-flake" cx="${x}" cy="0" r="${r}" fill="#fafcff" opacity=".92" style="--dx:${dx}px;--rot:${rot}deg;animation-duration:${dur}s;animation-delay:${dly}s"/>`;
+    }
+    return s;
+  }
+  function _aqHail(count) {
+    let s = "";
+    for (let i = 0; i < count; i++) {
+      const x = (Math.random() * 100).toFixed(1);
+      const dur = (0.7 + Math.random() * 0.5).toFixed(2);
+      const dly = (Math.random() * -2).toFixed(2);
+      const r = (0.85 + Math.random() * 0.7).toFixed(2);
+      s += `<circle class="aq-hail" cx="${x}" cy="0" r="${r}" fill="url(#aq-hail)" style="animation-duration:${dur}s;animation-delay:${dly}s"/>`;
+    }
+    return s;
+  }
+  function _aqFog() {
+    let s = `<g class="aq-fog" opacity=".55">`;
+    for (let i = 0; i < 5; i++) {
+      const y = 28 + i * 16;
+      s += `<ellipse cx="50" cy="${y}" rx="75" ry="5" fill="#dde4ee" opacity=".45"/>`;
+    }
+    s += `</g>`;
+    return s;
+  }
+  function _aqBolt() {
+    // Jagged lightning bolt — painterly stroke
+    return `<g class="aq-bolt">
+      <path d="M58,10 L52,42 L60,42 L48,82 L55,52 L46,52 Z" fill="#fff4c4" opacity=".85"/>
+      <path d="M58,10 L52,42 L60,42 L48,82 L55,52 L46,52 Z" fill="none" stroke="#fff" stroke-width=".6" opacity=".9"/>
+    </g>`;
+  }
+  function _skyTint(cond, daypart, sunElev) {
+    // Returns CSS gradient that goes behind the SVG — sets the overall mood.
+    if (cond === "clear-night" || (daypart === "night" && cond === "sunny"))
+      return "linear-gradient(to bottom,#0a0f1f 0%,#1a2240 55%,#2d3656 100%)";
+    if (cond === "lightning" || cond === "lightning-rainy")
+      return "linear-gradient(to bottom,#1d2331 0%,#2d3548 50%,#3d4660 100%)";
+    if (cond === "pouring" || cond === "snowy-rainy")
+      return "linear-gradient(to bottom,#48556a 0%,#5d6a82 50%,#7a8aa3 100%)";
+    if (cond === "rainy")
+      return "linear-gradient(to bottom,#5e6e88 0%,#7889a3 50%,#92a4be 100%)";
+    if (cond === "snowy")
+      return "linear-gradient(to bottom,#a8b4c8 0%,#c0cad9 50%,#dae2ed 100%)";
+    if (cond === "hail")
+      return "linear-gradient(to bottom,#62718a 0%,#7c8aa3 50%,#98a5bc 100%)";
+    if (cond === "fog")
+      return "linear-gradient(to bottom,#9ba6b7 0%,#b5becd 50%,#cdd5e0 100%)";
+    if (cond === "cloudy")
+      return "linear-gradient(to bottom,#7a8499 0%,#959fb3 50%,#b0bac9 100%)";
+    if (cond === "windy")
+      return "linear-gradient(to bottom,#6b8aa8 0%,#8aa3bc 50%,#a8bcd1 100%)";
+    if (cond === "partlycloudy") {
+      if (daypart === "night") return "linear-gradient(to bottom,#1a2240 0%,#3a4566 60%,#5c6680 100%)";
+      // Golden-hour tint when sun is low (< 25° above horizon)
+      if (sunElev != null && sunElev < 25 && sunElev > -2)
+        return "linear-gradient(to bottom,#ff9a5a 0%,#ffc279 35%,#b6c8e0 100%)";
+      return "linear-gradient(to bottom,#5d8fc0 0%,#88b3da 50%,#bdd3e8 100%)";
+    }
+    // sunny daytime
+    if (sunElev != null && sunElev < 18 && sunElev > -2)
+      return "linear-gradient(to bottom,#ff8a3a 0%,#ffb968 30%,#ffd2a0 60%,#b6c8e0 100%)";
+    return "linear-gradient(to bottom,#4a90d0 0%,#7fb6e0 50%,#bfdcef 100%)";
+  }
+  // v1.3.8: iOS Safari silently drops SVG content set via div.innerHTML
+  // (xmlns/namespace inheritance bug). Parse SVG as proper image/svg+xml and
+  // adopt the node so it renders reliably on Safari/WebKit.
+  function _injectSvg(parent, svgString) {
+    try {
+      const doc = new DOMParser().parseFromString(svgString, "image/svg+xml");
+      const svgEl = doc.documentElement;
+      if (svgEl && svgEl.nodeName.toLowerCase() === "svg") {
+        const adopted = document.importNode(svgEl, true);
+        parent.appendChild(adopted);
+        return true;
+      }
+    } catch (e) { /* fall through */ }
+    return false;
+  }
+  function renderWx(cond, daypart, opts) {
+    opts = opts || {};
+    const wx = $("wx"); if (!wx) return;
+    // Stop any active meteor loop — we'll restart if appropriate below
+    _stopMeteors();
+    const isNight = daypart === "night";
+    // Decide which condition family we're in.
+    const isRainy   = (cond === "rainy" || cond === "pouring" || cond === "lightning-rainy" || cond === "snowy-rainy");
+    const isSnowy   = (cond === "snowy" || cond === "snowy-rainy");
+    const isHail    = (cond === "hail");
+    const isLight   = (cond === "lightning" || cond === "lightning-rainy");
+    const isFog     = (cond === "fog");
+    const isWindy   = (cond === "windy");
+    const isCloudy  = ["partlycloudy","cloudy","rainy","pouring","snowy","snowy-rainy","lightning","lightning-rainy","windy","hail"].includes(cond);
+    const showSun   = (cond === "sunny" && !isNight) || (cond === "partlycloudy" && !isNight);
+    const showMoon  = (cond === "clear-night" || ((cond === "sunny" || cond === "partlycloudy") && isNight));
+
+    // Sensor-driven knobs (with sane fallbacks)
+    const rainRate = Math.max(0, Math.min(20, opts.rain_rate_mm_h || 0));     // 0 → forecast-based, >0 → live
+    const windKmh  = Math.max(0, Math.min(80, opts.wind_kmh || 0));
+    const uv       = Math.max(0, Math.min(11, opts.uv_index || 0));
+    const sunElev  = (opts.sun_elev != null) ? opts.sun_elev : null;
+
+    // Drop count: forecast gives base, live rain_rate scales up.
+    let baseDrops = 0;
+    if (cond === "pouring") baseDrops = 95;
+    else if (cond === "rainy" || cond === "lightning-rainy") baseDrops = 55;
+    else if (cond === "snowy-rainy") baseDrops = 35;
+    const liveBoost = rainRate > 0 ? Math.min(60, Math.round(rainRate * 12)) : 0;
+    const drops = isRainy ? Math.max(baseDrops, baseDrops + liveBoost) : 0;
+    const rainIntensity = Math.max(0.6, Math.min(2.2, 1 + rainRate / 10));
+    const windSlant = windKmh > 10 ? Math.min(18, (windKmh - 10) * 0.35) : 0;
+
+    const flakes = isSnowy ? (cond === "snowy-rainy" ? 45 : 80) : 0;
+    const hailDots = isHail ? 50 : 0;
+
+    // Wind speeds up cloud drift
+    const cloudSpeedMult = Math.max(0.4, Math.min(3, 1 + windKmh / 25));
+
+    // Sky gradient layer
+    let bg = `<div class="sky-grad" style="background:${_skyTint(cond, daypart, sunElev)}"></div>`;
+
+    // Build SVG
+    // v1.3.7: explicit width/height + fixed-positioned wrapper sizing — guarantee SVG paints
+    let svg = `<svg width="100%" height="100%" viewBox="0 0 100 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">${_aqDefs()}`;
+
+    // Stars before everything (night only) — denser counts in v1.3.5
+    if (isNight && !isCloudy) svg += _aqStars(140);
+    if (isNight && cond === "partlycloudy") svg += _aqStars(80);
+
+    // Sun / moon
+    if (showSun) {
+      // UV-driven size + brightness boost; golden-hour shifts sun lower
+      const sunSize = 11 + Math.min(4, uv * 0.4);
+      const sunY = (sunElev != null && sunElev < 25 && sunElev > 0) ? 36 : 22;
+      svg += _aqSun(72, sunY, sunSize);
+    }
+    if (showMoon) svg += _aqMoon(72, 26, 11, opts.moon_phase);
+
+    // Clouds (3 layers for parallax, far→near)
+    // v1.3.5: animation-duration must be on the animated element itself, not wrapper <g>.
+    if (isCloudy) {
+      // Pick gradient by severity — at night, use brighter night-tuned palette so they
+      // stand out against dark sky.
+      let gradFar, gradMid, gradNear;
+      if (isNight && (cond === "partlycloudy")) {
+        gradFar = "aq-cloud-night-thin";
+        gradMid = "aq-cloud-night";
+        gradNear = "aq-cloud-night";
+      } else if (isNight && cond === "cloudy") {
+        gradFar = "aq-cloud-night";
+        gradMid = "aq-cloud-night";
+        gradNear = "aq-cloud-night";
+      } else {
+        gradFar = (isLight || cond === "pouring") ? "aq-cloud-storm" : (cond === "cloudy" || cond === "rainy" || cond === "snowy-rainy" || cond === "hail") ? "aq-cloud-grey" : "aq-cloud-light";
+        gradMid = (isLight) ? "aq-cloud-storm" : (cond === "pouring" || cond === "rainy" || cond === "snowy-rainy" || cond === "hail") ? "aq-cloud-grey" : "aq-cloud-light";
+        gradNear = (isLight || cond === "pouring") ? "aq-cloud-storm" : (cond === "rainy" || cond === "snowy-rainy" || cond === "hail" || cond === "cloudy") ? "aq-cloud-grey" : "aq-cloud-light";
+      }
+
+      // Speed varies per layer + wind (slower = farther). Inline on each cloud directly.
+      const farSpeed  = (180 / cloudSpeedMult).toFixed(0);
+      const midSpeed  = (120 / cloudSpeedMult).toFixed(0);
+      const nearSpeed = (80  / cloudSpeedMult).toFixed(0);
+
+      // Far layer — small, high, transparent
+      svg += _aqCloud(20, 18, 1.1, gradFar, "aq-cloud-far", farSpeed);
+      svg += _aqCloud(70, 14, 0.9, gradFar, "aq-cloud-far", farSpeed);
+
+      // Mid layer
+      svg += _aqCloud(35, 38, 1.5, gradMid, "aq-cloud-mid", midSpeed);
+      svg += _aqCloud(82, 32, 1.3, gradMid, "aq-cloud-mid", midSpeed);
+
+      // Near layer — only for heavier conditions, sits lower
+      if (cond === "pouring" || isLight || cond === "cloudy" || cond === "hail") {
+        svg += _aqCloud(50, 62, 2.0, gradNear, "aq-cloud-near", nearSpeed);
+      }
+    }
+
+    // Precipitation
+    if (drops > 0) svg += _aqRain(drops, rainIntensity, windSlant);
+    if (flakes > 0) svg += _aqSnow(flakes);
+    if (hailDots > 0) svg += _aqHail(hailDots);
+
+    // Fog
+    if (isFog) svg += _aqFog();
+
+    // Lightning bolt (rendered above clouds, fires on flash keyframe)
+    if (isLight) svg += _aqBolt();
+
+    svg += `</svg>`;
+
+    // Wind shimmer — add some extra fast far clouds for windy condition
+    if (isWindy) {
+      // Already covered by cloudSpeedMult above
+    }
+
+    // Paper grain overlay + flash for storms
+    let extra = `<div class="paper"></div>`;
+    if (isLight) extra += `<div class="aq-flash"></div>`;
+
+    // v1.3.8: build DOM in pieces — innerHTML for HTML wrappers, DOMParser for SVG.
+    wx.innerHTML = bg;
+    if (!_injectSvg(wx, svg)) {
+      // Fallback if parser somehow fails — last resort
+      wx.insertAdjacentHTML("beforeend", svg);
+    }
+    wx.insertAdjacentHTML("beforeend", extra);
+
+    // v1.3.5: kick off shooting stars on clear/partly-cloudy nights
+    if (isNight && (cond === "clear-night" || cond === "sunny" || cond === "partlycloudy")) {
+      _startMeteors();
+    }
+  }
+  function applyBackdrop(d) {
+    const cond = (d.weather_forecast && d.weather_forecast.condition)
+              || (d.weather_now && d.weather_now.condition)
+              || "partlycloudy";
+    const daypart = d.sun_above ? "day" : "night";
+    document.body.dataset.cond = cond;
+    document.body.dataset.daypart = daypart;
+    // Sensor inputs for live, condition-aware rendering.
+    const wr = d.weather_real || {};
+    // v1.3.6: try/catch so a backdrop render bug doesn't disappear silently
+    try {
+      renderWx(cond, daypart, {
+        rain_rate_mm_h: wr.rain_rate_mm_h,
+        wind_kmh:       wr.wind_kmh,
+        uv_index:       wr.uv_index,
+        sun_elev:       (d.sun_summary && d.sun_summary.elev_deg) || null,
+        moon_phase:     d.moon_phase,
+      });
+    } catch (e) {
+      console.error("renderWx failed:", e);
+      // Visible breadcrumb in footer so we can spot a backdrop fault without DevTools
+      const f = document.querySelector(".footer");
+      if (f) f.textContent = "v1.5.2 \u00b7 bg err: " + (e.message || e);
+    }
+  }
+  /* ============================================================
+     v1.5.0 — SKINS SYSTEM (JS)
+     ============================================================ */
+  const SKIN_DEFAULTS = { bg:"realistic", ui:"realistic" };
+  const SKIN_AVAILABLE = {
+    bg: ["realistic","watercolor"],   // pencil deferred
+    ui: ["realistic","watercolor"],
+  };
+  function _skinGet(){
+    try{
+      return {
+        bg: localStorage.getItem("gardenBgSkin") || SKIN_DEFAULTS.bg,
+        ui: localStorage.getItem("gardenUiSkin") || SKIN_DEFAULTS.ui,
+      };
+    }catch(e){ return Object.assign({}, SKIN_DEFAULTS); }
+  }
+  function _skinSet(kind, value){
+    try{
+      localStorage.setItem(kind==="bg"?"gardenBgSkin":"gardenUiSkin", value);
+    }catch(e){}
+    _skinApply();
+    // Re-render backdrop immediately so user sees the change
+    if(window.__lastBackdropState) {
+      try { applyBackdrop(window.__lastBackdropState); } catch(e){}
+    }
+  }
+  function _skinApply(){
+    const s = _skinGet();
+    document.body.dataset.bgSkin = s.bg;
+    document.body.dataset.uiSkin = s.ui;
+    // Update modal active states if open
+    document.querySelectorAll(".skin-opt").forEach(el=>{
+      const k = el.dataset.kind, v = el.dataset.skin;
+      el.classList.toggle("active", s[k] === v);
+    });
+  }
+  function openSkinModal(){
+    _skinApply();
+    const m = document.getElementById("skin-modal-bg");
+    if(m){ m.classList.add("open"); }
+  }
+  function closeSkinModal(){
+    const m = document.getElementById("skin-modal-bg");
+    if(m){ m.classList.remove("open"); }
+  }
+  function _skinPick(kind, value){
+    if(!SKIN_AVAILABLE[kind].includes(value)) return;
+    _skinSet(kind, value);
+  }
+  // Season (Northern hemisphere) — for filter tint
+  function _seasonNow(){
+    const m = new Date().getMonth(); // 0..11
+    if(m===11||m<=1) return "winter";
+    if(m<=4) return "spring";
+    if(m<=7) return "summer";
+    return "autumn";
+  }
+
+  /* ----------- Watercolor BG compositor ----------- */
+  // Map (condition, isNight, cloudiness) -> sky base tile.
+  // image-55 sky-01..05 = day (clear→stormy), sky-06..10 = night (clear→stormy).
+  // image-60 clearday-01..05 = clean day gradients (light→deep blue + dusk).
+  // image-59 clearnight-01..05 = clean night gradients (incl. dusk on tile 2).
+  // image-56 sunclouds-01..10 = sun behind clouds, varying brightness.
+  function _wcvPickSky(cond, isNight, sunElev) {
+    // v1.5.2: clear/sunny days use CLEAN sky bases; sun is overlayed by _wcvSunPosition.
+    //         Cloudy scenes use painted scenes that have clouds baked in.
+    const base = "/garden/static/sky/watercolor/";
+    const partly = (cond === "partlycloudy");
+    const stormy = ["lightning","lightning-rainy","pouring"].includes(cond);
+    const overcast = ["cloudy","rainy","snowy","snowy-rainy","hail","fog"].includes(cond);
+
+    if(isNight){
+      if(stormy) return base + "sky-10.jpg";
+      if(overcast) return base + "sky-09.jpg";
+      if(partly) return base + "sky-07.jpg";
+      // Clear night — clean gradient; moon overlay positioned separately
+      // Twilight: clearnight-02 has pink horizon
+      const h = new Date().getHours();
+      if(h >= 20 && h <= 22) return base + "clearnight-02.jpg"; // post-sunset dusk
+      if(h >= 5 && h <= 6)   return base + "clearnight-02.jpg"; // pre-dawn
+      // Deep night options: cleanest is clearnight-04
+      return base + "clearnight-04.jpg";
+    } else {
+      if(stormy)   return base + "sky-05.jpg";
+      if(overcast) return base + "sky-04.jpg";
+      if(partly){
+        // Partly cloudy keeps a painted-clouds scene; sun overlay also drawn on top
+        return base + "sky-02.jpg"; // pale blue with cloud strokes — friendly base
+      }
+      // CLEAR sunny — use a CLEAN gradient; sun + rays are overlaid by JS.
+      // clearday-01 = bright blue, 04 = a bit deeper, 05 = sunset peach
+      const h = new Date().getHours();
+      if(h <= 6 || h >= 20) return base + "clearday-05.jpg"; // dawn/dusk peach
+      if(h <= 8 || h >= 18) return base + "clearday-03.jpg"; // golden-hour mid
+      return base + "clearday-01.jpg";                       // bright blue midday
+    }
+  }
+  // v1.5.2: compute sun/moon screen position from current local time.
+  // Returns {x:%, y:%, visible:bool} where x is across screen, y down.
+  function _wcvSunPosition(){
+    const now = new Date();
+    const m = now.getHours()*60 + now.getMinutes();
+    // Approx: sunrise=6:00 (m=360), sunset=20:30 (m=1230); arc peaks at midday m=795.
+    const SR = 360, SS = 1230, MID = (SR+SS)/2;
+    if(m < SR - 30 || m > SS + 30) return {x:50, y:90, visible:false};
+    // Normalize to 0..1 across the day arc.
+    const t = (m - SR) / (SS - SR);    // 0..1
+    // Sun travels left→right; rises low, peaks high, descends low.
+    const x = 12 + t * 76;             // 12% (sunrise east) to 88% (sunset west)
+    // y: parabola — peak at t=0.5 (top), low at t=0/1 (bottom)
+    const y = 80 - Math.sin(t * Math.PI) * 65;   // 80% at horizon → 15% at noon
+    return {x:Math.round(x), y:Math.round(y), visible:true};
+  }
+  // Moon position: orbits opposite of sun. For simplicity, just place it on
+  // the side opposite to where the sun would be, slightly higher than horizon.
+  function _wcvMoonPosition(){
+    const now = new Date();
+    const m = now.getHours()*60 + now.getMinutes();
+    // Moon mostly visible at night; we drift it east→west over the night too.
+    // Treat night as 20:30 (m=1230) wrapping to 06:00 (m=360) the next day.
+    let phase;
+    if(m >= 1230) phase = (m - 1230) / (24*60 - 1230 + 360);
+    else if(m <= 360) phase = (m + (24*60 - 1230)) / (24*60 - 1230 + 360);
+    else phase = 0.5;
+    const x = 15 + phase * 70;
+    const y = 70 - Math.sin(phase * Math.PI) * 55;
+    return {x:Math.round(x), y:Math.round(y), visible:true};
+  }
+  // Pick a sun-arc strip from image-57 based on azimuth/elevation.
+  // For now: simple time-of-day mapping using sun_elev as proxy.
+  function _wcvPickSunArc(sunElev) {
+    const base = "/garden/static/sky/watercolor/sunarc-";
+    // 5 strips: sunrise-left, mid-morning, noon, afternoon, sunset
+    // Approx: elev <5 => sunrise/sunset; 5-30 => mid; >30 => noon
+    if(sunElev == null) return base + "03.jpg";
+    if(sunElev < 5)  return null;            // already covered by clearday-05 horizon glow
+    if(sunElev < 15) return base + "02.jpg";
+    if(sunElev < 35) return base + "03.jpg";
+    if(sunElev < 55) return base + "01.jpg";
+    return base + "03.jpg";
+  }
+  // Moon: 12 tiles, phase 0..1
+  function _wcvPickMoon(phase) {
+    if(phase == null) phase = 0.5;
+    // tile-01 = new, tile-06 = full, tile-12 = new again (waning crescent very thin)
+    let idx = Math.round(phase * 12);
+    if(idx < 1) idx = 1; if(idx > 12) idx = 12;
+    return "/garden/static/sky/watercolor/moon-" + String(idx).padStart(2,"0") + ".jpg";
+  }
+
+  // Build / refresh the watercolor stack. Idempotent.
+  function _wcvEnsureStack(wx){
+    if(wx.querySelector(".wcv-sky")) return; // already built
+    // Two sky layers for crossfade
+    const skyA = document.createElement("div"); skyA.className = "wcv-sky"; skyA.id="wcv-sky-a";
+    const skyB = document.createElement("div"); skyB.className = "wcv-sky"; skyB.id="wcv-sky-b";
+    const sun  = document.createElement("div"); sun.className  = "wcv-sun"; sun.id="wcv-sun";
+    const moon = document.createElement("div"); moon.className = "wcv-moon"; moon.id="wcv-moon";
+    const stars= document.createElement("div"); stars.className= "wcv-stars"; stars.id="wcv-stars";
+    const rain = document.createElement("div"); rain.className = "wcv-rain"; rain.id="wcv-rain";
+    const snow = document.createElement("div"); snow.className = "wcv-snow"; snow.id="wcv-snow";
+    const flash= document.createElement("div"); flash.className= "wcv-flash";flash.id="wcv-flash";
+    const paper= document.createElement("div"); paper.className= "wcv-paper";paper.id="wcv-paper";
+    // v1.5.2: always-on motion + sun ring + moon halo
+    const raysRing = document.createElement("div"); raysRing.className = "wcv-rays-ring"; raysRing.id="wcv-rays-ring";
+    const moonHalo = document.createElement("div"); moonHalo.className = "wcv-moon-halo"; moonHalo.id="wcv-moon-halo";
+    const wind  = document.createElement("div"); wind.className  = "wcv-wind";  wind.id="wcv-wind";
+    const drift = document.createElement("div"); drift.className = "wcv-drift"; drift.id="wcv-drift";
+    drift.innerHTML = `
+      <div class="wcv-puff" style="top:18%;animation-duration:90s;animation-delay:0s"></div>
+      <div class="wcv-puff" style="top:34%;animation-duration:140s;animation-delay:-50s;opacity:.7"></div>
+      <div class="wcv-puff" style="top:6%;animation-duration:180s;animation-delay:-110s;opacity:.5"></div>
+    `;
+    wx.appendChild(skyA); wx.appendChild(skyB);
+    wx.appendChild(drift);
+    wx.appendChild(raysRing); wx.appendChild(sun);
+    wx.appendChild(moonHalo); wx.appendChild(moon);
+    wx.appendChild(stars);wx.appendChild(rain);wx.appendChild(snow);
+    wx.appendChild(flash);wx.appendChild(paper);wx.appendChild(wind);
+    // Pre-render star dots once
+    let sHTML = "";
+    for(let i=0;i<70;i++){
+      const x = (Math.random()*100).toFixed(2);
+      const y = (Math.random()*55).toFixed(2);
+      const d = (2+Math.random()*5).toFixed(2);
+      const delay = (Math.random()*4).toFixed(2);
+      sHTML += `<div class="wcv-star" style="left:${x}%;top:${y}%;animation-duration:${d}s;animation-delay:${delay}s"></div>`;
+    }
+    stars.innerHTML = sHTML;
+  }
+  function _wcvSetSky(url){
+    const a = document.getElementById("wcv-sky-a");
+    const b = document.getElementById("wcv-sky-b");
+    if(!a || !b) return;
+    // Crossfade: whichever is currently visible becomes the "old", the other gets the new url
+    const showing = a.classList.contains("show") ? a : (b.classList.contains("show") ? b : a);
+    const hidden  = (showing === a) ? b : a;
+    // If same image already showing, nothing to do
+    if(showing.style.backgroundImage === `url("${url}")` || showing.dataset.url === url) return;
+    hidden.style.backgroundImage = `url("${url}")`;
+    hidden.dataset.url = url;
+    requestAnimationFrame(()=>{
+      hidden.classList.add("show");
+      showing.classList.remove("show");
+    });
+  }
+  function _wcvSetParticles(kind, n){
+    // kind: "rain" or "snow"; n = count (0 to hide)
+    const el = document.getElementById(kind === "rain" ? "wcv-rain" : "wcv-snow");
+    if(!el) return;
+    if(n <= 0){ el.classList.remove("show"); el.innerHTML = ""; return; }
+    // Re-render only if count changed
+    if(el.children.length === n){ el.classList.add("show"); return; }
+    let html = "";
+    for(let i=0;i<n;i++){
+      const x = (Math.random()*100).toFixed(2);
+      const delay = (Math.random()*2).toFixed(2);
+      if(kind === "rain"){
+        const dur = (0.6 + Math.random()*0.5).toFixed(2);
+        const h   = (14 + Math.random()*10).toFixed(0);
+        html += `<div class="wcv-drop" style="left:${x}%;height:${h}px;animation-duration:${dur}s;animation-delay:${delay}s"></div>`;
+      } else {
+        const dur = (6 + Math.random()*5).toFixed(2);
+        const dx  = ((Math.random()-0.5)*60).toFixed(0);
+        const sz  = (4 + Math.random()*4).toFixed(1);
+        html += `<div class="wcv-flake" style="left:${x}%;width:${sz}px;height:${sz}px;--dx:${dx}px;animation-duration:${dur}s;animation-delay:${delay}s"></div>`;
+      }
+    }
+    el.innerHTML = html;
+    el.classList.add("show");
+  }
+  function renderWxWatercolor(cond, daypart, opts){
+    opts = opts || {};
+    const wx = document.getElementById("wx");
+    if(!wx) return;
+    _wcvEnsureStack(wx);
+
+    const isNight = daypart === "night";
+    const isRainy = (cond === "rainy" || cond === "pouring" || cond === "lightning-rainy" || cond === "snowy-rainy");
+    const isSnowy = (cond === "snowy" || cond === "snowy-rainy");
+    const isClearDay = (cond === "sunny" && !isNight);
+    const isClearNight = (cond === "clear-night" || (cond === "sunny" && isNight));
+    const sunElev = (opts.sun_elev != null) ? opts.sun_elev : null;
+
+    // Sky base
+    const skyUrl = _wcvPickSky(cond, isNight, sunElev);
+    _wcvSetSky(skyUrl);
+
+    // v1.5.2: sun + ray ring positioned by time-of-day on clear & partly-cloudy days
+    const sunEl = document.getElementById("wcv-sun");
+    const ringEl = document.getElementById("wcv-rays-ring");
+    const showSun = !isNight && (cond === "sunny" || cond === "partlycloudy");
+    if(showSun){
+      const pos = _wcvSunPosition();
+      if(pos.visible){
+        document.body.style.setProperty("--sun-x", pos.x);
+        document.body.style.setProperty("--sun-y", pos.y);
+        sunEl.classList.add("show");
+        if(cond === "sunny") ringEl.classList.add("show");
+        else ringEl.classList.remove("show"); // no big rays through clouds
+      } else {
+        sunEl.classList.remove("show");
+        ringEl.classList.remove("show");
+      }
+    } else {
+      sunEl.classList.remove("show");
+      ringEl.classList.remove("show");
+    }
+
+    // Moon overlay (clear night or partly cloudy night) — positioned by time
+    const moonEl = document.getElementById("wcv-moon");
+    const haloEl = document.getElementById("wcv-moon-halo");
+    const showMoon = isNight && (isClearNight || cond === "partlycloudy" || cond === "clear-night");
+    if(showMoon){
+      const pos = _wcvMoonPosition();
+      document.body.style.setProperty("--moon-x", pos.x);
+      document.body.style.setProperty("--moon-y", pos.y);
+      // Use the phase-specific tile if a moon_phase is provided, else the cropped disc
+      if(opts.moon_phase != null){
+        moonEl.style.backgroundImage = `url("${_wcvPickMoon(opts.moon_phase)}")`;
+      } else {
+        moonEl.style.backgroundImage = `url("/garden/static/sky/watercolor/moon-disc.png")`;
+      }
+      moonEl.classList.add("show");
+      haloEl.classList.add("show");
+    } else {
+      moonEl.classList.remove("show");
+      haloEl.classList.remove("show");
+    }
+
+    // Stars (clear night enhancement on top of painted stars)
+    const starsEl = document.getElementById("wcv-stars");
+    if(isClearNight) starsEl.classList.add("show"); else starsEl.classList.remove("show");
+
+    // Rain
+    let dropCount = 0;
+    if(cond === "pouring") dropCount = 70;
+    else if(cond === "rainy" || cond === "lightning-rainy") dropCount = 45;
+    else if(cond === "snowy-rainy") dropCount = 25;
+    const rainBoost = (opts.rain_rate_mm_h || 0) > 0 ? Math.min(40, Math.round(opts.rain_rate_mm_h * 8)) : 0;
+    _wcvSetParticles("rain", isRainy ? Math.max(dropCount, dropCount + rainBoost) : 0);
+
+    // Snow
+    _wcvSetParticles("snow", isSnowy ? (cond === "snowy-rainy" ? 40 : 70) : 0);
+    // v1.5.2: Wind streaks (live motion) — driven by wind_kmh OR windy condition
+    const windKmh = Math.max(0, Math.min(120, opts.wind_kmh || 0));
+    const isWindyCond = (cond === "windy" || cond === "windy-variant" || cond === "exceptional");
+    // Visible threshold: 18 km/h or explicit windy condition
+    const showWind = isWindyCond || windKmh >= 18;
+    const windEl = document.getElementById("wcv-wind");
+    if(windEl){
+      if(showWind){
+        // Streak count scales 8..32 based on wind speed (or 22 for windy condition with no number)
+        const baseCount = isWindyCond ? 22 : 0;
+        const speedCount = Math.round(Math.max(0, (windKmh - 12)) * 0.6);
+        const count = Math.max(8, Math.min(32, baseCount + speedCount));
+        // Streak duration scales: faster wind = shorter sweep (4s..14s)
+        const speed = Math.max(15, windKmh || 25);
+        const baseDur = Math.max(4, Math.min(14, 280 / speed));
+        let html = "";
+        for(let i=0; i<count; i++){
+          const top = Math.random() * 75; // upper 3/4 of sky mostly
+          const w = 18 + Math.random() * 28; // 18..46vw streak
+          const dur = baseDur * (0.75 + Math.random() * 0.7); // jitter
+          const delay = -Math.random() * dur;
+          const op = 0.55 + Math.random() * 0.45;
+          html += `<div class="wcv-streak" style="top:${top.toFixed(1)}%;left:-30vw;width:${w.toFixed(0)}vw;opacity:${op.toFixed(2)};animation-duration:${dur.toFixed(1)}s;animation-delay:${delay.toFixed(1)}s"></div>`;
+        }
+        windEl.innerHTML = html;
+        windEl.classList.add("show");
+      } else {
+        windEl.classList.remove("show");
+        windEl.innerHTML = "";
+      }
+    }
+
+    // v1.5.2: Speed up cloud drift puffs when windy
+    const driftEl = document.getElementById("wcv-drift");
+    if(driftEl){
+      const puffs = driftEl.querySelectorAll(".wcv-puff");
+      // Base durations from the original markup: 90s, 140s, 180s
+      const factor = showWind ? Math.max(0.25, Math.min(1.0, 30 / Math.max(20, windKmh || 30))) : 1.0;
+      const baseDurs = [90, 140, 180];
+      puffs.forEach((p, i) => {
+        const d = (baseDurs[i] || 120) * factor;
+        p.style.animationDuration = d.toFixed(0) + "s";
+      });
+    }
+
+
+    // Season filter
+    document.body.dataset.season = _seasonNow();
+  }
+
+  /* ----------- Skin-aware backdrop dispatch ----------- */
+  // We don't replace the original renderWx; we just gate it by skin.
+  function applyBackdropSkinAware(d){
+    window.__lastBackdropState = d; // save for skin-change re-render
+    const cond = (d.weather_forecast && d.weather_forecast.condition)
+              || (d.weather_now && d.weather_now.condition)
+              || "partlycloudy";
+    const daypart = d.sun_above ? "day" : "night";
+    document.body.dataset.cond = cond;
+    document.body.dataset.daypart = daypart;
+    const wr = d.weather_real || {};
+    const opts = {
+      rain_rate_mm_h: wr.rain_rate_mm_h,
+      wind_kmh:       wr.wind_kmh,
+      uv_index:       wr.uv_index,
+      sun_elev:       (d.sun_summary && d.sun_summary.elev_deg) || null,
+      moon_phase:     d.moon_phase,
+    };
+    const skin = _skinGet().bg;
+    try {
+      if(skin === "watercolor") {
+        // Clear legacy SVG layer (CSS hides it but we also wipe content)
+        // Actually we leave it; CSS display:none handles it.
+        renderWxWatercolor(cond, daypart, opts);
+      } else {
+        // realistic — call original
+        renderWx(cond, daypart, opts);
+      }
+    } catch(e){
+      console.error("backdrop render failed:", e);
+      const f = document.querySelector(".footer");
+      if(f) f.textContent = "v1.5.2 \u00b7 bg err: " + (e.message || e);
+    }
+  }
+
+  // dayLabel removed — server now provides timezone-safe weekday in forecast.weekday
+  async function load(){
+    try{
+      const r = await fetch("/garden/api/state",{credentials:"same-origin"});
+      if(r.status===401){ location.href="/garden/pin"; return; }
+      const d = await r.json();
+      // Legacy fields (used by history chart)
+      // $("moist") and $("temp") elements removed from grid — chart modal still works
+      $("bat").textContent   = d.battery + "%";
+      $("valve").textContent = d.valve === "open" ? "Open" : (d.valve === "closed" ? "Closed" : d.valve);
+
+      const pill = $("status");
+      pill.textContent = d.status_text;
+      pill.className = "pill " + d.status_kind;
+
+      // Freeze warning (only show the banner; tile refs are gone in v1.3.2)
+      const fzEl = $("freeze");
+      const fzTempEl = $("freeze-temp");
+      if(d.freeze_alert){
+        if(fzEl) fzEl.style.display = "flex";
+        if(fzTempEl && d.temperature != null) fzTempEl.textContent = Number(d.temperature).toFixed(1);
+      }else{
+        if(fzEl) fzEl.style.display = "none";
+      }
+
+      // Solar tile is now driven by refreshSunTile() / sun_summary.
+      // Forward sun_above from state so the tile night class stays accurate.
+      if(_sunData) { _sunData.sun_above = d.sun_above; renderSunTile(_sunData); }
+
+      // Last watered (now uses combined valve + binary_sensor signals)
+      $("last").textContent = d.last_watered_age || "never";
+
+      // v1.3.2: Forecast tile (weather.forecast_home)
+      const wn = d.weather_forecast || d.weather_now || {};
+      const fcTemp = wn.temp_c != null ? wn.temp_c : wn.temperature;
+      $("now-temp").textContent = fcTemp != null ? Number(fcTemp).toFixed(1) : "--";
+      $("now-ico").textContent = ICONS[wn.condition] || "⋯";
+      $("now-cond-text").textContent = (wn.condition || "—").replace(/-/g," ");
+      $("now-humidity").textContent = wn.humidity != null ? `💧 ${wn.humidity}% humidity` : "--% humidity";
+      const rainEl = $("now-rain");
+      if(d.rain_outdoor_now){
+        rainEl.textContent = "☔ Rain detected";
+        rainEl.className = "rain-on";
+      }else{
+        rainEl.textContent = "No rain in forecast";
+        rainEl.className = "rain-off";
+      }
+      // v1.3.2: REAL tile (Ecowitt sensor)
+      const wr = d.weather_real || {};
+      if ($("real-temp")) $("real-temp").textContent = wr.temp_c   != null ? Number(wr.temp_c).toFixed(1)   : "--";
+      if ($("real-hum"))  $("real-hum").textContent  = wr.humidity != null ? Math.round(wr.humidity)        : "--";
+      if ($("real-uv"))   $("real-uv").textContent   = wr.uv_index != null ? wr.uv_index                    : "--";
+      const realRainEl = $("real-rain");
+      if (realRainEl) {
+        if (wr.rain_now) {
+          realRainEl.textContent = wr.rain_rate_mm_h ? `☔ Raining ${wr.rain_rate_mm_h} mm/h` : "☔ Rain now";
+          realRainEl.className = "rain-on";
+        } else {
+          realRainEl.textContent = wr.rain_today_mm ? `Today ${wr.rain_today_mm} mm` : "No rain";
+          realRainEl.className = "rain-off";
+        }
+      }
+
+      // Buttons
+      $("btn-start").classList.toggle("disabled", d.is_watering);
+      $("btn-stop").classList.toggle("disabled", !d.is_watering);
+
+      // Apply weather backdrop
+      applyBackdropSkinAware(d);
+
+      // Forecast — skip today (shown in current conditions card above), show next 3 days
+      const fc = $("forecast"); fc.innerHTML = "";
+      const todayStr = d.today_local || new Date().toLocaleDateString("en-CA");  // server-side, Toronto
+      const future = (d.forecast || []).filter(f => f.date > todayStr).slice(0,3);
+      future.forEach((f) => {
+        const ico = ICONS[f.cond] || "•";
+        const lbl = f.weekday || "";  // server-side, timezone-safe
+        const rain = (f.precip_prob != null) ? `${f.precip_prob}%` : (f.precip ? `${f.precip}mm` : "");
+        fc.insertAdjacentHTML("beforeend",
+          `<div class="fc"><div class="day">${lbl}</div><div class="ico">${ico}</div>
+           <div class="hilo">${f.high ?? "?"}° / ${f.low ?? "?"}°</div>
+           <div class="rain">${rain ? "☔ "+rain : ""}</div></div>`);
+      });
+
+      // Hydrawise zones
+      const zl = $("zones-list"); zl.innerHTML = "";
+      (d.zones || []).forEach(z => {
+        let st, stCls;
+        if(z.watering){ st = "watering now"; stCls = "watering"; }
+        else if(z.schedule === "suspended"){ st = "suspended"; stCls = "suspended"; }
+        else if(z.schedule_when){ st = "next: " + z.schedule_when; stCls = "scheduled"; }
+        else{ st = "scheduled"; stCls = "scheduled"; }
+        const veg = z.is_veg ? " veg" : "";
+        zl.insertAdjacentHTML("beforeend",
+          `<div class="zone${veg}"><span class="nm"><span class="dot ${stCls}"></span>${z.name}${z.is_veg ? " ✨" : ""}</span><span class="st ${stCls}">${st}</span></div>`);
+      });
+
+      const t = new Date();
+      $("updated").textContent = "updated " + t.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+    }catch(e){
+      console.error(e);
+      $("status").textContent = "Connection issue";
+    }
+  }
+  async function doStart(){
+    $("btn-start").classList.add("disabled");
+    await fetch("/garden/api/start",{method:"POST",credentials:"same-origin"});
+    setTimeout(load, 800);
+  }
+  async function doStop(){
+    $("btn-stop").classList.add("disabled");
+    await fetch("/garden/api/stop",{method:"POST",credentials:"same-origin"});
+    setTimeout(load, 800);
+  }
+  function confirmStart(){
+    if(confirm("Start watering veg garden for 5 minutes?")) doStart();
+  }
+  function drawCombo(svgEl, moistPts, tempPts){
+    const w=100, h=80, padX=2, padTop=8, padBot=10;
+    const plotH=h-padTop-padBot;
+    let html="";
+    // X-axis baseline
+    html += '<line x1="'+padX+'" y1="'+(h-padBot)+'" x2="'+(w-padX)+'" y2="'+(h-padBot)+'" stroke="rgba(255,255,255,.08)" stroke-width=".5"/>';
+    // Time tick labels (24h ago, 12h, now)
+    html += '<text x="'+padX+'" y="'+(h-1)+'" font-size="5" fill="#5e6a78">-24h</text>';
+    html += '<text x="'+(w/2)+'" y="'+(h-1)+'" font-size="5" fill="#5e6a78" text-anchor="middle">-12h</text>';
+    html += '<text x="'+(w-padX)+'" y="'+(h-1)+'" font-size="5" fill="#5e6a78" text-anchor="end">now</text>';
+
+    // Moisture as bars (auto-scale, but force min span of 5% so flat looks flat)
+    if(moistPts && moistPts.length){
+      let lo=Math.min(...moistPts), hi=Math.max(...moistPts);
+      if(hi-lo < 5){ const c=(hi+lo)/2; lo=c-2.5; hi=c+2.5; }
+      const span=hi-lo;
+      const n=moistPts.length;
+      const barW=Math.max(1,(w-padX*2)/n - 0.4);
+      moistPts.forEach((v,i)=>{
+        const x=padX+i*((w-padX*2)/n);
+        const y=padTop+plotH-((v-lo)/span)*plotH;
+        const bh=(h-padBot)-y;
+        html += '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+Math.max(1,bh).toFixed(1)+'" fill="rgba(128,200,255,.55)" rx="0.5"/>';
+      });
+      // Y-axis labels for moisture (left)
+      html += '<text x="'+padX+'" y="'+(padTop+3)+'" font-size="5" fill="#80c8ff">'+hi.toFixed(0)+'%</text>';
+      html += '<text x="'+padX+'" y="'+(h-padBot-1)+'" font-size="5" fill="#80c8ff">'+lo.toFixed(0)+'%</text>';
+      $("spark-range").textContent = lo.toFixed(0)+"–"+hi.toFixed(0)+"% • "+moistPts.length+" pts";
+    }
+
+    // Temperature as line (separate auto-scale, force min span of 4°)
+    if(tempPts && tempPts.length>=2){
+      let lo=Math.min(...tempPts), hi=Math.max(...tempPts);
+      if(hi-lo < 4){ const c=(hi+lo)/2; lo=c-2; hi=c+2; }
+      const span=hi-lo;
+      const step=(w-padX*2)/(tempPts.length-1);
+      const pts=tempPts.map((v,i)=>{
+        const x=padX+i*step;
+        const y=padTop+plotH-((v-lo)/span)*plotH;
+        return x.toFixed(1)+","+y.toFixed(1);
+      }).join(" ");
+      html += '<polyline fill="none" stroke="#ffb96b" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" points="'+pts+'"/>';
+      // Y-axis labels for temp (right)
+      html += '<text x="'+(w-padX)+'" y="'+(padTop+3)+'" font-size="5" fill="#ffb96b" text-anchor="end">'+hi.toFixed(0)+'°</text>';
+      html += '<text x="'+(w-padX)+'" y="'+(h-padBot-1)+'" font-size="5" fill="#ffb96b" text-anchor="end">'+lo.toFixed(0)+'°</text>';
+    }
+    svgEl.innerHTML = html;
+  }
+  async function loadHistory(){
+    try{
+      const r = await fetch("/garden/api/history",{credentials:"same-origin"});
+      if(!r.ok) return;
+      const h = await r.json();
+      const m=h.moisture, t=h.temperature, w=h.watering;
+      $("h24").style.display="block";
+      $("h24-count").textContent = (m.count||0)+" readings";
+      const arrow = tr => tr==="up"?"↑":tr==="down"?"↓":"→";
+      if(m.first!=null){
+        $("h24-moist").innerHTML = m.first+"% → "+m.last+"% <span class=\"arrow\">"+arrow(m.trend)+"</span>";
+        $("h24-moist").className = "val "+m.trend;
+      }
+      if(t.min!=null){
+        $("h24-temp").textContent = t.min+"° → "+t.max+"°";
+      }
+      if(w.total_minutes>0){
+        $("h24-water").textContent = w.total_minutes.toFixed(0)+" min ( "+w.events+" event"+(w.events===1?"":"s")+" )";
+      }else{
+        $("h24-water").textContent = "none";
+      }
+      // Rain in 24h: report current + age-of-last
+      let rainText;
+      if(h.rain_now){ rainText = "☔ raining now"; }
+      else if(h.rain_last_24h){ rainText = `last detected ${h.rain_last_age}`; }
+      else{ rainText = "none in 24h"; }
+      $("h24-rain").textContent = rainText;
+      drawCombo($("spark-combo"), m.points, t.points);
+    }catch(e){ console.error("history", e); }
+  }
+  // ===== zoom modal =====
+  let _modalMetric = null; // "moisture" | "temperature"
+  let _modalHours = 48;
+  let _modalData = null;
+  function openChart(metric){
+    _modalMetric = metric;
+    _modalHours = 48;
+    document.querySelectorAll(".modal .pills button").forEach(b => b.classList.toggle("on", Number(b.dataset.h)===48));
+    $("m-title").textContent = metric === "moisture" ? "💧 Moisture"
+                              : metric === "temperature" ? "🌡️ Soil temperature"
+                              : "☀️ Solar exposure";
+    $("modal-bg").classList.add("show");
+    document.body.style.overflow = "hidden";
+    fetchModalData();
+  }
+  function closeChart(){
+    $("modal-bg").classList.remove("show");
+    document.body.style.overflow = "";
+    _modalMetric = null;
+  }
+  function setRange(h){
+    _modalHours = h;
+    document.querySelectorAll(".modal .pills button").forEach(b => b.classList.toggle("on", Number(b.dataset.h)===h));
+    fetchModalData();
+  }
+  async function fetchModalData(){
+    $("m-sub").textContent = "Loading…";
+    const r = await fetch(`/garden/api/history?hours=${_modalHours}`,{credentials:"same-origin"});
+    if(!r.ok){ $("m-sub").textContent = "Error loading"; return; }
+    _modalData = await r.json();
+    drawModal();
+  }
+  function drawModal(){
+    if(!_modalData || !_modalMetric) return;
+    const series = (_modalData[_modalMetric] && _modalData[_modalMetric].series) || [];
+    const m = _modalData[_modalMetric] || {};
+    const unit = _modalMetric === "moisture" ? "%"
+               : _modalMetric === "temperature" ? "°"
+               : "W";
+    $("m-min").textContent = m.min != null ? m.min + unit : "—";
+    $("m-max").textContent = m.max != null ? m.max + unit : "—";
+    $("m-now").textContent = m.last != null ? m.last + unit : "—";
+    const label = _modalHours === 24 ? "Last 24 hours" : _modalHours === 48 ? "Last 48 hours" : "Last 7 days";
+    $("m-sub").textContent = `${label} • ${m.count || 0} readings`;
+    drawBigChart(series, _modalMetric);
+  }
+  function drawBigChart(series, metric){
+    const svg = $("big-chart");
+    const w=400, h=240, padL=34, padR=14, padT=14, padB=28;
+    const plotW=w-padL-padR, plotH=h-padT-padB;
+    if(!series || series.length < 2){ svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#5e6a78" font-size="13">Not enough data</text>'; return; }
+    const tMin = series[0][0], tMax = series[series.length-1][0];
+    const tSpan = Math.max(1, tMax - tMin);
+    let lo = Math.min(...series.map(p=>p[1])), hi = Math.max(...series.map(p=>p[1]));
+    const minSpan = metric === "moisture" ? 8 : metric === "temperature" ? 6 : 30;
+    if(hi-lo < minSpan){ const c=(hi+lo)/2; lo=c-minSpan/2; hi=c+minSpan/2; }
+    const span = hi-lo;
+    const X = t => padL + ((t - tMin)/tSpan) * plotW;
+    const Y = v => padT + plotH - ((v - lo)/span) * plotH;
+    const color = metric === "moisture" ? "#80c8ff"
+                : metric === "temperature" ? "#ffb96b"
+                : "#ffe16b";
+    const fillC = metric === "moisture" ? "rgba(128,200,255,.18)"
+                : metric === "temperature" ? "rgba(255,185,107,.16)"
+                : "rgba(255,225,107,.16)";
+    let html = "";
+    // grid
+    for(let i=0;i<=4;i++){
+      const y = padT + (plotH * i/4);
+      const v = hi - (span * i/4);
+      html += `<line x1="${padL}" y1="${y}" x2="${w-padR}" y2="${y}" stroke="rgba(255,255,255,.05)" stroke-width=".5"/>`;
+      const yUnit = metric==="moisture"?"%":metric==="temperature"?"°":"W";
+      html += `<text x="${padL-4}" y="${y+3}" font-size="9" fill="#5e6a78" text-anchor="end">${v.toFixed(0)}${yUnit}</text>`;
+    }
+    // x-axis time labels
+    const t0 = new Date(tMin), tn = new Date(tMax);
+    const fmt = (d) => {
+      if(_modalHours >= 168) return d.toLocaleDateString([], {month:"short", day:"numeric"});
+      if(_modalHours >= 48)  return d.toLocaleDateString([], {weekday:"short"}) + " " + d.toLocaleTimeString([], {hour:"numeric"});
+      return d.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+    };
+    html += `<text x="${padL}" y="${h-8}" font-size="9" fill="#8a96a3">${fmt(t0)}</text>`;
+    html += `<text x="${w-padR}" y="${h-8}" font-size="9" fill="#8a96a3" text-anchor="end">${fmt(tn)}</text>`;
+    if(_modalHours >= 48){
+      const tMid = new Date((tMin+tMax)/2);
+      html += `<text x="${(padL+w-padR)/2}" y="${h-8}" font-size="9" fill="#8a96a3" text-anchor="middle">${fmt(tMid)}</text>`;
+    }
+    // area + line
+    let path = `M ${X(series[0][0]).toFixed(1)},${Y(series[0][1]).toFixed(1)}`;
+    series.forEach(p => { path += ` L ${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`; });
+    const area = path + ` L ${X(tMax).toFixed(1)},${(padT+plotH).toFixed(1)} L ${X(tMin).toFixed(1)},${(padT+plotH).toFixed(1)} Z`;
+    html += `<path d="${area}" fill="${fillC}"/>`;
+    html += `<path d="${path}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`;
+    // crosshair group (hidden until hover)
+    html += `<g id="xh" style="display:none"><line id="xh-line" y1="${padT}" y2="${padT+plotH}" stroke="rgba(255,255,255,.5)" stroke-width=".7" stroke-dasharray="2 2"/><circle id="xh-dot" r="3" fill="${color}" stroke="#0b1117" stroke-width="1"/></g>`;
+    svg.innerHTML = html;
+    // crosshair handlers
+    const setCrosshair = (clientX) => {
+      const rect = svg.getBoundingClientRect();
+      const xVB = ((clientX - rect.left) / rect.width) * w;
+      if(xVB < padL || xVB > w-padR){ hideCrosshair(); return; }
+      // find nearest point
+      let nearest = series[0], bestD = Infinity;
+      series.forEach(p => { const px = X(p[0]); const d = Math.abs(px - xVB); if(d<bestD){bestD=d; nearest=p;} });
+      const px = X(nearest[0]), py = Y(nearest[1]);
+      const xh = document.getElementById("xh");
+      const line = document.getElementById("xh-line");
+      const dot = document.getElementById("xh-dot");
+      if(!xh) return;
+      xh.style.display = "block";
+      line.setAttribute("x1", px.toFixed(1));
+      line.setAttribute("x2", px.toFixed(1));
+      dot.setAttribute("cx", px.toFixed(1));
+      dot.setAttribute("cy", py.toFixed(1));
+      const tStr = new Date(nearest[0]).toLocaleString([], {weekday:"short", hour:"numeric", minute:"2-digit"});
+      const ro = $("xh-readout");
+      const xhUnit = metric==="moisture"?"%":metric==="temperature"?"°":"W";
+      ro.textContent = `${tStr} • ${nearest[1]}${xhUnit}`;
+      ro.classList.add("show");
+    };
+    const hideCrosshair = () => {
+      const xh = document.getElementById("xh");
+      if(xh) xh.style.display = "none";
+      $("xh-readout").classList.remove("show");
+    };
+    svg.onmousemove = e => setCrosshair(e.clientX);
+    svg.onmouseleave = hideCrosshair;
+    svg.ontouchstart = e => { e.preventDefault(); setCrosshair(e.touches[0].clientX); };
+    svg.ontouchmove = e => { e.preventDefault(); setCrosshair(e.touches[0].clientX); };
+    svg.ontouchend = hideCrosshair;
+  }
+  // close modal on back gesture
+  document.addEventListener("keydown", e => { if(e.key === "Escape") closeChart(); });
+
+  load();
+  loadHistory();
+  // ===== camera snapshot card =====
+  // Card is always visible; the image and age field update in place.
+  // On error we show "camera offline" rather than hiding — hiding made it
+  // impossible to tell whether the bug was the bridge or the rendering.
+  let camLastLoaded = 0;
+  function loadCamSnapshot(){
+    const img = $("cam-img");
+    const age = $("cam-age");
+    if(!img) return;
+    const t = Date.now();
+    const fresh = "/garden/api/cam/snapshot?refresh=1&t=" + t;
+    const probe = new Image();
+    probe.onload = () => { img.src = fresh; camLastLoaded = t; age.textContent = "just now"; };
+    probe.onerror = () => {
+      // try cached frame (no refresh)
+      const cached = "/garden/api/cam/snapshot?t=" + t;
+      const probe2 = new Image();
+      probe2.onload  = () => { img.src = cached; camLastLoaded = t; age.textContent = "cached"; };
+      probe2.onerror = () => { age.textContent = "camera waking…"; };
+      probe2.src = cached;
+    };
+    probe.src = fresh;
+  }
+  function tickCamAge(){
+    const age = $("cam-age");
+    if(!age || !camLastLoaded) return;
+    const s = Math.floor((Date.now() - camLastLoaded)/1000);
+    if(s < 60) age.textContent = s + "s ago";
+    else age.textContent = Math.floor(s/60) + "m ago";
+  }
+
+  // ===== Eufy removed in v1.3.0 — HP10 is the only camera now =====
+
+  // ===== legacy in-PWA stream modal (kept for now, unused by tile) =====
+  // Strategy: kick off snapshot fallback IMMEDIATELY so the user always sees
+  // moving frames within ~1 s. In parallel, ask the backend to start the RTSP
+  // livestream and probe go2rtc HLS. If HLS comes up cleanly, swap the <video>
+  // in; otherwise we keep the snapshot loop. This guarantees the modal never
+  // hangs on "Connecting…".
+  let snapFallbackTimer = null;
+  let _streamUpgraded = false;
+  function openCamModal(){
+    const m = $("cam-modal");
+    const status = $("stream-status");
+    m.classList.add("open");
+    _streamUpgraded = false;
+    status.textContent = "Loading live frames…";
+    // 1) Snapshot fallback starts now — user sees something fast
+    startSnapshotFallback();
+    // 2) In parallel, try to upgrade to HLS
+    fetch("/garden/api/cam/stream/start", {method:"POST"})
+      .then(r => r.json())
+      .then(d => {
+        if(_streamUpgraded) return;
+        if(d && d.url && d.type === "hls"){
+          // Probe the playlist before swapping in the video element
+          fetch(d.url, {credentials:"same-origin"}).then(r => {
+            if(r.ok && !_streamUpgraded){
+              const box = $("stream-box");
+              if(snapFallbackTimer){ clearInterval(snapFallbackTimer); snapFallbackTimer = null; }
+              box.innerHTML = '<video id="live-video" autoplay playsinline muted controls></video>';
+              const v = document.getElementById("live-video");
+              v.src = d.url;
+              v.play().catch(()=>{});
+              status.textContent = "Live · HLS";
+              _streamUpgraded = true;
+            } else {
+              status.textContent = "Live · snapshot mode";
+            }
+          }).catch(() => { status.textContent = "Live · snapshot mode"; });
+        } else {
+          status.textContent = "Live · snapshot mode";
+        }
+      })
+      .catch(() => { status.textContent = "Live · snapshot mode"; });
+  }
+  function startSnapshotFallback(){
+    const box = $("stream-box");
+    // Initial frame: ask backend to refresh once so we don't show stale image
+    box.innerHTML = '<img id="live-snap" alt="" src="/garden/api/cam/snapshot?refresh=1&t=' + Date.now() + '">';
+    if(snapFallbackTimer){ clearInterval(snapFallbackTimer); }
+    snapFallbackTimer = setInterval(() => {
+      const i = document.getElementById("live-snap");
+      if(i) i.src = "/garden/api/cam/snapshot?t=" + Date.now();
+    }, 1500);
+  }
+  function closeCamModal(){
+    const m = $("cam-modal");
+    m.classList.remove("open");
+    fetch("/garden/api/cam/stream/stop", {method:"POST"}).catch(()=>{});
+    if(snapFallbackTimer){ clearInterval(snapFallbackTimer); snapFallbackTimer = null; }
+    _streamUpgraded = false;
+    $("stream-box").innerHTML = '<div class="stream-msg"><div class="spinner"></div>Starting live stream…</div>';
+  }
+
+  // ===== weather full-forecast modal =====
+  const WX_ICONS = {
+    sunny:"☀\ufe0f", clear:"☀\ufe0f", "clear-night":"🌙",
+    partlycloudy:"⛅", cloudy:"☁\ufe0f", fog:"🌫\ufe0f",
+    rainy:"🌧\ufe0f", pouring:"🌦\ufe0f",
+    snowy:"🌨\ufe0f", "snowy-rainy":"🌨\ufe0f",
+    lightning:"⛈\ufe0f", "lightning-rainy":"⛈\ufe0f",
+    windy:"💨", hail:"🥶"
+  };
+  function wxIco(c){ return WX_ICONS[c] || "⛅"; }
+  function openWxModal(){
+    const m = $("wx-modal");
+    const body = $("wx-modal-body");
+    m.classList.add("open");
+    body.innerHTML = '<div class="stream-msg"><div class="spinner"></div>Loading forecast…</div>';
+    fetch("/garden/api/weather/full")
+      .then(r => r.json())
+      .then(d => {
+        if(d.error){ body.innerHTML = '<div class="stream-msg">'+d.error+'</div>'; return; }
+        const now = d.now || {};
+        const days = d.daily || [];
+        let html = '';
+        // Right-now hero
+        html += '<div class="wx-now"><div>';
+        html += '<div class="big">'+(now.temperature ?? "--")+'°C</div>';
+        html += '<div class="cond">'+(now.condition || "—")+'</div>';
+        html += '<div class="grid">';
+        if(now.humidity != null) html += '<div class="it"><div class="lab">Humidity</div><div class="vl">'+now.humidity+'%</div></div>';
+        if(now.wind_speed != null) html += '<div class="it"><div class="lab">Wind</div><div class="vl">'+now.wind_speed+' km/h</div></div>';
+        if(now.pressure != null) html += '<div class="it"><div class="lab">Pressure</div><div class="vl">'+now.pressure+' hPa</div></div>';
+        if(d.sunrise) html += '<div class="it"><div class="lab">Sunrise</div><div class="vl">'+d.sunrise+'</div></div>';
+        if(d.sunset) html += '<div class="it"><div class="lab">Sunset</div><div class="vl">'+d.sunset+'</div></div>';
+        html += '</div></div>';
+        html += '<div class="ico-big">'+wxIco(now.condition)+'</div></div>';
+        // 7-day forecast
+        days.forEach(day => {
+          html += '<div class="wx-day">';
+          html += '<div class="ico">'+wxIco(day.condition)+'</div>';
+          html += '<div><div class="nm">'+day.weekday+'</div><div class="desc">'+(day.condition || "—")+'</div></div>';
+          html += '<div><div class="hilo"><span class="hi">'+day.high+'°</span> / <span class="lo">'+day.low+'°</span></div>';
+          if(day.precipitation && day.precipitation > 0) html += '<div class="rain">'+day.precipitation+'mm</div>';
+          html += '</div></div>';
+        });
+        body.innerHTML = html;
+      })
+      .catch(e => { body.innerHTML = '<div class="stream-msg">Forecast error: '+e.message+'</div>'; });
+  }
+  function closeWxModal(){ $("wx-modal").classList.remove("open"); }
+
+  // Initial load + intervals
+  loadCamSnapshot();
+  setInterval(loadCamSnapshot, 30000);  // refresh snapshot every 30 s
+  setInterval(tickCamAge, 1000);         // tick age display
+
+  setInterval(load, 15000);
+  setInterval(loadHistory, 120000);
+  // Pull to refresh hint: refresh on visibility
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden) load(); });
+
+  // ===== Solar Literacy v1.2.0 =====
+
+  // --- i18n table ---
+  const SLANG = {
+    en: {
+      sun_label: "\u2600\ufe0f Sun",
+      tap_hint: "Tap \u2192",
+      modal_title: "\u2600\ufe0f Sun & garden",
+      brilliant: "Brilliant week",
+      strong: "Strong week",
+      mixed: "Mixed week",
+      cloudy_week: "Cloudy week",
+      dim_week: "Dim week",
+      tom_happy: "Tomatoes happy",
+      tom_border: "Tomatoes borderline",
+      tom_dim: "Tomatoes dim",
+      cuc_happy: "Cucumbers happy",
+      cuc_border: "Cucumbers borderline",
+      cuc_dim: "Cucumbers dim",
+      pep_happy: "Peppers happy",
+      pep_border: "Peppers borderline",
+      let_happy: "Lettuce happy",
+      let_border: "Lettuce borderline",
+      all_happy: "All crops happy",
+      all_dim: "All crops dim \u2014 needs more sun",
+      sec1: "Right now",
+      sec2: "Today",
+      sec3: "This week",
+      sec4: "Your crops",
+      coming_soon: "\ud83d\udd50 Coming soon",
+      soil_temp: "Soil temperature",
+      soil_moist: "Soil moisture",
+      greenhouse: "Greenhouse",
+      heater: "Avalon Nano keeping +3\u20134\u00b0C",
+      bright_now: "Bright sun right now",
+      light_dimming: "Light dimming",
+      night: "Night",
+      tomorrow_bright: "Tomorrow looks bright",
+      tomorrow_cloudy: "Tomorrow cloudy",
+      of_perfect: "of a perfect sunny day so far",
+      week_avg: "7-day avg",
+      tomatoes: "Tomatoes",
+      cucumbers: "Cucumbers",
+      peppers: "Peppers",
+      lettuce: "Lettuce",
+      happy: "\u2713 Happy",
+      borderline: "\u26a0\ufe0f Borderline",
+      dim: "\u274c Dim",
+      khw_expected: "kWh expected",
+      sun_stat: "Sun (week)",
+      mixed_crops: function(a, b){ return a+" happy, "+b+" borderline"; },
+      verdict_growing: "Growing steadily — keep it up",
+      verdict_slow: "Growing slowly, picking up as forecast brightens",
+      verdict_dim: "Needs more sun to thrive",
+      // v1.3.0 new strings
+      wind_label: "💨 Wind",
+      rain_label: "🌧️ Rain",
+      cam_label: "📷 Garden",
+      todays_timelapse: "Today's timelapse",
+      light_breeze: "Light breeze",
+      gusty_winds: "Gusty winds — check greenhouse plastic",
+      tomato: "Tomato",
+      cucumber: "Cucumber",
+      moisture_buried: "buried",
+      uv_low: "Low",
+      uv_moderate: "Moderate",
+      uv_high: "High",
+      uv_very_high: "Very High",
+      uv_extreme: "Extreme",
+    },
+    ru: {
+      sun_label: "\u2600\ufe0f \u0421\u043e\u043b\u043d\u0446\u0435",
+      tap_hint: "\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u2192",
+      modal_title: "\u2600\ufe0f \u0421\u043e\u043b\u043d\u0446\u0435 & \u0441\u0430\u0434",
+      brilliant: "\u041e\u0442\u043b\u0438\u0447\u043d\u0430\u044f \u043d\u0435\u0434\u0435\u043b\u044f",
+      strong: "\u0425\u043e\u0440\u043e\u0448\u0430\u044f \u043d\u0435\u0434\u0435\u043b\u044f",
+      mixed: "\u0421\u043c\u0435\u0448\u0430\u043d\u043d\u0430\u044f \u043d\u0435\u0434\u0435\u043b\u044f",
+      cloudy_week: "\u041f\u0430\u0441\u043c\u0443\u0440\u043d\u0430\u044f \u043d\u0435\u0434\u0435\u043b\u044f",
+      dim_week: "\u0422\u0451\u043c\u043d\u0430\u044f \u043d\u0435\u0434\u0435\u043b\u044f",
+      tom_happy: "\u0422\u043e\u043c\u0430\u0442\u0430\u043c \u0445\u043e\u0440\u043e\u0448\u043e",
+      tom_border: "\u0422\u043e\u043c\u0430\u0442\u0430\u043c \u043d\u0430 \u0433\u0440\u0430\u043d\u0438",
+      tom_dim: "\u0422\u043e\u043c\u0430\u0442\u0430\u043c \u043c\u0430\u043b\u043e \u0441\u043e\u043b\u043d\u0446\u0430",
+      cuc_happy: "\u041e\u0433\u0443\u0440\u0446\u0430\u043c \u043e\u0442\u043b\u0438\u0447\u043d\u043e",
+      cuc_border: "\u041e\u0433\u0443\u0440\u0446\u0430\u043c \u043d\u0430 \u0433\u0440\u0430\u043d\u0438",
+      cuc_dim: "\u041e\u0433\u0443\u0440\u0446\u0430\u043c \u0442\u0435\u043c\u043d\u043e",
+      pep_happy: "\u041f\u0435\u0440\u0446\u0430\u043c \u0445\u043e\u0440\u043e\u0448\u043e",
+      pep_border: "\u041f\u0435\u0440\u0446\u0430\u043c \u043d\u0430 \u0433\u0440\u0430\u043d\u0438",
+      let_happy: "\u0421\u0430\u043b\u0430\u0442\u0443 \u043e\u0442\u043b\u0438\u0447\u043d\u043e",
+      let_border: "\u0421\u0430\u043b\u0430\u0442\u0443 \u043d\u0430 \u0433\u0440\u0430\u043d\u0438",
+      all_happy: "\u0412\u0441\u0435 \u0440\u0430\u0441\u0442\u0435\u043d\u0438\u044f \u0434\u043e\u0432\u043e\u043b\u044c\u043d\u044b",
+      all_dim: "\u0412\u0441\u0435\u043c \u043c\u0430\u043b\u043e \u0441\u043e\u043b\u043d\u0446\u0430",
+      sec1: "\u0421\u0435\u0439\u0447\u0430\u0441",
+      sec2: "\u0421\u0435\u0433\u043e\u0434\u043d\u044f",
+      sec3: "\u0417\u0430 \u043d\u0435\u0434\u0435\u043b\u044e",
+      sec4: "\u0412\u0430\u0448\u0438 \u0440\u0430\u0441\u0442\u0435\u043d\u0438\u044f",
+      coming_soon: "\ud83d\udd50 \u0421\u043a\u043e\u0440\u043e",
+      soil_temp: "\u0422\u0435\u043c\u043f\u0435\u0440\u0430\u0442\u0443\u0440\u0430 \u043f\u043e\u0447\u0432\u044b",
+      soil_moist: "\u0412\u043b\u0430\u0436\u043d\u043e\u0441\u0442\u044c \u043f\u043e\u0447\u0432\u044b",
+      greenhouse: "\u0422\u0435\u043f\u043b\u0438\u0446\u0430",
+      heater: "Avalon Nano \u0434\u0435\u0440\u0436\u0438\u0442 +3\u20134\u00b0C",
+      bright_now: "\u0421\u0435\u0439\u0447\u0430\u0441 \u044f\u0440\u043a\u043e\u0435 \u0441\u043e\u043b\u043d\u0446\u0435",
+      light_dimming: "\u0421\u0432\u0435\u0442 \u0443\u0433\u0430\u0441\u0430\u0435\u0442",
+      night: "\u041d\u043e\u0447\u044c",
+      tomorrow_bright: "\u0417\u0430\u0432\u0442\u0440\u0430 \u044f\u0441\u043d\u043e",
+      tomorrow_cloudy: "\u0417\u0430\u0432\u0442\u0440\u0430 \u043f\u0430\u0441\u043c\u0443\u0440\u043d\u043e",
+      of_perfect: "\u043e\u0442 \u0438\u0434\u0435\u0430\u043b\u044c\u043d\u043e\u0433\u043e \u0441\u043e\u043b\u043d\u0435\u0447\u043d\u043e\u0433\u043e \u0434\u043d\u044f",
+      week_avg: "\u0421\u0440\u0435\u0434\u043d\u0435\u0435 \u0437\u0430 7 \u0434\u043d\u0435\u0439",
+      tomatoes: "\u0422\u043e\u043c\u0430\u0442\u044b",
+      cucumbers: "\u041e\u0433\u0443\u0440\u0446\u044b",
+      peppers: "\u041f\u0435\u0440\u0446\u044b",
+      lettuce: "\u0421\u0430\u043b\u0430\u0442",
+      happy: "\u2713 \u0425\u043e\u0440\u043e\u0448\u043e",
+      borderline: "\u26a0\ufe0f \u041d\u0430 \u0433\u0440\u0430\u043d\u0438",
+      dim: "\u274c \u041c\u0430\u043b\u043e \u0441\u043e\u043b\u043d\u0446\u0430",
+      khw_expected: "\u043a\u0412\u0442\u00b7\u0447 \u043e\u0436\u0438\u0434\u0430\u0435\u0442\u0441\u044f",
+      sun_stat: "\u0421\u043e\u043b\u043d\u0446\u0435 (\u043d\u0435\u0434.)",
+      mixed_crops: function(a, b){ return a+" \u043e\u0442\u043b\u0438\u0447\u043d\u043e, "+b+" \u043d\u0430 \u0433\u0440\u0430\u043d\u0438"; },
+      verdict_growing: "\u0420\u0430\u0441\u0442\u0451\u0442 \u0445\u043e\u0440\u043e\u0448\u043e \u2014 \u043f\u0440\u043e\u0434\u043e\u043b\u0436\u0430\u0439\u0442\u0435 \u0432 \u0442\u043e\u043c \u0436\u0435 \u0434\u0443\u0445\u0435",
+      verdict_slow: "\u0420\u0430\u0441\u0442\u0451\u0442 \u043c\u0435\u0434\u043b\u0435\u043d\u043d\u043e, \u043f\u043e \u043f\u0440\u043e\u0433\u043d\u043e\u0437\u0443 \u0441\u0442\u0430\u043d\u0435\u0442 \u0441\u0432\u0435\u0442\u043b\u0435\u0435",
+      verdict_dim: "\u041d\u0443\u0436\u043d\u043e \u0431\u043e\u043b\u044c\u0448\u0435 \u0441\u043e\u043b\u043d\u0446\u0430",
+      // v1.3.0 new strings
+      wind_label: "\u{1F4A8} \u0412\u0435\u0442\u0435\u0440",
+      rain_label: "\u{1F327}\uFE0F \u0414\u043e\u0436\u0434\u044c",
+      cam_label: "\u{1F4F7} \u0421\u0430\u0434",
+      todays_timelapse: "\u0422\u0430\u0439\u043c\u043b\u0430\u043f\u0441 \u0437\u0430 \u0441\u0435\u0433\u043e\u0434\u043d\u044f",
+      light_breeze: "\u041b\u0451\u0433\u043a\u0438\u0439 \u0432\u0435\u0442\u0435\u0440",
+      gusty_winds: "\u0421\u0438\u043b\u044c\u043d\u044b\u0439 \u0432\u0435\u0442\u0435\u0440 \u2014 \u043f\u0440\u043e\u0432\u0435\u0440\u044c\u0442\u0435 \u043f\u043b\u0451\u043d\u043a\u0443 \u0442\u0435\u043f\u043b\u0438\u0446\u044b",
+      tomato: "\u0422\u043e\u043c\u0430\u0442",
+      cucumber: "\u041e\u0433\u0443\u0440\u0435\u0446",
+      moisture_buried: "\u0437\u0430\u0440\u044b\u0442",
+      uv_low: "\u041d\u0438\u0437\u043a\u0438\u0439",
+      uv_moderate: "\u0423\u043c\u0435\u0440\u0435\u043d\u043d\u044b\u0439",
+      uv_high: "\u0412\u044b\u0441\u043e\u043a\u0438\u0439",
+      uv_very_high: "\u041e\u0447\u0435\u043d\u044c \u0432\u044b\u0441\u043e\u043a\u0438\u0439",
+      uv_extreme: "\u042d\u043a\u0441\u0442\u0440\u0435\u043c\u0430\u043b\u044c\u043d\u044b\u0439",
+    }
+  };
+
+  // --- Language helpers ---
+  function getLang(){
+    const stored = localStorage.getItem("garden_lang");
+    if(stored === "en" || stored === "ru") return stored;
+    return (navigator.language || "").startsWith("ru") ? "ru" : "en";
+  }
+  let _sunLang = getLang();
+  let _sunData = null;  // cached sun_summary response
+  let _sunDataTs = 0;   // timestamp of cache
+  const SUN_CACHE_MS = 60000;
+
+  function setLang(l){
+    _sunLang = l;
+    localStorage.setItem("garden_lang", l);
+    // Update toggle buttons
+    $("lang-en").classList.toggle("on", l === "en");
+    $("lang-ru").classList.toggle("on", l === "ru");
+    // Update tile text immediately
+    renderSunTile(_sunData);
+    // Re-render modal body if open
+    if(_sunData && $("sun-modal").classList.contains("open")){
+      renderSunModal(_sunData);
+    }
+  }
+
+  // --- Star builder ---
+  function starsFor(pct){
+    let n;
+    if(pct == null)       n = 0;
+    else if(pct >= 80)    n = 5;
+    else if(pct >= 60)    n = 4;
+    else if(pct >= 45)    n = 3;
+    else if(pct >= 30)    n = 2;
+    else                  n = 1;
+    return "\u2605".repeat(n) + "\u2606".repeat(5 - n);
+  }
+
+  function weekLabel(pct, L){
+    if(pct == null) return "";
+    if(pct >= 80) return L.brilliant;
+    if(pct >= 60) return L.strong;
+    if(pct >= 45) return L.mixed;
+    if(pct >= 30) return L.cloudy_week;
+    return L.dim_week;
+  }
+
+  // --- Crop one-liner for tile sub text ---
+  function cropOneLiner(data, L){
+    if(!data) return "";
+    const weekPct = data.week_avg_pct;
+    const crops = data.crops || {};
+    const ghOn  = data.greenhouse_plastic_on;
+
+    // Thresholds
+    const thresh = {
+      tomatoes: ghOn ? 35 : 50,
+      cucumbers: 42,
+      peppers:   50,
+      lettuce:   33,
+    };
+    const planted = Object.keys(crops).filter(k => crops[k]);
+    if(!planted.length) return weekLabel(weekPct, L);
+
+    const p = weekPct != null ? weekPct : 0;
+    const statuses = {};
+    planted.forEach(c => {
+      const t = thresh[c] || 50;
+      if(p >= t)             statuses[c] = "happy";
+      else if(p >= t * 0.7)  statuses[c] = "border";
+      else                   statuses[c] = "dim";
+    });
+
+    // Translate crop name
+    const cname = c => L[c] || c;
+
+    if(planted.length === 1){
+      const c = planted[0];
+      const s = statuses[c];
+      if(c === "tomatoes")  return s === "happy" ? L.tom_happy : s === "border" ? L.tom_border : L.tom_dim;
+      if(c === "cucumbers") return s === "happy" ? L.cuc_happy : s === "border" ? L.cuc_border : L.cuc_dim;
+      if(c === "peppers")   return s === "happy" ? L.pep_happy : s === "border" ? L.pep_border : L.cuc_dim;
+      if(c === "lettuce")   return s === "happy" ? L.let_happy : s === "border" ? L.let_border : L.cuc_dim;
+    }
+
+    const happyList  = planted.filter(c => statuses[c] === "happy");
+    const borderList = planted.filter(c => statuses[c] === "border");
+    const dimList    = planted.filter(c => statuses[c] === "dim");
+
+    if(dimList.length === planted.length) return L.all_dim;
+    if(happyList.length === planted.length) return L.all_happy;
+    if(happyList.length && borderList.length && !dimList.length){
+      return L.mixed_crops(happyList.map(cname).join(" & "), borderList.map(cname).join(" & "));
+    }
+    // Default
+    return weekLabel(weekPct, L);
+  }
+
+  // --- Render tile face (stars + one-liner) ---
+  function renderSunTile(data){
+    const L = SLANG[_sunLang];
+    $("sun-label").textContent = L.sun_label;
+    $("sun-tap-hint").textContent = L.tap_hint;
+    if(!data){
+      $("sun-stars").textContent = "\u2605\u2606\u2606\u2606\u2606";
+      $("solar-sub").textContent = "";
+      return;
+    }
+    const pct = data.week_avg_pct;
+    $("sun-stars").textContent = starsFor(pct);
+    $("solar-sub").textContent  = cropOneLiner(data, L);
+    // Tile colour class
+    const cls = data.sun_above
+      ? (pct != null && pct < 30 ? " dim" : "")
+      : " night";
+    $("solar-tile").className = "tile big tile-yellow tappable" + cls;
+  }
+
+  // --- Fetch sun summary (with 60 s cache) ---
+  async function fetchSunSummary(force){
+    const now = Date.now();
+    if(!force && _sunData && (now - _sunDataTs) < SUN_CACHE_MS) return _sunData;
+    try{
+      const r = await fetch("/garden/api/sun_summary", {credentials:"same-origin"});
+      if(!r.ok) return _sunData;
+      _sunData = await r.json();
+      _sunDataTs = Date.now();
+    }catch(e){ console.error("sun_summary", e); }
+    return _sunData;
+  }
+
+  // --- Periodic tile update (piggybacks on load() cadence) ---
+  async function refreshSunTile(){
+    const d = await fetchSunSummary();
+    renderSunTile(d);
+  }
+
+  // --- Modal: open / close ---
+  function openSunModal(){
+    const m = $("sun-modal");
+    m.classList.add("open");
+    document.body.style.overflow = "hidden";
+    // Apply language toggle state
+    $("lang-en").classList.toggle("on", _sunLang === "en");
+    $("lang-ru").classList.toggle("on", _sunLang === "ru");
+    // Render with cached data immediately, then refresh
+    if(_sunData) renderSunModal(_sunData);
+    fetchSunSummary(true).then(d => { if(d) renderSunModal(d); });
+  }
+
+  function closeSunModal(){
+    $("sun-modal").classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  // --- Modal: main renderer ---
+  function renderSunModal(data){
+    const L = SLANG[_sunLang];
+    const body = $("sun-modal-body");
+    $("sun-modal-title").textContent = L.modal_title;
+    let html = "";
+    html += renderSecNow(data, L);
+    html += renderSecToday(data, L);
+    html += renderSecWeek(data, L);
+    html += renderSecCrops(data, L);
+    body.innerHTML = html;
+    // Apply conic gradient for ring
+    const ring = body.querySelector(".ring");
+    if(ring){
+      const p = data.now_solar_pct || 0;
+      ring.style.setProperty("--p", p + "%");
+    }
+  }
+
+  // --- Section 1: Right now ---
+  function renderSecNow(d, L){
+    const pct = d.now_solar_pct || 0;
+    let nowText;
+    if(!d.sun_above)      nowText = L.night;
+    else if(pct >= 50)    nowText = L.bright_now;
+    else                  nowText = L.light_dimming;
+
+    let html = `<div class="sun-section"><h3>${L.sec1}</h3>`;
+    html += `<div class="sun-now-circle">`;
+    html += `<div class="ring" style="--p:${pct}%"><span>${pct}%</span></div>`;
+    html += `<div class="meta">${nowText}`;
+    // Lux + radiation from Ecowitt
+    if (d.lux != null) {
+      html += `<br><span style="color:#ffe16b;font-size:12px">${d.lux.toLocaleString()} lx</span>`;
+    }
+    if (d.solar_radiation_w_m2 != null) {
+      html += ` <span style="color:#8a96a3;font-size:11px">(${d.solar_radiation_w_m2} W/m²)</span>`;
+    }
+    html += `</div></div>`;
+    // Outdoor conditions
+    if (d.outdoor_temp_c != null) {
+      html += `<div class="sun-stat-row"><span class="lab">🌡️ Outdoor</span><span class="val">${d.outdoor_temp_c.toFixed(1)}°C`;
+      if (d.outdoor_humidity != null) html += ` · ${d.outdoor_humidity.toFixed(0)}%`;
+      html += `</span></div>`;
+    }
+    // UV
+    if (d.uv && d.uv.index != null) {
+      const uvLevel = _sunLang === "ru" ? (d.uv.level_ru || d.uv.level) : d.uv.level;
+      html += `<div class="sun-stat-row"><span class="lab">☀️ UV</span><span class="val">${d.uv.index} — ${uvLevel}</span></div>`;
+    }
+    // Soil zones — CH1 Tomato (with temp), CH2 Cucumber (no temp)
+    const zones = d.soil_zones || [];
+    zones.forEach(z => {
+      if (!z.planted) return;
+      const zName = _sunLang === "ru" ? z.name_ru : z.name;
+      const zMoist = z.moisture != null ? z.moisture + "%" : "--";
+      let tempIcon = "";
+      if (z.temp_c != null) {
+        if (z.temp_c >= 10) tempIcon = " ✓";
+        else if (z.temp_c >= 5) tempIcon = " ⚠️";
+        else tempIcon = " ❄️";
+      }
+      const zTemp = z.temp_c != null ? z.temp_c.toFixed(1) + "°C" + tempIcon : "—";
+      html += `<div class="sun-stat-row"><span class="lab">${z.name === "Tomato" ? "🍅" : "🥒"} ${zName} ${L.soil_moist}</span><span class="val">${zMoist}</span></div>`;
+      if (z.temp_c != null) {
+        html += `<div class="sun-stat-row"><span class="lab">${z.name === "Tomato" ? "🍅" : "🥒"} ${zName} ${L.soil_temp}</span><span class="val">${zTemp}</span></div>`;
+      }
+    });
+    if(d.greenhouse_plastic_on){
+      html += `<div class="sun-stat-row"><span class="lab">\uD83D\uDD25 ${L.greenhouse}</span><span class="val" style="color:#ffb96b;font-size:12px">${L.heater}</span></div>`;
+    }
+    html += `</div>`;
+    return html;
+  }
+
+  // --- Section 2: Today ---
+  function renderSecToday(d, L){
+    const todPct = d.today_pct != null ? d.today_pct : 0;
+    const todKwh = d.today_kwh != null ? d.today_kwh.toFixed(1) : "--";
+    const baseline = d.clear_day_baseline_kwh != null ? d.clear_day_baseline_kwh.toFixed(0) : "92";
+    const tomKwh   = d.tomorrow_kwh != null ? d.tomorrow_kwh.toFixed(0) : "--";
+    const tomPct   = d.tomorrow_pct != null ? d.tomorrow_pct : 0;
+    const tomText  = tomPct >= 60 ? L.tomorrow_bright : L.tomorrow_cloudy;
+    const tomColor = tomPct >= 60 ? "#7bff96" : "#8a96a3";
+
+    let html = `<div class="sun-section"><h3>${L.sec2}</h3>`;
+    html += `<div class="sun-today-big">${todPct}% ${L.of_perfect}</div>`;
+    html += `<div class="sun-stat-row"><span class="lab">${L.sec2}</span><span class="val">${todKwh} kWh / ${baseline} kWh</span></div>`;
+    html += `<div class="sun-tomorrow" style="color:${tomColor}">${tomText} (${tomKwh} ${L.khw_expected})</div>`;
+    html += `</div>`;
+    return html;
+  }
+
+  // --- Section 3: This week ---
+  function renderSecWeek(d, L){
+    const week = d.week || [];
+    const avgPct = d.week_avg_pct;
+    const avgKwh = d.week_avg_kwh;
+    const todayStr = new Date().toLocaleDateString("en-CA");
+
+    let html = `<div class="sun-section"><h3>${L.sec3}</h3>`;
+    if(week.length === 0){
+      html += `<div style="color:#5e6a78;font-size:13px;text-align:center;padding:12px 0">No data yet</div>`;
+    } else {
+      // Bar chart
+      html += `<div class="week-bars">`;
+      week.forEach(entry => {
+        const barH = Math.max(2, Math.min(100, entry.pct || 0));
+        const isToday = entry.date === todayStr;
+        html += `<div class="week-bar${isToday ? " today" : ""}">`;
+        html += `<div class="pct">${entry.pct || 0}%</div>`;
+        html += `<div class="bar-wrap"><div class="bar" style="height:${barH}%"></div></div>`;
+        html += `<div class="day">${entry.weekday || entry.date.slice(5)}</div>`;
+        html += `</div>`;
+      });
+      html += `</div>`;
+      // Summary line
+      const avgLabel = weekLabel(avgPct, L);
+      html += `<div class="sun-stat-row"><span class="lab">${L.week_avg}</span>`;
+      html += `<span class="val">${avgKwh != null ? avgKwh.toFixed(1) : "--"} kWh = ${avgPct != null ? avgPct : "--"}%</span></div>`;
+      html += `<div style="font-size:12px;color:#8a96a3;margin-top:4px">${avgLabel}</div>`;
+    }
+    html += `</div>`;
+    return html;
+  }
+
+  // --- Section 4: Your crops ---
+  function renderSecCrops(d, L){
+    const crops = d.crops || {};
+    const ghOn  = d.greenhouse_plastic_on;
+    const weekPct = d.week_avg_pct != null ? d.week_avg_pct : 0;
+    const tempC  = d.soil_temp_c;
+    const moistPct = d.soil_moisture_pct;
+
+    const CROP_META = {
+      tomatoes: { ico: "\uD83C\uDF45", thresh: ghOn ? 35 : 50 },
+      cucumbers:{ ico: "\uD83E\uDD52", thresh: 42 },
+      peppers:  { ico: "\uD83C\uDF36\uFE0F", thresh: 50 },
+      lettuce:  { ico: "\uD83E\uDD6C", thresh: 33 },
+    };
+
+    let html = `<div class="sun-section"><h3>${L.sec4}</h3>`;
+
+    const planted  = Object.keys(crops).filter(k => crops[k]);
+    const notPlanted = Object.keys(crops).filter(k => !crops[k]);
+
+    if(planted.length === 0){
+      html += `<div style="color:#5e6a78;font-size:13px;text-align:center;padding:8px 0">No crops planted yet</div>`;
+    } else {
+      planted.forEach(c => {
+        const meta  = CROP_META[c] || { ico: "\uD83C\uDF31", thresh: 50 };
+        const t = meta.thresh;
+        let status, pillCls;
+        if(weekPct >= t)               { status = L.happy;      pillCls = "happy"; }
+        else if(weekPct >= t * 0.7)    { status = L.borderline; pillCls = "border"; }
+        else                            { status = L.dim;        pillCls = "dim"; }
+
+        const cropName = L[c] || c;
+        const ghTag = (c === "tomatoes" && ghOn) ? `<span class="gh-tag">\uD83C\uDFE0 ${L.greenhouse}</span>` : "";
+
+        // Verdict
+        let verdict;
+        if(pillCls === "happy")        verdict = L.verdict_growing;
+        else if(pillCls === "border")  verdict = L.verdict_slow;
+        else                           verdict = L.verdict_dim;
+
+        // Per-crop soil data from soil_zones (CH1=Tomato, CH2=Cucumber; v1.3.1: shared temp probe)
+        const zones = d.soil_zones || [];
+        let zoneData = null;
+        if (c === "tomatoes")  zoneData = zones.find(z => z.name === "Tomato");
+        if (c === "cucumbers") zoneData = zones.find(z => z.name === "Cucumber");
+        const zMoist = zoneData && zoneData.moisture != null ? zoneData.moisture.toFixed(1) + "%" : (moistPct != null ? moistPct.toFixed(1) + "%" : "--");
+        const zTemp  = zoneData && zoneData.temp_c   != null ? zoneData.temp_c.toFixed(1) + "°C"  : (tempC != null ? tempC.toFixed(1) + "°C" : "--");
+        // v1.3.1: per-crop moisture status w/ ideal band + bilingual message
+        let zStatusLine = "";
+        if (zoneData && zoneData.status) {
+          const msg = _sunLang === "ru" ? (zoneData.status_msg_ru || zoneData.status_msg || "") : (zoneData.status_msg || "");
+          const statusColor = {
+            water: "#ff6b3d", low: "#ffb96b", ok: "#6bd16b", high: "#6bb4ff", wet: "#ff6b3d"
+          }[zoneData.status] || "#5e6a78";
+          const idealLabel = _sunLang === "ru" ? "идеал" : "ideal";
+          const varietyLabel = _sunLang === "ru"
+            ? (c === "tomatoes" ? "турецкие помидоры" : "украинские пупырчатые огурцы")
+            : (c === "tomatoes" ? "Turkish heirloom" : "Ukrainian пупырчатые");
+          zStatusLine = `<div class="crop-status-line" style="font-size:11px;color:${statusColor};margin-top:6px;font-weight:600">${msg}</div>` +
+                        `<div class="crop-variety-line" style="font-size:10px;color:#7a8794;margin-top:2px">${varietyLabel} · ${idealLabel} ${zoneData.ideal_min}–${zoneData.ideal_max}%</div>`;
+        }
+
+        const sunVal = d.week_avg_pct != null ? d.week_avg_pct + "% / " + t + "% target" : "--";
+
+        html += `<div class="crop-card">`;
+        html += `<div class="head">`;
+        html += `<div class="ico">${meta.ico}</div>`;
+        html += `<div class="name">${cropName}${ghTag}</div>`;
+        html += `<div class="pill ${pillCls}">${status}</div>`;
+        html += `</div>`;
+        html += `<div class="cstats">`;
+        html += `<div class="cstat"><div class="lab">${L.sun_stat}</div><div class="val" style="font-size:11px">${sunVal}</div></div>`;
+        html += `<div class="cstat"><div class="lab">${L.soil_temp}</div><div class="val">${zTemp}</div></div>`;
+        html += `<div class="cstat"><div class="lab">${L.soil_moist}</div><div class="val">${zMoist}</div></div>`;
+        html += `</div>`;
+        html += zStatusLine;
+        html += `<div class="verdict">${verdict}</div>`;
+        html += `</div>`;
+      });
+    }
+
+    if(notPlanted.length > 0){
+      const names = notPlanted.map(c => L[c] || c).join(", ");
+      html += `<div class="coming-soon">${L.coming_soon}: ${names}</div>`;
+    }
+
+    html += `</div>`;
+    return html;
+  }
+
+  // --- Close sun modal on Escape ---
+  document.addEventListener("keydown", e => {
+    if(e.key === "Escape") { closeSunModal(); }
+  });
+
+  // ===== v1.3.0: Wind + Rain + Soil tile rendering from sun_summary =====
+  function renderWindRainSoil(data) {
+    if (!data) return;
+    const L = SLANG[_sunLang];
+
+    // Soil tile — dual zone (v1.3.1: shared temp probe, per-crop status badges)
+    const zones = data.soil_zones || [];
+    const tom = zones.find(z => z.name === "Tomato") || {};
+    const cuc = zones.find(z => z.name === "Cucumber") || {};
+    if ($("moist-tomato")) $("moist-tomato").textContent = tom.moisture != null ? tom.moisture.toFixed(0) : "--";
+    if ($("temp-tomato"))  $("temp-tomato").textContent  = tom.temp_c   != null ? tom.temp_c.toFixed(1)   : "--";
+    if ($("moist-cuc"))    $("moist-cuc").textContent    = cuc.moisture != null ? cuc.moisture.toFixed(0) : "--";
+    if ($("temp-cuc"))     $("temp-cuc").textContent     = cuc.temp_c   != null ? cuc.temp_c.toFixed(1)   : "--";
+    function _statusBadge(status){
+      // returns {emoji, color} for moisture status
+      switch(status){
+        case "water": return {emoji:"💧", color:"#ff6b3d", label:"WATER"};
+        case "low":   return {emoji:"⚠️", color:"#ffb96b", label:"DRY"};
+        case "ok":    return {emoji:"✓",  color:"#6bd16b", label:"OK"};
+        case "high":  return {emoji:"💦", color:"#6bb4ff", label:"DAMP"};
+        case "wet":   return {emoji:"⚠️", color:"#ff6b3d", label:"WET"};
+        default:      return {emoji:"",   color:"#5e6a78", label:""};
+      }
+    }
+    if ($("badge-tomato")){
+      const b = _statusBadge(tom.status);
+      $("badge-tomato").innerHTML = b.label ? `<span style="color:${b.color};font-size:11px;font-weight:600">${b.emoji} ${b.label}</span>` : "";
+    }
+    if ($("badge-cuc")){
+      const b = _statusBadge(cuc.status);
+      $("badge-cuc").innerHTML = b.label ? `<span style="color:${b.color};font-size:11px;font-weight:600">${b.emoji} ${b.label}</span>` : "";
+    }
+
+    // Wind tile
+    const wind = data.wind || {};
+    const spd  = wind.speed_kmh != null ? wind.speed_kmh.toFixed(1) + " km/h" : "--";
+    const gust = wind.gust_kmh  != null ? "Gust " + wind.gust_kmh.toFixed(1) + " km/h" : "Gust —";
+    if ($("wind-speed")) $("wind-speed").textContent = spd;
+    if ($("wind-dir"))   $("wind-dir").textContent   = wind.direction || "—";
+    if ($("wind-gust"))  $("wind-gust").textContent  = gust;
+    const alertBanner = $("wind-alert-banner");
+    if (alertBanner) {
+      if (wind.alert) {
+        alertBanner.style.display = "block";
+        alertBanner.textContent = _sunLang === "ru"
+          ? (wind.alert_msg_ru || L.gusty_winds)
+          : (wind.alert_msg    || L.gusty_winds);
+      } else {
+        alertBanner.style.display = "none";
+      }
+    }
+
+    // Rain tile
+    const rain = data.rain || {};
+    if ($("rain-today"))      $("rain-today").textContent     = rain.today_mm  != null ? rain.today_mm.toFixed(1) : "--";
+    if ($("rain-today-lbl"))  $("rain-today-lbl").textContent = "today mm";
+    if ($("rain-week"))       $("rain-week").textContent      = "Week " + (rain.week_mm   != null ? rain.week_mm.toFixed(1)   + " mm" : "—");
+    if ($("rain-rate"))       $("rain-rate").textContent      = "Rate " + (rain.rate_mm_h != null ? rain.rate_mm_h.toFixed(1) + " mm/h" : "—");
+
+    // HP10 modal badge (UV + lux)
+    const uvEl = $("hp10-badge");
+    if (uvEl && data.uv) {
+      uvEl.textContent = "UV " + (data.uv.index || 0) + " · " + (data.uv.level || "");
+    }
+  }
+
+  // Hook renderWindRainSoil into the refreshSunTile pipeline.
+  // Wrap fetchSunSummary's caller (refreshSunTile) since duplicate
+  // function renderSunTile declarations break hoisting (v1.3.0 fix).
+  const _origRefreshSunTile = refreshSunTile;
+  refreshSunTile = async function(){
+    const d = await fetchSunSummary();
+    renderSunTile(d);
+    if (d) renderWindRainSoil(d);
+  };
+
+  // ===== HP10 Camera (garden.jpg) =====
+  let hp10LastLoaded = 0;
+  function loadHp10Snapshot() {
+    const img  = $("hp10-img");
+    const age  = $("hp10-age");
+    if (!img) return;
+    const t = Date.now();
+    img.onload  = () => { hp10LastLoaded = t; if (age) age.textContent = "just now"; };
+    img.onerror = () => { if (age) age.textContent = "offline"; };
+    img.src = "/garden/api/cam/garden.jpg?t=" + t;
+  }
+
+  function tickHp10Age() {
+    const age = $("hp10-age");
+    if (!age || !hp10LastLoaded) return;
+    const s = Math.floor((Date.now() - hp10LastLoaded) / 1000);
+    if (s < 60)  age.textContent = s + "s ago";
+    else         age.textContent = Math.floor(s / 60) + "m ago";
+  }
+
+  function openHp10Modal() {
+    const m = $("hp10-modal");
+    m.classList.add("open");
+    document.body.style.overflow = "hidden";
+    // Show full-res snapshot in modal
+    const t = Date.now();
+    const mimg = $("hp10-modal-img");
+    if (mimg) mimg.src = "/garden/api/cam/garden.jpg?t=" + t;
+    // v1.3.9: kick off date-aware timelapse picker (replaces single "Today's timelapse" button)
+    tlInit();
+  }
+
+  function closeHp10Modal() {
+    $("hp10-modal").classList.remove("open");
+    document.body.style.overflow = "";
+    const vid = $("hp10-video");
+    if (vid) { vid.pause(); vid.src = ""; }
+    const wrap = $("hp10-timelapse-wrap");
+    if (wrap) { wrap.style.display = "none"; wrap.innerHTML = '<video controls playsinline id="hp10-video"></video>'; }
+  }
+
+  // ===== v1.3.9: timelapse date picker (Ecowitt-style) =====
+  // State lives in window.TL_STATE so we don't shadow other modules.
+  const TL_STATE = window.TL_STATE = { dates: [], today: "", selected: "" };
+
+  function _tlFmtDate(iso) {
+    // "2026-05-25" → "Mon, May 25"
+    try {
+      const [y,m,d] = iso.split("-").map(Number);
+      const dt = new Date(y, m-1, d);
+      const wd = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][dt.getDay()];
+      const mn = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][dt.getMonth()];
+      return `${wd}, ${mn} ${d}`;
+    } catch (e) { return iso; }
+  }
+
+  function _tlSubLabel(iso) {
+    if (!iso) return "tap to choose day";
+    if (iso === TL_STATE.today) return "today";
+    // Days ago
+    try {
+      const [y,m,d] = iso.split("-").map(Number);
+      const sel = new Date(y, m-1, d);
+      const [ty,tm,td] = TL_STATE.today.split("-").map(Number);
+      const tod = new Date(ty, tm-1, td);
+      const diff = Math.round((tod - sel)/(86400000));
+      if (diff === 1) return "yesterday";
+      if (diff > 0) return diff + " days ago";
+      return iso;
+    } catch (e) { return iso; }
+  }
+
+  async function tlInit() {
+    // Reset video pane
+    const wrap = $("hp10-timelapse-wrap");
+    if (wrap) {
+      wrap.style.display = "none";
+      wrap.innerHTML = '<video controls playsinline id="hp10-video"></video>';
+    }
+    // Show loading state on date bar
+    const main = $("tl-date-main");
+    const sub  = $("tl-date-sub");
+    if (main) main.textContent = "⏳ loading…";
+    if (sub)  sub.textContent  = "";
+    try {
+      const r = await fetch("/garden/api/timelapse/list?t=" + Date.now(), {credentials:"same-origin"});
+      if (!r.ok) throw new Error("list failed");
+      const s = await r.json();
+      TL_STATE.dates = s.dates || [];
+      TL_STATE.today = s.today || "";
+      // Default: today if available, else latest
+      const defaultDate = TL_STATE.dates.includes(TL_STATE.today)
+        ? TL_STATE.today
+        : (s.latest || TL_STATE.today);
+      // Wire native date input min/max so the picker shows the valid range
+      const di = $("tl-date-input");
+      if (di) {
+        di.min = s.earliest || "";
+        di.max = TL_STATE.today || "";
+      }
+      tlPickDate(defaultDate);
+    } catch (e) {
+      if (main) main.textContent = "🎬 —";
+      if (sub)  sub.textContent  = "could not load list";
+    }
+  }
+
+  function _tlUpdateArrows() {
+    const dates = TL_STATE.dates;
+    const sel = TL_STATE.selected;
+    const prev = $("tl-prev");
+    const next = $("tl-next");
+    if (!prev || !next || !dates.length) return;
+    const i = dates.indexOf(sel);
+    // Even if selected is today (no video), we still allow prev to the latest video
+    if (sel === TL_STATE.today && !dates.includes(sel)) {
+      prev.setAttribute("aria-disabled", "false");
+      next.setAttribute("aria-disabled", "true");
+      return;
+    }
+    prev.setAttribute("aria-disabled", i <= 0 ? "true" : "false");
+    next.setAttribute("aria-disabled", (i < 0 || i >= dates.length - 1) ? "true" : "false");
+  }
+
+  function tlStepDay(step) {
+    const dates = TL_STATE.dates;
+    if (!dates.length) return;
+    const sel = TL_STATE.selected;
+    // If currently on today (no video) and stepping back, jump to latest rendered
+    if (sel === TL_STATE.today && !dates.includes(sel) && step < 0) {
+      tlPickDate(dates[dates.length - 1]);
+      return;
+    }
+    let i = dates.indexOf(sel);
+    if (i < 0) return;
+    const ni = i + step;
+    if (ni < 0 || ni >= dates.length) return;
+    tlPickDate(dates[ni]);
+  }
+
+  function tlGoToday() {
+    tlPickDate(TL_STATE.today);
+  }
+
+  async function tlPickDate(iso) {
+    if (!iso) return;
+    TL_STATE.selected = iso;
+    // Update date label
+    const main = $("tl-date-main");
+    const sub  = $("tl-date-sub");
+    if (main) main.textContent = "🎬 " + _tlFmtDate(iso);
+    if (sub)  sub.textContent  = _tlSubLabel(iso);
+    const di = $("tl-date-input");
+    if (di && di.value !== iso) di.value = iso;
+    // Jump-to-today pill
+    const pill = $("tl-today-pill");
+    if (pill) pill.hidden = (iso === TL_STATE.today);
+    _tlUpdateArrows();
+
+    const wrap = $("hp10-timelapse-wrap");
+    if (!wrap) return;
+    wrap.style.display = "block";
+    wrap.innerHTML = `<div style="padding:24px;text-align:center;color:#8aa1c2;font-size:14px">
+      <div class="spinner" style="margin:0 auto 12px"></div>Loading…</div>`;
+
+    const hasVideo = TL_STATE.dates.includes(iso);
+    if (hasVideo) {
+      wrap.innerHTML = `<video controls playsinline id="hp10-video"></video>`;
+      const newVid = $("hp10-video");
+      newVid.src = "/garden/api/timelapse/today.mp4?date=" + encodeURIComponent(iso) + "&t=" + Date.now();
+      newVid.play().catch(()=>{});
+      return;
+    }
+
+    // No video yet for selected day — friendly state, with link to latest if not today
+    let snapInfo = "";
+    if (iso === TL_STATE.today) {
+      try {
+        const r = await fetch("/garden/api/timelapse/status?t=" + Date.now(), {credentials:"same-origin"});
+        if (r.ok) {
+          const s = await r.json();
+          const n = s.snapshot_count || 0;
+          const w = n === 1 ? "snapshot" : "snapshots";
+          snapInfo = `${n} ${w} captured so far<br>First render scheduled for 23:55 tonight`;
+        }
+      } catch (e) { /* ignore */ }
+    } else {
+      snapInfo = "No render for this day";
+    }
+    const latest = TL_STATE.dates.length ? TL_STATE.dates[TL_STATE.dates.length - 1] : null;
+    const showLatest = latest && latest !== iso;
+    wrap.innerHTML = `
+      <div style="padding:28px 18px;text-align:center;background:rgba(99,179,237,.06);border:1px dashed rgba(99,179,237,.25);border-radius:14px">
+        <div style="font-size:42px;margin-bottom:8px">🌿</div>
+        <div style="font-size:15px;font-weight:600;color:#cfe2f7;margin-bottom:6px">No timelapse for ${_tlFmtDate(iso)}</div>
+        <div style="font-size:12px;color:#8aa1c2;line-height:1.5">${snapInfo}</div>
+      </div>
+      ${showLatest ? `<div class="tl-latest-link" onclick="tlPickDate('${latest}')">
+          ▶ Watch latest — ${_tlFmtDate(latest)} <span class="arrow">›</span>
+        </div>` : ""}
+    `;
+  }
+
+  // Back-compat shim — some old call-sites may still trigger this name.
+  async function loadTimelapse() { return tlInit(); }
+
+  // v1.3.2: REAL history modal (past 7 days from Ecowitt + Enphase)
+  function openWxHistoryModal() {
+    const m = $("wx-hist-modal");
+    if (!m) return;
+    m.classList.add("open");
+    document.body.style.overflow = "hidden";
+    loadWxHistory();
+  }
+  function closeWxHistoryModal() {
+    const m = $("wx-hist-modal");
+    if (m) m.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+  async function loadWxHistory() {
+    const body = $("wx-hist-body");
+    if (!body) return;
+    body.innerHTML = `<div class="stream-msg"><div class="spinner"></div>Loading history…</div>`;
+    try {
+      const r = await fetch("/garden/api/history_7d", {credentials:"same-origin"});
+      if (!r.ok) throw new Error("history fetch failed");
+      const j = await r.json();
+      const days = j.days || [];
+      const srcs = j.sources || {};
+      // Build a compact daily table + tiny sparkline
+      let html = `<div style="padding:0 4px">`;
+      html += `<div style="font-size:11px;color:#8aa1c2;margin-bottom:14px;line-height:1.6">
+        🌡️ Temp + 💧 Humidity — ${srcs.temperature || "Ecowitt"}<br>
+        ☀️ Solar daily — ${srcs.solar || "Enphase"}<br>
+        🌧️ Rain — ${srcs.rain || "Ecowitt"}
+      </div>`;
+      // Header row
+      html += `<div style="display:grid;grid-template-columns:54px 1fr 1fr 1fr 1fr;gap:6px;font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.08)">
+        <div>Day</div><div style="text-align:right">Temp °C</div><div style="text-align:right">Hum %</div><div style="text-align:right">Solar kWh</div><div style="text-align:right">Rain mm</div>
+      </div>`;
+      // Find max solar for bar scaling
+      const maxSolar = Math.max(1, ...days.map(d => d.solar_kwh || 0));
+      const maxRain  = Math.max(1, ...days.map(d => d.rain_mm   || 0));
+      days.forEach((d, idx) => {
+        const isToday = idx === days.length - 1;
+        const tempCell = (d.temp_min_c != null && d.temp_max_c != null)
+          ? `<span style="color:#9bd8ad">${d.temp_min_c.toFixed(0)}→${d.temp_max_c.toFixed(0)}</span>`
+          : "—";
+        const humCell = (d.hum_min != null && d.hum_max != null)
+          ? `<span style="color:#8db4d6">${d.hum_min.toFixed(0)}→${d.hum_max.toFixed(0)}</span>`
+          : "—";
+        const solarPct = d.solar_kwh != null ? Math.round((d.solar_kwh / maxSolar) * 100) : 0;
+        const solarCell = d.solar_kwh != null
+          ? `<div style="position:relative;text-align:right"><div style="position:absolute;inset:0;background:linear-gradient(to left,rgba(255,200,80,.18) ${solarPct}%,transparent ${solarPct}%);border-radius:3px"></div><span style="position:relative;color:#ffd680">${d.solar_kwh.toFixed(1)}</span></div>`
+          : "—";
+        const rainPct = d.rain_mm != null ? Math.round((d.rain_mm / maxRain) * 100) : 0;
+        const rainCell = d.rain_mm != null && d.rain_mm > 0
+          ? `<div style="position:relative;text-align:right"><div style="position:absolute;inset:0;background:linear-gradient(to left,rgba(99,179,237,.22) ${rainPct}%,transparent ${rainPct}%);border-radius:3px"></div><span style="position:relative;color:#9ccff5">${d.rain_mm.toFixed(1)}</span></div>`
+          : `<span style="color:#5e6a78">—</span>`;
+        html += `<div style="display:grid;grid-template-columns:54px 1fr 1fr 1fr 1fr;gap:6px;font-size:13px;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,.04);${isToday ? "background:rgba(99,179,237,.05);font-weight:600" : ""}">
+          <div style="color:${isToday ? "#cfe2f7" : "#aab8c6"}">${d.weekday}${isToday ? " · now" : ""}</div>
+          <div style="text-align:right">${tempCell}</div>
+          <div style="text-align:right">${humCell}</div>
+          <div style="text-align:right">${solarCell}</div>
+          <div style="text-align:right">${rainCell}</div>
+        </div>`;
+      });
+      html += `</div>`;
+      html += `<div style="margin-top:14px;padding:10px 12px;background:rgba(95,209,126,.06);border-left:3px solid rgba(95,209,126,.4);border-radius:6px;font-size:11px;color:#9bd8ad;line-height:1.5">
+        Real readings from your sensors. Temp shows daily min→max range. Solar from Enphase production.
+      </div>`;
+      body.innerHTML = html;
+    } catch (e) {
+      body.innerHTML = `<div style="padding:24px;text-align:center;color:#ff9b6b">Could not load history. Check Home Assistant logs.</div>`;
+    }
+  }
+
+  // v1.3.2: Wind/Rain past-7d stats modal (reuses /api/history_7d)
+  let _wrMode = "wind";
+  function openWindRainModal(mode) {
+    _wrMode = (mode === "rain") ? "rain" : "wind";
+    const m = $("wr-modal");
+    if (!m) return;
+    $("wr-modal-title").textContent = (_wrMode === "rain") ? "🌧️ Rain · past 7 days" : "💨 Wind · past 7 days";
+    m.classList.add("open");
+    document.body.style.overflow = "hidden";
+    loadWindRain();
+  }
+  function closeWindRainModal() {
+    const m = $("wr-modal");
+    if (m) m.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+  async function loadWindRain() {
+    const body = $("wr-modal-body");
+    if (!body) return;
+    body.innerHTML = `<div class="stream-msg"><div class="spinner"></div>Loading stats…</div>`;
+    try {
+      const r = await fetch("/garden/api/history_7d", {credentials:"same-origin"});
+      if (!r.ok) throw new Error("history fetch failed");
+      const j = await r.json();
+      const days = j.days || [];
+      const isRain = (_wrMode === "rain");
+      // Build summary stats
+      let total = 0, peak = 0, peakDay = "";
+      days.forEach(d => {
+        const v = isRain ? (d.rain_mm || 0) : (d.gust_max_kmh || d.wind_max_kmh || 0);
+        if (isRain) total += v;
+        if (v > peak) { peak = v; peakDay = d.weekday; }
+      });
+      // Header summary
+      let html = `<div style="padding:0 4px">`;
+      if (isRain) {
+        html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+          <div style="background:rgba(99,179,237,.08);padding:14px;border-radius:10px;border:1px solid rgba(99,179,237,.18)">
+            <div style="font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em">7d total</div>
+            <div style="font-size:24px;font-weight:600;color:#9ccff5;margin-top:4px">${total.toFixed(1)} <span style="font-size:13px;color:#8aa1c2;font-weight:400">mm</span></div>
+          </div>
+          <div style="background:rgba(99,179,237,.08);padding:14px;border-radius:10px;border:1px solid rgba(99,179,237,.18)">
+            <div style="font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em">Wettest day</div>
+            <div style="font-size:18px;font-weight:600;color:#9ccff5;margin-top:4px">${peakDay || "—"}</div>
+            <div style="font-size:12px;color:#8aa1c2;margin-top:2px">${peak.toFixed(1)} mm</div>
+          </div>
+        </div>`;
+      } else {
+        const avgWind = days.length ? days.reduce((a,d)=>a+(d.wind_avg_kmh||0),0) / days.length : 0;
+        html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+          <div style="background:rgba(255,180,80,.08);padding:14px;border-radius:10px;border:1px solid rgba(255,180,80,.18)">
+            <div style="font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em">Peak gust</div>
+            <div style="font-size:24px;font-weight:600;color:#ffd680;margin-top:4px">${peak.toFixed(1)} <span style="font-size:13px;color:#8aa1c2;font-weight:400">km/h</span></div>
+            <div style="font-size:12px;color:#8aa1c2;margin-top:2px">${peakDay || "—"}</div>
+          </div>
+          <div style="background:rgba(255,180,80,.08);padding:14px;border-radius:10px;border:1px solid rgba(255,180,80,.18)">
+            <div style="font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em">7d avg wind</div>
+            <div style="font-size:24px;font-weight:600;color:#ffd680;margin-top:4px">${avgWind.toFixed(1)} <span style="font-size:13px;color:#8aa1c2;font-weight:400">km/h</span></div>
+          </div>
+        </div>`;
+      }
+      // Header row
+      const cols = isRain
+        ? `<div>Day</div><div style="text-align:right">Rain mm</div><div style="text-align:right">% of week</div>`
+        : `<div>Day</div><div style="text-align:right">Avg km/h</div><div style="text-align:right">Max km/h</div><div style="text-align:right">Gust km/h</div>`;
+      const gridCols = isRain ? "54px 1fr 1fr" : "54px 1fr 1fr 1fr";
+      html += `<div style="display:grid;grid-template-columns:${gridCols};gap:6px;font-size:10px;color:#8aa1c2;text-transform:uppercase;letter-spacing:.06em;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.08)">${cols}</div>`;
+      const maxBar = isRain ? Math.max(1, ...days.map(d => d.rain_mm || 0)) : Math.max(1, ...days.map(d => d.gust_max_kmh || d.wind_max_kmh || 0));
+      days.forEach((d, idx) => {
+        const isToday = idx === days.length - 1;
+        let row;
+        if (isRain) {
+          const v = d.rain_mm;
+          const pct = (v != null && total > 0) ? Math.round((v / total) * 100) : 0;
+          const barPct = (v != null) ? Math.round((v / maxBar) * 100) : 0;
+          const rainCell = (v != null && v > 0)
+            ? `<div style="position:relative;text-align:right"><div style="position:absolute;inset:0;background:linear-gradient(to left,rgba(99,179,237,.22) ${barPct}%,transparent ${barPct}%);border-radius:3px"></div><span style="position:relative;color:#9ccff5">${v.toFixed(1)}</span></div>`
+            : `<span style="color:#5e6a78">—</span>`;
+          row = `<div style="text-align:right">${rainCell}</div><div style="text-align:right;color:#8aa1c2">${pct}%</div>`;
+        } else {
+          const a = d.wind_avg_kmh, mx = d.wind_max_kmh, g = d.gust_max_kmh;
+          const gv = g || mx || 0;
+          const barPct = Math.round((gv / maxBar) * 100);
+          const gustCell = (g != null)
+            ? `<div style="position:relative;text-align:right"><div style="position:absolute;inset:0;background:linear-gradient(to left,rgba(255,180,80,.22) ${barPct}%,transparent ${barPct}%);border-radius:3px"></div><span style="position:relative;color:#ffd680">${g.toFixed(1)}</span></div>`
+            : `<span style="color:#5e6a78">—</span>`;
+          row = `<div style="text-align:right;color:#aab8c6">${a != null ? a.toFixed(1) : "—"}</div><div style="text-align:right;color:#aab8c6">${mx != null ? mx.toFixed(1) : "—"}</div><div style="text-align:right">${gustCell}</div>`;
+        }
+        html += `<div style="display:grid;grid-template-columns:${gridCols};gap:6px;font-size:13px;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,.04);${isToday ? "background:rgba(255,180,80,.05);font-weight:600" : ""}">
+          <div style="color:${isToday ? "#ffe6b3" : "#aab8c6"}">${d.weekday}${isToday ? " · now" : ""}</div>
+          ${row}
+        </div>`;
+      });
+      html += `</div>`;
+      const note = isRain
+        ? "Daily rainfall from your Ecowitt rain gauge."
+        : "Wind from Ecowitt anemometer. Gusts > 38 km/h trigger the greenhouse plastic-check alert.";
+      html += `<div style="margin-top:14px;padding:10px 12px;background:rgba(95,209,126,.06);border-left:3px solid rgba(95,209,126,.4);border-radius:6px;font-size:11px;color:#9bd8ad;line-height:1.5">${note}</div>`;
+      body.innerHTML = html;
+    } catch (e) {
+      body.innerHTML = `<div style="padding:24px;text-align:center;color:#ff9b6b">Could not load stats. Check Home Assistant logs.</div>`;
+    }
+  }
+
+  // Start HP10 cam auto-refresh
+  loadHp10Snapshot();
+  setInterval(loadHp10Snapshot, 30000);
+  setInterval(tickHp10Age, 1000);
+
+  // Escape closes HP10 modal too
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") { closeHp10Modal(); closeSunModal(); closeWxHistoryModal(); closeWindRainModal(); }
+  });
+
+  // --- Kick off initial sun tile render ---
+  refreshSunTile();
+  // Re-render tile every 60 s (aligned with load() but independent)
+  setInterval(refreshSunTile, 60000);
+  // v1.5.0 init: apply persisted skin choices ASAP.
+  try{ _skinApply(); }catch(e){ console.error('skin init',e); }
+</script>
+<!-- ===== v1.5.0 skin settings modal ===== -->
+<button class="skin-gear" id="skin-gear-btn" onclick="openSkinModal()" aria-label="Skin settings">⚙️</button>
+<div class="skin-modal-bg" id="skin-modal-bg" onclick="if(event.target.id==='skin-modal-bg')closeSkinModal()">
+  <div class="skin-modal" role="dialog" aria-label="Skin settings">
+    <h2>Skins</h2>
+    <div class="sub">Pick a background style and a tile style. They're independent.</div>
+
+    <div class="group">
+      <div class="group-label">Background</div>
+      <div class="skin-options">
+        <div class="skin-opt" data-kind="bg" data-skin="realistic" onclick="_skinPick('bg','realistic')">
+          <div class="swatch"></div><div class="name">Realistic</div>
+        </div>
+        <div class="skin-opt" data-kind="bg" data-skin="watercolor" onclick="_skinPick('bg','watercolor')">
+          <div class="swatch"></div><div class="name">Watercolor</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-label">Tiles</div>
+      <div class="skin-options">
+        <div class="skin-opt" data-kind="ui" data-skin="realistic" onclick="_skinPick('ui','realistic')">
+          <div class="swatch"></div><div class="name">Realistic</div>
+        </div>
+        <div class="skin-opt" data-kind="ui" data-skin="watercolor" onclick="_skinPick('ui','watercolor')">
+          <div class="swatch"></div><div class="name">Watercolor</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-label">Coming soon</div>
+      <div class="skin-options">
+        <div class="skin-opt" data-kind="bg" data-skin="pencil" data-disabled="1">
+          <div class="swatch"></div><div class="name">Pencil</div>
+          <div class="pencil-soon">v1.6.0</div>
+        </div>
+        <div class="skin-opt" data-kind="ui" data-skin="pencil" data-disabled="1">
+          <div class="swatch"></div><div class="name">Pencil</div>
+          <div class="pencil-soon">v1.6.0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="close-row">
+      <button class="close-btn" onclick="closeSkinModal()">Done</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
