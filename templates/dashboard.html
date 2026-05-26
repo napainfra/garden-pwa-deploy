@@ -10,7 +10,7 @@
 <link rel="manifest" href="/garden/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/garden/static/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/garden/static/icon-192.png">
-<title>Masha's Garden · v1.7.5</title>
+<title>Masha's Garden · v1.7.6</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
   html,body{height:100%;width:100%}
@@ -1500,23 +1500,14 @@
   body[data-bg-skin="pencil"][data-cond="windy"] .wcv-drift,
   body[data-bg-skin="pencil"][data-cond="windy-variant"] .wcv-drift{opacity:.6}
 
-  /* ===== INK BACKDROP v1.7.5 — ALL MOTION IN INK MEDIUM ===== */
+  /* ===== INK BACKDROP v1.7.6 — ALL MOTION IN INK MEDIUM ===== */
   /* Sun: PNG hidden; ray-ring renders the full ink sunburst (center disc + radiating lines) */
   body[data-bg-skin="ink"] .wcv-sun{
     display:none !important;
   }
   /* Ink ray-ring = full SVG sunburst (24 long + 24 short radiating lines + center stroked circle with face) */
-  body[data-bg-skin="ink"] .wcv-rays-ring{
-    width:70vw !important; max-width:480px !important;
-    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600'><g stroke='%231a1a1a' opacity='0.9' fill='none' stroke-linecap='round'><line x1='210.0' y1='300.0' x2='20.0' y2='300.0' stroke-width='2.5'/><line x1='210.8' y1='288.3' x2='22.4' y2='263.5' stroke-width='2.5'/><line x1='213.1' y1='276.7' x2='29.5' y2='227.5' stroke-width='2.5'/><line x1='216.9' y1='265.6' x2='41.3' y2='192.8' stroke-width='2.5'/><line x1='222.1' y1='255.0' x2='57.5' y2='160.0' stroke-width='2.5'/><line x1='228.6' y1='245.2' x2='77.9' y2='129.5' stroke-width='2.5'/><line x1='236.4' y1='236.4' x2='102.0' y2='102.0' stroke-width='2.5'/><line x1='245.2' y1='228.6' x2='129.5' y2='77.9' stroke-width='2.5'/><line x1='255.0' y1='222.1' x2='160.0' y2='57.5' stroke-width='2.5'/><line x1='265.6' y1='216.9' x2='192.8' y2='41.3' stroke-width='2.5'/><line x1='276.7' y1='213.1' x2='227.5' y2='29.5' stroke-width='2.5'/><line x1='288.3' y1='210.8' x2='263.5' y2='22.4' stroke-width='2.5'/><line x1='300.0' y1='210.0' x2='300.0' y2='20.0' stroke-width='2.5'/><line x1='311.7' y1='210.8' x2='336.5' y2='22.4' stroke-width='2.5'/><line x1='323.3' y1='213.1' x2='372.5' y2='29.5' stroke-width='2.5'/><line x1='334.4' y1='216.9' x2='407.2' y2='41.3' stroke-width='2.5'/><line x1='345.0' y1='222.1' x2='440.0' y2='57.5' stroke-width='2.5'/><line x1='354.8' y1='228.6' x2='470.5' y2='77.9' stroke-width='2.5'/><line x1='363.6' y1='236.4' x2='498.0' y2='102.0' stroke-width='2.5'/><line x1='371.4' y1='245.2' x2='522.1' y2='129.5' stroke-width='2.5'/><line x1='377.9' y1='255.0' x2='542.5' y2='160.0' stroke-width='2.5'/><line x1='383.1' y1='265.6' x2='558.7' y2='192.8' stroke-width='2.5'/><line x1='386.9' y1='276.7' x2='570.5' y2='227.5' stroke-width='2.5'/><line x1='389.2' y1='288.3' x2='577.6' y2='263.5' stroke-width='2.5'/><line x1='390.0' y1='300.0' x2='580.0' y2='300.0' stroke-width='2.5'/><line x1='160.3' y1='290.8' x2='90.4' y2='286.3' stroke-width='1.4'/><line x1='162.7' y1='272.7' x2='94.0' y2='259.0' stroke-width='1.4'/><line x1='167.4' y1='255.0' x2='101.1' y2='232.5' stroke-width='1.4'/><line x1='174.4' y1='238.1' x2='111.7' y2='207.1' stroke-width='1.4'/><line x1='183.6' y1='222.2' x2='125.4' y2='183.3' stroke-width='1.4'/><line x1='194.7' y1='207.7' x2='142.1' y2='161.5' stroke-width='1.4'/><line x1='207.7' y1='194.7' x2='161.5' y2='142.1' stroke-width='1.4'/><line x1='222.2' y1='183.6' x2='183.3' y2='125.4' stroke-width='1.4'/><line x1='238.1' y1='174.4' x2='207.1' y2='111.7' stroke-width='1.4'/><line x1='255.0' y1='167.4' x2='232.5' y2='101.1' stroke-width='1.4'/><line x1='272.7' y1='162.7' x2='259.0' y2='94.0' stroke-width='1.4'/><line x1='290.8' y1='160.3' x2='286.3' y2='90.4' stroke-width='1.4'/><line x1='309.2' y1='160.3' x2='313.7' y2='90.4' stroke-width='1.4'/><line x1='327.3' y1='162.7' x2='341.0' y2='94.0' stroke-width='1.4'/><line x1='345.0' y1='167.4' x2='367.5' y2='101.1' stroke-width='1.4'/><line x1='361.9' y1='174.4' x2='392.9' y2='111.7' stroke-width='1.4'/><line x1='377.8' y1='183.6' x2='416.7' y2='125.4' stroke-width='1.4'/><line x1='392.3' y1='194.7' x2='438.5' y2='142.1' stroke-width='1.4'/><line x1='405.3' y1='207.7' x2='457.9' y2='161.5' stroke-width='1.4'/><line x1='416.4' y1='222.2' x2='474.6' y2='183.3' stroke-width='1.4'/><line x1='425.6' y1='238.1' x2='488.3' y2='207.1' stroke-width='1.4'/><line x1='432.6' y1='255.0' x2='498.9' y2='232.5' stroke-width='1.4'/><line x1='437.3' y1='272.7' x2='506.0' y2='259.0' stroke-width='1.4'/><line x1='439.7' y1='290.8' x2='509.6' y2='286.3' stroke-width='1.4'/></g></svg>") center/contain no-repeat !important;
-    mix-blend-mode:multiply !important;
-    -webkit-mask:none !important; mask:none !important;
-    filter:none !important;
-  }
-  body[data-bg-skin="ink"][data-daypart="night"] .wcv-rays-ring{
-    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600'><g stroke='%23f5f1e6' opacity='0.85' fill='none' stroke-linecap='round'><line x1='210.0' y1='300.0' x2='20.0' y2='300.0' stroke-width='2.5'/><line x1='210.8' y1='288.3' x2='22.4' y2='263.5' stroke-width='2.5'/><line x1='213.1' y1='276.7' x2='29.5' y2='227.5' stroke-width='2.5'/><line x1='216.9' y1='265.6' x2='41.3' y2='192.8' stroke-width='2.5'/><line x1='222.1' y1='255.0' x2='57.5' y2='160.0' stroke-width='2.5'/><line x1='228.6' y1='245.2' x2='77.9' y2='129.5' stroke-width='2.5'/><line x1='236.4' y1='236.4' x2='102.0' y2='102.0' stroke-width='2.5'/><line x1='245.2' y1='228.6' x2='129.5' y2='77.9' stroke-width='2.5'/><line x1='255.0' y1='222.1' x2='160.0' y2='57.5' stroke-width='2.5'/><line x1='265.6' y1='216.9' x2='192.8' y2='41.3' stroke-width='2.5'/><line x1='276.7' y1='213.1' x2='227.5' y2='29.5' stroke-width='2.5'/><line x1='288.3' y1='210.8' x2='263.5' y2='22.4' stroke-width='2.5'/><line x1='300.0' y1='210.0' x2='300.0' y2='20.0' stroke-width='2.5'/><line x1='311.7' y1='210.8' x2='336.5' y2='22.4' stroke-width='2.5'/><line x1='323.3' y1='213.1' x2='372.5' y2='29.5' stroke-width='2.5'/><line x1='334.4' y1='216.9' x2='407.2' y2='41.3' stroke-width='2.5'/><line x1='345.0' y1='222.1' x2='440.0' y2='57.5' stroke-width='2.5'/><line x1='354.8' y1='228.6' x2='470.5' y2='77.9' stroke-width='2.5'/><line x1='363.6' y1='236.4' x2='498.0' y2='102.0' stroke-width='2.5'/><line x1='371.4' y1='245.2' x2='522.1' y2='129.5' stroke-width='2.5'/><line x1='377.9' y1='255.0' x2='542.5' y2='160.0' stroke-width='2.5'/><line x1='383.1' y1='265.6' x2='558.7' y2='192.8' stroke-width='2.5'/><line x1='386.9' y1='276.7' x2='570.5' y2='227.5' stroke-width='2.5'/><line x1='389.2' y1='288.3' x2='577.6' y2='263.5' stroke-width='2.5'/><line x1='390.0' y1='300.0' x2='580.0' y2='300.0' stroke-width='2.5'/><line x1='160.3' y1='290.8' x2='90.4' y2='286.3' stroke-width='1.4'/><line x1='162.7' y1='272.7' x2='94.0' y2='259.0' stroke-width='1.4'/><line x1='167.4' y1='255.0' x2='101.1' y2='232.5' stroke-width='1.4'/><line x1='174.4' y1='238.1' x2='111.7' y2='207.1' stroke-width='1.4'/><line x1='183.6' y1='222.2' x2='125.4' y2='183.3' stroke-width='1.4'/><line x1='194.7' y1='207.7' x2='142.1' y2='161.5' stroke-width='1.4'/><line x1='207.7' y1='194.7' x2='161.5' y2='142.1' stroke-width='1.4'/><line x1='222.2' y1='183.6' x2='183.3' y2='125.4' stroke-width='1.4'/><line x1='238.1' y1='174.4' x2='207.1' y2='111.7' stroke-width='1.4'/><line x1='255.0' y1='167.4' x2='232.5' y2='101.1' stroke-width='1.4'/><line x1='272.7' y1='162.7' x2='259.0' y2='94.0' stroke-width='1.4'/><line x1='290.8' y1='160.3' x2='286.3' y2='90.4' stroke-width='1.4'/><line x1='309.2' y1='160.3' x2='313.7' y2='90.4' stroke-width='1.4'/><line x1='327.3' y1='162.7' x2='341.0' y2='94.0' stroke-width='1.4'/><line x1='345.0' y1='167.4' x2='367.5' y2='101.1' stroke-width='1.4'/><line x1='361.9' y1='174.4' x2='392.9' y2='111.7' stroke-width='1.4'/><line x1='377.8' y1='183.6' x2='416.7' y2='125.4' stroke-width='1.4'/><line x1='392.3' y1='194.7' x2='438.5' y2='142.1' stroke-width='1.4'/><line x1='405.3' y1='207.7' x2='457.9' y2='161.5' stroke-width='1.4'/><line x1='416.4' y1='222.2' x2='474.6' y2='183.3' stroke-width='1.4'/><line x1='425.6' y1='238.1' x2='488.3' y2='207.1' stroke-width='1.4'/><line x1='432.6' y1='255.0' x2='498.9' y2='232.5' stroke-width='1.4'/><line x1='437.3' y1='272.7' x2='506.0' y2='259.0' stroke-width='1.4'/><line x1='439.7' y1='290.8' x2='509.6' y2='286.3' stroke-width='1.4'/></g></svg>") center/contain no-repeat !important;
-    mix-blend-mode:screen !important;
-  }
+  body[data-bg-skin="ink"] .wcv-rays-ring{display:none !important}
+  body[data-bg-skin="ink"][data-daypart="night"] .wcv-rays-ring{display:none !important}
   /* Moon: SVG crescent with stipple shading, replaces the PNG */
   body[data-bg-skin="ink"] .wcv-moon{
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><g stroke='%231a1a1a' fill='none'><circle cx='100' cy='100' r='70' stroke-width='2.5'/><path d='M70 50 A 70 70 0 0 1 70 150 A 50 70 0 0 0 70 50 Z' fill='%231a1a1a' opacity='0.85'/><circle cx='85' cy='70' r='2' fill='%231a1a1a'/><circle cx='110' cy='80' r='1.5' fill='%231a1a1a'/><circle cx='125' cy='110' r='2' fill='%231a1a1a'/><circle cx='95' cy='130' r='1.5' fill='%231a1a1a'/><circle cx='115' cy='140' r='1.8' fill='%231a1a1a'/></g></svg>") !important;
@@ -1550,11 +1541,13 @@
   }
   /* Wind: calligraphy S-curve SVG (not horizontal gradient bar) */
   body[data-bg-skin="ink"] .wcv-streak{
-    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'><path d='M0 18 Q40 8 80 16 T160 12 Q180 10 200 15' stroke='%231a1a1a' stroke-width='1.4' fill='none' stroke-linecap='round' opacity='0.75'/></svg>") center/100% 100% no-repeat !important;
-    height:14px !important; filter:none !important; opacity:0.75 !important;
+    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'><path d='M0 18 Q40 8 80 16 T160 12 Q180 10 200 15' stroke='%231a1a1a' stroke-width='2.2' fill='none' stroke-linecap='round' opacity='0.95'/></svg>") center/100% 100% no-repeat !important;
+    height:18px !important; filter:none !important; opacity:1 !important;
+    mix-blend-mode:multiply !important;
   }
   body[data-bg-skin="ink"][data-daypart="night"] .wcv-streak{
-    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'><path d='M0 18 Q40 8 80 16 T160 12 Q180 10 200 15' stroke='%23f5f1e6' stroke-width='1.4' fill='none' stroke-linecap='round' opacity='0.8'/></svg>") center/100% 100% no-repeat !important;
+    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'><path d='M0 18 Q40 8 80 16 T160 12 Q180 10 200 15' stroke='%23f5f1e6' stroke-width='2.2' fill='none' stroke-linecap='round' opacity='0.95'/></svg>") center/100% 100% no-repeat !important;
+    mix-blend-mode:screen !important;
   }
   /* Ink stars: sparkle-in/hold/fade lifecycle, ink dots not glowing */
   body[data-bg-skin="ink"] .wcv-stars{ filter:none !important; }
@@ -2093,7 +2086,7 @@
 
   /* End of pencil skin block ============================================ */
   /* =====================================================================
-     INK SKIN v1.7.5 — pen-and-ink / scratchboard aesthetic
+     INK SKIN v1.7.6 — pen-and-ink / scratchboard aesthetic
      Strictly B/W. Light = black ink lines on warm off-white paper.
      Night    = INVERTED — white scratches on pitch-black.
      Per skin contract (home-assistant skill v2.4 rule 9): visual only.
@@ -2263,7 +2256,7 @@
     color: var(--ipv-ink) !important;
   }
   body[data-ui-skin="ink"] .soil-zone-row .z-name{ font-weight: 600; }
-  /* v1.7.5: comprehensive ink modal consistency — every text descendant must be ink, not inherited */
+  /* v1.7.6: comprehensive ink modal consistency — every text descendant must be ink, not inherited */
   body[data-ui-skin="ink"] .now-card .big,
   body[data-ui-skin="ink"] .now-real .big,
   body[data-ui-skin="ink"] .now-fc .big{
@@ -2540,7 +2533,7 @@
 
 
   /* =========================================================================
-     v1.7.5 — FROST LAYER (universal motion)
+     v1.7.6 — FROST LAYER (universal motion)
      Trigger: temp_c <= 0  AND  rain_rate_mm_h == 0
      Style:   edge crystals on viewport corners + frame edges
      Skin-aware via [data-bg-skin="..."] overrides below.
@@ -2600,7 +2593,7 @@
   }
 
   /* =========================================================================
-     v1.7.5 — INK MODAL BLOCK (Sun & Garden, Weather, Past-7-days, Rain, Cam, HP10, Skin-picker)
+     v1.7.6 — INK MODAL BLOCK (Sun & Garden, Weather, Past-7-days, Rain, Cam, HP10, Skin-picker)
      Mirrors the watercolor modal block at lines 1093+ but uses ink palette.
      ========================================================================= */
   body[data-ui-skin="ink"] .modal-bg{
@@ -3018,7 +3011,7 @@
     <div class="line"><span class="lab">Rain</span><span class="val" id="h24-rain">—</span></div>
   </div>
 
-  <div class="footer small">v1.7.5 · Pull down to refresh · <span id="updated">--</span></div>
+  <div class="footer small">v1.7.6 · Pull down to refresh · <span id="updated">--</span></div>
 </div>
 
 <!-- ===== zoom modal ===== -->
@@ -3553,7 +3546,7 @@
     if (isNight && (cond === "clear-night" || cond === "sunny" || cond === "partlycloudy")) {
       _startMeteors();
     }
-    // v1.7.5: ensure frost layer exists on realistic skin (innerHTML wiped it)
+    // v1.7.6: ensure frost layer exists on realistic skin (innerHTML wiped it)
     if (!wx.querySelector("#wcv-frost")) {
       wx.insertAdjacentHTML("beforeend", '<div class="wcv-frost" id="wcv-frost"></div>');
     }
@@ -3582,7 +3575,7 @@
       console.error("renderWx failed:", e);
       // Visible breadcrumb in footer so we can spot a backdrop fault without DevTools
       const f = document.querySelector(".footer");
-      if (f) f.textContent = "v1.7.5 \u00b7 bg err: " + (e.message || e);
+      if (f) f.textContent = "v1.7.6 \u00b7 bg err: " + (e.message || e);
     }
   }
   /* ============================================================
@@ -3753,7 +3746,7 @@
     const raysRing = document.createElement("div"); raysRing.className = "wcv-rays-ring"; raysRing.id="wcv-rays-ring";
     const moonHalo = document.createElement("div"); moonHalo.className = "wcv-moon-halo"; moonHalo.id="wcv-moon-halo";
     const wind  = document.createElement("div"); wind.className  = "wcv-wind";  wind.id="wcv-wind";
-    // v1.7.5 frost layer — edge crystals when cold AND not raining
+    // v1.7.6 frost layer — edge crystals when cold AND not raining
     const frost = document.createElement("div"); frost.className = "wcv-frost"; frost.id="wcv-frost";
     const drift = document.createElement("div"); drift.className = "wcv-drift"; drift.id="wcv-drift";
     drift.innerHTML = `
@@ -3821,7 +3814,7 @@
     el.classList.add("show");
   }
 
-  // v1.7.5 — frost activation. Edge crystal layer for cold+dry weather.
+  // v1.7.6 — frost activation. Edge crystal layer for cold+dry weather.
   function _wcvSetFrost(opts){
     const el = document.getElementById("wcv-frost");
     if(!el) return;
@@ -4131,7 +4124,7 @@
     document.body.dataset.season = _seasonNow();
   }
 
-  /* ----------- INK SKIN renderer (v1.7.5) ----------- */
+  /* ----------- INK SKIN renderer (v1.7.6) ----------- */
   function _ipvPickSky(cond, isNight, sunElev){
     const base = "/garden/static/sky/ink/";
     const partly = (cond === "partlycloudy");
@@ -4156,7 +4149,7 @@
     }
   }
 
-  // v1.7.5: JPG-baked sun anchor table. Only JPGs with a real baked-in sun get rays,
+  // v1.7.6: JPG-baked sun anchor table. Only JPGs with a real baked-in sun get rays,
   // and the rays MUST emanate from the sun's actual position in the JPG (not astronomical).
   // sky-02 == sky-06 (identical): sun crown at ~(54%, 32%) of image, occluded on lower-right
   // by cloud → visible crown arc is upper half (180°→360° in SVG math = top of disc).
@@ -4188,23 +4181,10 @@
 
     const sunEl = document.getElementById("wcv-sun");
     const ringEl = document.getElementById("wcv-rays-ring");
-    // v1.7.5: ink medium = JPG-anchored only. If sky JPG has a baked sun, rays follow it.
-    // If no baked sun → no rays, no SVG sun, no smiling face. The JPG IS the sun.
-    const anchor = _inkSunAnchor(skyUrl);
-    if(anchor && !isNight){
-      // Override astronomical position with JPG-baked sun position.
-      document.body.style.setProperty("--sun-x", anchor.cx);
-      document.body.style.setProperty("--sun-y", anchor.cy);
-      // CRITICAL: hide the motion-layer sun entirely. Only the rays ring shows.
-      // (Ink CSS already display:none's .wcv-sun, but be defensive.)
-      sunEl.classList.remove("show");
-      ringEl.classList.add("show");
-      ringEl.style.setProperty("--rays-alpha", (cond === "sunny") ? "1" : "0.7");
-    } else {
-      // No baked sun in this JPG → no rays at all. JPG handles whatever sky is there.
-      sunEl.classList.remove("show");
-      ringEl.classList.remove("show");
-    }
+    // v1.7.6: NO SUN MOTION in ink. The JPG handles its own sun if any.
+    // Drawing rays in code can never align to the JPG-baked crown precisely; abandoned.
+    sunEl.classList.remove("show");
+    ringEl.classList.remove("show");
 
     const moonEl = document.getElementById("wcv-moon");
     const haloEl = document.getElementById("wcv-moon-halo");
@@ -4319,7 +4299,7 @@
     } catch(e){
       console.error("backdrop render failed:", e);
       const f = document.querySelector(".footer");
-      if(f) f.textContent = "v1.7.5 \u00b7 bg err: " + (e.message || e);
+      if(f) f.textContent = "v1.7.6 \u00b7 bg err: " + (e.message || e);
     }
   }
 
