@@ -10,7 +10,7 @@
 <link rel="manifest" href="/garden/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/garden/static/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/garden/static/icon-192.png">
-<title>Masha's Garden · v1.5.0</title>
+<title>Masha's Garden · v1.5.1</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
   html,body{height:100%;width:100%}
@@ -623,6 +623,40 @@
   body[data-bg-skin="watercolor"][data-season="autumn"] .wx{filter:sepia(.12) saturate(1.05)}
   /* spring = no filter (default) */
 
+  
+  /* v1.5.1 — always-on motion: ray pulse, drifting cloud wisps */
+  .wcv-rays{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;opacity:0;
+    transition:opacity 1.5s ease;
+    background:radial-gradient(circle at 50% 30%,rgba(255,238,180,.35),transparent 45%);
+    animation:wcv-ray-pulse 7s ease-in-out infinite}
+  body[data-bg-skin="watercolor"][data-daypart="day"][data-cond="sunny"] .wcv-rays,
+  body[data-bg-skin="watercolor"][data-daypart="day"][data-cond="partlycloudy"] .wcv-rays{ opacity:1 }
+  @keyframes wcv-ray-pulse{
+    0%,100%{transform:scale(1) rotate(0deg);opacity:.6}
+    50%{transform:scale(1.07) rotate(2deg);opacity:.95}
+  }
+  .wcv-drift{position:absolute;inset:0;pointer-events:none;opacity:0;
+    transition:opacity 2s ease;mix-blend-mode:screen}
+  body[data-bg-skin="watercolor"][data-daypart="day"] .wcv-drift{opacity:.55}
+  .wcv-drift .wcv-puff{position:absolute;width:35%;height:18%;border-radius:50%;
+    background:radial-gradient(ellipse,rgba(255,255,255,.7),rgba(255,255,255,0) 70%);
+    filter:blur(8px);animation:wcv-puff-drift linear infinite}
+  @keyframes wcv-puff-drift{
+    from{transform:translateX(-40%)}
+    to{transform:translateX(140%)}
+  }
+  /* Keep watercolor tiles styled inside modals (modal-bg darkens but tiles inside
+     are the same .tile class — already covered. But add modal-card overrides.) */
+  body[data-ui-skin="watercolor"] .modal-card,
+  body[data-ui-skin="watercolor"] .modal,
+  body[data-ui-skin="watercolor"] .sheet{
+    background:rgba(252,250,245,.96) !important;color:#1a2438 !important;
+    border:1px solid rgba(120,130,150,.28) !important;
+  }
+  body[data-ui-skin="watercolor"] .modal-card *,
+  body[data-ui-skin="watercolor"] .modal *,
+  body[data-ui-skin="watercolor"] .sheet *{ color:inherit }
+
   /* ============================================================
      WATERCOLOR — UI TILES
      ============================================================ */
@@ -922,7 +956,7 @@
     <div class="line"><span class="lab">Rain</span><span class="val" id="h24-rain">—</span></div>
   </div>
 
-  <div class="footer small">v1.5.0 · Pull down to refresh · <span id="updated">--</span></div>
+  <div class="footer small">v1.5.1 · Pull down to refresh · <span id="updated">--</span></div>
 </div>
 
 <!-- ===== zoom modal ===== -->
@@ -1480,7 +1514,7 @@
       console.error("renderWx failed:", e);
       // Visible breadcrumb in footer so we can spot a backdrop fault without DevTools
       const f = document.querySelector(".footer");
-      if (f) f.textContent = "v1.5.0 \u00b7 bg err: " + (e.message || e);
+      if (f) f.textContent = "v1.5.1 \u00b7 bg err: " + (e.message || e);
     }
   }
   /* ============================================================
@@ -1548,35 +1582,35 @@
   // image-59 clearnight-01..05 = clean night gradients (incl. dusk on tile 2).
   // image-56 sunclouds-01..10 = sun behind clouds, varying brightness.
   function _wcvPickSky(cond, isNight, sunElev) {
+    // v1.5.1: paint scenes already contain sun/clouds; pick a complete scene.
     const base = "/garden/static/sky/watercolor/";
-    const cloudy = ["cloudy","rainy","pouring","snowy","snowy-rainy","lightning","lightning-rainy","hail","fog","windy"].includes(cond);
     const partly = (cond === "partlycloudy");
     const stormy = ["lightning","lightning-rainy","pouring"].includes(cond);
+    const overcast = ["cloudy","rainy","snowy","snowy-rainy","hail","fog"].includes(cond);
 
     if(isNight){
-      if(stormy) return base + "sky-10.jpg";
-      if(cond === "cloudy" || cond === "rainy" || cond === "snowy" || cond === "snowy-rainy" || cond === "hail")
-        return base + "sky-09.jpg";
-      if(partly) return base + "sky-07.jpg"; // partly cloudy night
-      // Clear night — pick by twilight depth
-      // sunElev null => deep night; -6..-12 = astronomical twilight; -3..-6 = nautical; -3..0 = civil dusk
-      if(sunElev != null && sunElev > -6) return base + "clearnight-02.jpg"; // dusk/dawn pink
-      if(sunElev != null && sunElev > -12) return base + "clearnight-01.jpg"; // deep blue with hint
-      return base + "clearnight-04.jpg"; // mid-night, lots of stars
+      if(stormy) return base + "sky-10.jpg";              // very dark stormy night
+      if(overcast) return base + "sky-09.jpg";            // cloudy night
+      if(partly) return base + "sky-07.jpg";              // partly cloudy night (some stars)
+      // Clear night — twilight depth
+      if(sunElev != null && sunElev > -6)  return base + "clearnight-02.jpg"; // dusk/dawn pink
+      if(sunElev != null && sunElev > -12) return base + "clearnight-01.jpg"; // deep blue, faint glow
+      return base + "clearnight-04.jpg";                  // deep night, dense stars
     } else {
-      if(stormy) return base + "sky-05.jpg";
-      if(cond === "cloudy" || cond === "rainy" || cond === "snowy-rainy" || cond === "hail")
-        return base + "sky-04.jpg";
-      if(cond === "snowy") return base + "sky-04.jpg";
-      if(partly) {
-        // pick a sunclouds tile by sun elevation for variety
-        if(sunElev != null && sunElev < 20) return base + "sunclouds-09.jpg"; // golden, low
-        return base + "sunclouds-03.jpg"; // bright midday with cloud gap
+      if(stormy)   return base + "sky-05.jpg";            // very dark stormy day
+      if(overcast) return base + "sky-04.jpg";            // overcast/rainy day
+      if(partly){
+        // sunclouds tiles: 03/05 = bright rays w/ cloud gap; 06/07 = haze; 09/10 = golden, low
+        if(sunElev != null && sunElev < 10) return base + "sunclouds-09.jpg"; // low golden sun
+        if(sunElev != null && sunElev < 25) return base + "sunclouds-07.jpg"; // afternoon haze
+        return base + "sunclouds-03.jpg";                                     // bright midday rays
       }
-      // Clear day
-      if(sunElev != null && sunElev < 8) return base + "clearday-05.jpg"; // sunset glow at bottom
-      if(sunElev != null && sunElev < 25) return base + "clearday-04.jpg";
-      return base + "clearday-01.jpg";
+      // Clear sunny — pick a sunarc strip (sun painted at appropriate height)
+      if(sunElev != null && sunElev < 5)   return base + "sunarc-05.jpg";  // sunset
+      if(sunElev != null && sunElev < 15)  return base + "sunarc-02.jpg";  // mid-morning / mid-afternoon
+      if(sunElev != null && sunElev < 35)  return base + "sunarc-03.jpg";  // higher
+      if(sunElev != null && sunElev < 55)  return base + "sunarc-01.jpg";  // high noon-ish
+      return base + "sunarc-03.jpg";                                          // midday
     }
   }
   // Pick a sun-arc strip from image-57 based on azimuth/elevation.
@@ -1614,7 +1648,16 @@
     const snow = document.createElement("div"); snow.className = "wcv-snow"; snow.id="wcv-snow";
     const flash= document.createElement("div"); flash.className= "wcv-flash";flash.id="wcv-flash";
     const paper= document.createElement("div"); paper.className= "wcv-paper";paper.id="wcv-paper";
+    // v1.5.1: always-on motion overlays for day scenes
+    const rays  = document.createElement("div"); rays.className  = "wcv-rays"; rays.id="wcv-rays";
+    const drift = document.createElement("div"); drift.className = "wcv-drift"; drift.id="wcv-drift";
+    drift.innerHTML = `
+      <div class="wcv-puff" style="top:18%;animation-duration:90s;animation-delay:0s"></div>
+      <div class="wcv-puff" style="top:34%;animation-duration:140s;animation-delay:-50s;opacity:.7"></div>
+      <div class="wcv-puff" style="top:6%;animation-duration:180s;animation-delay:-110s;opacity:.5"></div>
+    `;
     wx.appendChild(skyA); wx.appendChild(skyB);
+    wx.appendChild(rays); wx.appendChild(drift);
     wx.appendChild(sun);  wx.appendChild(moon);
     wx.appendChild(stars);wx.appendChild(rain);wx.appendChild(snow);
     wx.appendChild(flash);wx.appendChild(paper);
@@ -1687,19 +1730,9 @@
     const skyUrl = _wcvPickSky(cond, isNight, sunElev);
     _wcvSetSky(skyUrl);
 
-    // Sun overlay (only on clear day with sun above horizon, when sky base is a clean gradient)
+    // v1.5.1: sun is painted directly into the chosen scene; overlay disabled.
     const sunEl = document.getElementById("wcv-sun");
-    if(isClearDay && sunElev != null && sunElev > 5) {
-      const sunUrl = _wcvPickSunArc(sunElev);
-      if(sunUrl){
-        sunEl.style.backgroundImage = `url("${sunUrl}")`;
-        sunEl.classList.add("show");
-      } else {
-        sunEl.classList.remove("show");
-      }
-    } else {
-      sunEl.classList.remove("show");
-    }
+    if(sunEl) sunEl.classList.remove("show");
 
     // Moon overlay (clear night or partly cloudy night)
     const moonEl = document.getElementById("wcv-moon");
@@ -1761,7 +1794,7 @@
     } catch(e){
       console.error("backdrop render failed:", e);
       const f = document.querySelector(".footer");
-      if(f) f.textContent = "v1.5.0 \u00b7 bg err: " + (e.message || e);
+      if(f) f.textContent = "v1.5.1 \u00b7 bg err: " + (e.message || e);
     }
   }
 
