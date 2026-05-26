@@ -1,0 +1,110 @@
+{
+  "_doc": "Per-photo anchors. Coordinates as fractions (0..1) of width/height. Polygons as arrays of [x,y].",
+
+  "_default_bands": {
+    "sky":    [0.00, 0.35],
+    "tree":   [0.35, 0.70],
+    "ground": [0.70, 1.00]
+  },
+
+  "bg-spring-day-clear.jpg": {
+    "bands": { "sky": [0.00, 0.30], "tree": [0.30, 0.78], "ground": [0.78, 1.00] },
+    "sun":   { "x": 0.85, "y": 0.06, "r": 0.04, "_note": "above frame, glow only" },
+    "greenhouse": { "polygon": [[0.16, 0.85], [0.32, 0.83], [0.31, 0.99], [0.13, 1.00]] }
+  },
+
+  "bg-summer-day-clear.jpg": {
+    "bands": { "sky": [0.00, 0.30], "tree": [0.30, 0.75], "ground": [0.75, 1.00] },
+    "sun":   { "x": 0.50, "y": 0.04, "r": 0.05, "_note": "overhead glare" },
+    "greenhouse": { "polygon": [[0.16, 0.83], [0.30, 0.81], [0.29, 0.99], [0.14, 1.00]] }
+  },
+
+  "bg-autumn-day-clear.jpg": {
+    "bands": { "sky": [0.00, 0.18], "tree": [0.18, 0.72], "ground": [0.72, 1.00] },
+    "sun":   { "x": 0.30, "y": 0.04, "r": 0.04, "_note": "low autumn sun, side-lit" },
+    "greenhouse": { "polygon": [[0.20, 0.78], [0.34, 0.76], [0.33, 0.96], [0.18, 0.98]] }
+  },
+
+  "bg-winter-day-clear.jpg": {
+    "bands": { "sky": [0.00, 0.40], "tree": [0.40, 0.78], "ground": [0.78, 1.00] },
+    "sun":   { "x": 0.80, "y": 0.05, "r": 0.04, "_note": "above frame upper-right" },
+    "greenhouse": { "polygon": [[0.20, 0.85], [0.32, 0.83], [0.31, 0.99], [0.18, 1.00]] }
+  },
+
+  "bg-summer-night-clear.jpg": {
+    "bands": { "sky": [0.00, 0.38], "tree": [0.38, 0.72], "ground": [0.72, 1.00] },
+    "moon":  { "x": 0.85, "y": 0.13, "r": 0.022, "painted_phase": "full" },
+    "stars": [
+      { "x": 0.78, "y": 0.04 },
+      { "x": 0.65, "y": 0.07 },
+      { "x": 0.55, "y": 0.04 },
+      { "x": 0.42, "y": 0.05 },
+      { "x": 0.30, "y": 0.08 },
+      { "x": 0.20, "y": 0.04 }
+    ],
+    "greenhouse": { "polygon": [[0.18, 0.81], [0.32, 0.79], [0.31, 0.99], [0.16, 1.00]] }
+  },
+
+  "bg-autumn-night-clear.jpg": {
+    "bands": { "sky": [0.00, 0.22], "tree": [0.22, 0.65], "ground": [0.65, 1.00] },
+    "moon":  { "x": 0.86, "y": 0.10, "r": 0.030, "painted_phase": "waxing_crescent" },
+    "stars": [
+      { "x": 0.32, "y": 0.03 },
+      { "x": 0.45, "y": 0.06 },
+      { "x": 0.60, "y": 0.04 },
+      { "x": 0.72, "y": 0.06 }
+    ],
+    "string_lights": {
+      "sensor_entity": "binary_sensor.outdoor_string_lights",
+      "_note": "Lights are baked into JPG; sensor gates whether photo is selected at all when off (autumn night). Optional v1.7.9: leave as-is, refine in v1.8.0.",
+      "regions": [
+        { "name": "fence_path",   "x1": 0.10, "y1": 0.62, "x2": 0.55, "y2": 0.66 },
+        { "name": "deck",         "x1": 0.42, "y1": 0.55, "x2": 0.62, "y2": 0.62 },
+        { "name": "hot_tub",      "x1": 0.72, "y1": 0.65, "x2": 0.84, "y2": 0.68 },
+        { "name": "greenhouse",   "x1": 0.22, "y1": 0.86, "x2": 0.30, "y2": 0.95 }
+      ]
+    },
+    "greenhouse": { "polygon": [[0.21, 0.84], [0.33, 0.82], [0.32, 0.99], [0.19, 1.00]] }
+  },
+
+  "bg-winter-night-clear.jpg": {
+    "bands": { "sky": [0.00, 0.38], "tree": [0.38, 0.74], "ground": [0.74, 1.00] },
+    "moon":  { "x": 0.83, "y": 0.13, "r": 0.026, "painted_phase": "full" },
+    "stars": [
+      { "x": 0.32, "y": 0.05 },
+      { "x": 0.50, "y": 0.04 },
+      { "x": 0.62, "y": 0.06 },
+      { "x": 0.42, "y": 0.07 },
+      { "x": 0.18, "y": 0.06 }
+    ],
+    "greenhouse": { "polygon": [[0.20, 0.83], [0.32, 0.81], [0.31, 0.99], [0.18, 1.00]] }
+  },
+
+  "bg-summer-day-rainy.jpg": {
+    "bands": { "sky": [0.00, 0.22], "tree": [0.22, 0.72], "ground": [0.72, 1.00] },
+    "_note": "Rain streaks already baked diagonally in sky band. Motion layer must NOT add sky rain.",
+    "rain_in_jpg": true,
+    "greenhouse": { "polygon": [[0.18, 0.84], [0.32, 0.82], [0.31, 0.99], [0.15, 1.00]] }
+  },
+
+  "bg-autumn-day-rainy.jpg": {
+    "bands": { "sky": [0.00, 0.30], "tree": [0.30, 0.72], "ground": [0.72, 1.00] },
+    "_note": "Diagonal rain visible faintly in sky band. Wet stone path glaze in ground band.",
+    "rain_in_jpg": true,
+    "greenhouse": { "polygon": [[0.22, 0.78], [0.34, 0.76], [0.33, 0.96], [0.20, 0.98]] }
+  },
+
+  "bg-spring-night-windy.jpg": {
+    "bands": { "sky": [0.00, 0.25], "tree": [0.25, 0.72], "ground": [0.72, 1.00] },
+    "moon":  { "x": 0.86, "y": 0.08, "r": 0.020, "painted_phase": "gibbous", "_note": "behind thin clouds" },
+    "wind_in_jpg": true,
+    "_note": "Willow already motion-blurred to the right. Don't add canopy wind motion; sky cloud-drift only.",
+    "greenhouse": { "polygon": [[0.21, 0.84], [0.34, 0.82], [0.33, 0.99], [0.19, 1.00]] }
+  },
+
+  "bg-winter-night-overcast.jpg": {
+    "bands": { "sky": [0.00, 0.30], "tree": [0.30, 0.74], "ground": [0.74, 1.00] },
+    "_note": "No moon visible (overcast). Slow cloud drift parallax suits this.",
+    "greenhouse": { "polygon": [[0.20, 0.85], [0.32, 0.83], [0.31, 0.99], [0.18, 1.00]] }
+  }
+}
