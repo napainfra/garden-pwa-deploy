@@ -10,7 +10,7 @@
 <link rel="manifest" href="/garden/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/garden/static/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/garden/static/icon-192.png">
-<title>Masha's Garden · v1.7.7</title>
+<title>Masha's Garden · v1.7.8</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
   html,body{height:100%;width:100%}
@@ -1500,7 +1500,7 @@
   body[data-bg-skin="pencil"][data-cond="windy"] .wcv-drift,
   body[data-bg-skin="pencil"][data-cond="windy-variant"] .wcv-drift{opacity:.6}
 
-  /* ===== INK BACKDROP v1.7.7 — ALL MOTION IN INK MEDIUM ===== */
+  /* ===== INK BACKDROP v1.7.8 — ALL MOTION IN INK MEDIUM ===== */
   /* Sun: PNG hidden; ray-ring renders the full ink sunburst (center disc + radiating lines) */
   body[data-bg-skin="ink"] .wcv-sun{
     display:none !important;
@@ -1539,15 +1539,20 @@
   body[data-bg-skin="ink"][data-daypart="night"] .wcv-snow .wcv-flake{
     background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><g stroke='%23f5f1e6' stroke-width='1.3' fill='none' stroke-linecap='round'><line x1='15' y1='3' x2='15' y2='27'/><line x1='3' y1='15' x2='27' y2='15'/><line x1='6' y1='6' x2='24' y2='24'/><line x1='24' y1='6' x2='6' y2='24'/><circle cx='15' cy='15' r='2' fill='%23f5f1e6'/></g></svg>") center/contain no-repeat !important;
   }
-  /* Wind: calligraphy S-curve SVG (not horizontal gradient bar) */
+  /* v1.7.8: Wind — calligraphy S-curve SVG, parent blend neutralized so child blends actually hit the sky */
+  body[data-bg-skin="ink"] .wcv-wind{
+    mix-blend-mode: normal !important;
+    isolation: auto !important;
+    z-index: 5 !important;
+  }
   body[data-bg-skin="ink"] .wcv-streak{
-    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'><path d='M0 18 Q40 8 80 16 T160 12 Q180 10 200 15' stroke='%231a1a1a' stroke-width='2.2' fill='none' stroke-linecap='round' opacity='0.95'/></svg>") center/100% 100% no-repeat !important;
-    height:18px !important; filter:none !important; opacity:1 !important;
-    mix-blend-mode:multiply !important;
+    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'><path d='M0 18 Q40 8 80 16 T160 12 Q180 10 200 15' stroke='%231a1a1a' stroke-width='2.6' fill='none' stroke-linecap='round' opacity='1'/></svg>") center/100% 100% no-repeat !important;
+    height:22px !important; filter:none !important; opacity:1 !important;
+    mix-blend-mode: multiply !important;
   }
   body[data-bg-skin="ink"][data-daypart="night"] .wcv-streak{
-    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'><path d='M0 18 Q40 8 80 16 T160 12 Q180 10 200 15' stroke='%23f5f1e6' stroke-width='2.2' fill='none' stroke-linecap='round' opacity='0.95'/></svg>") center/100% 100% no-repeat !important;
-    mix-blend-mode:screen !important;
+    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'><path d='M0 18 Q40 8 80 16 T160 12 Q180 10 200 15' stroke='%23f5f1e6' stroke-width='2.6' fill='none' stroke-linecap='round' opacity='1'/></svg>") center/100% 100% no-repeat !important;
+    mix-blend-mode: screen !important;
   }
   /* Ink stars: sparkle-in/hold/fade lifecycle, ink dots not glowing */
   body[data-bg-skin="ink"] .wcv-stars{ filter:none !important; }
@@ -2086,7 +2091,7 @@
 
   /* End of pencil skin block ============================================ */
   /* =====================================================================
-     INK SKIN v1.7.7 — pen-and-ink / scratchboard aesthetic
+     INK SKIN v1.7.8 — pen-and-ink / scratchboard aesthetic
      Strictly B/W. Light = black ink lines on warm off-white paper.
      Night    = INVERTED — white scratches on pitch-black.
      Per skin contract (home-assistant skill v2.4 rule 9): visual only.
@@ -2257,7 +2262,7 @@
   }
   body[data-ui-skin="ink"] .soil-zone-row .z-name{ font-weight: 600; }
   
-  /* v1.7.7: history modal — class-based so each skin can override consistently */
+  /* v1.7.8: history modal — class-based so each skin can override consistently */
   .hist-wrap{padding:0 4px}
   .hist-srcs{font-size:11px;color:#8aa1c2;margin-bottom:14px;line-height:1.6}
   .hist-head{display:grid;grid-template-columns:54px 1fr 1fr 1fr 1fr;gap:6px;
@@ -2353,7 +2358,7 @@
   }
 
   
-  /* v1.7.7: wr-modal (wind/rain) reuses .hist-* + adds wrh-* tile/row classes */
+  /* v1.7.8: wr-modal (wind/rain) reuses .hist-* + adds wrh-* tile/row classes */
   .wrh-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
   .wrh-tile{padding:14px;border-radius:10px;border:1px solid rgba(99,179,237,.18);
     background:rgba(99,179,237,.08)}
@@ -2447,7 +2452,7 @@
     border-left: 2px solid #f5f1e6 !important;
   }
 
-  /* v1.7.7: comprehensive ink modal consistency — every text descendant must be ink, not inherited */
+  /* v1.7.8: comprehensive ink modal consistency — every text descendant must be ink, not inherited */
   body[data-ui-skin="ink"] .now-card .big,
   body[data-ui-skin="ink"] .now-real .big,
   body[data-ui-skin="ink"] .now-fc .big{
@@ -2724,7 +2729,7 @@
 
 
   /* =========================================================================
-     v1.7.7 — FROST LAYER (universal motion)
+     v1.7.8 — FROST LAYER (universal motion)
      Trigger: temp_c <= 0  AND  rain_rate_mm_h == 0
      Style:   edge crystals on viewport corners + frame edges
      Skin-aware via [data-bg-skin="..."] overrides below.
@@ -2784,7 +2789,7 @@
   }
 
   /* =========================================================================
-     v1.7.7 — INK MODAL BLOCK (Sun & Garden, Weather, Past-7-days, Rain, Cam, HP10, Skin-picker)
+     v1.7.8 — INK MODAL BLOCK (Sun & Garden, Weather, Past-7-days, Rain, Cam, HP10, Skin-picker)
      Mirrors the watercolor modal block at lines 1093+ but uses ink palette.
      ========================================================================= */
   body[data-ui-skin="ink"] .modal-bg{
@@ -3202,7 +3207,7 @@
     <div class="line"><span class="lab">Rain</span><span class="val" id="h24-rain">—</span></div>
   </div>
 
-  <div class="footer small">v1.7.7 · Pull down to refresh · <span id="updated">--</span></div>
+  <div class="footer small">v1.7.8 · Pull down to refresh · <span id="updated">--</span></div>
 </div>
 
 <!-- ===== zoom modal ===== -->
@@ -3737,7 +3742,7 @@
     if (isNight && (cond === "clear-night" || cond === "sunny" || cond === "partlycloudy")) {
       _startMeteors();
     }
-    // v1.7.7: ensure frost layer exists on realistic skin (innerHTML wiped it)
+    // v1.7.8: ensure frost layer exists on realistic skin (innerHTML wiped it)
     if (!wx.querySelector("#wcv-frost")) {
       wx.insertAdjacentHTML("beforeend", '<div class="wcv-frost" id="wcv-frost"></div>');
     }
@@ -3766,7 +3771,7 @@
       console.error("renderWx failed:", e);
       // Visible breadcrumb in footer so we can spot a backdrop fault without DevTools
       const f = document.querySelector(".footer");
-      if (f) f.textContent = "v1.7.7 \u00b7 bg err: " + (e.message || e);
+      if (f) f.textContent = "v1.7.8 \u00b7 bg err: " + (e.message || e);
     }
   }
   /* ============================================================
@@ -3937,7 +3942,7 @@
     const raysRing = document.createElement("div"); raysRing.className = "wcv-rays-ring"; raysRing.id="wcv-rays-ring";
     const moonHalo = document.createElement("div"); moonHalo.className = "wcv-moon-halo"; moonHalo.id="wcv-moon-halo";
     const wind  = document.createElement("div"); wind.className  = "wcv-wind";  wind.id="wcv-wind";
-    // v1.7.7 frost layer — edge crystals when cold AND not raining
+    // v1.7.8 frost layer — edge crystals when cold AND not raining
     const frost = document.createElement("div"); frost.className = "wcv-frost"; frost.id="wcv-frost";
     const drift = document.createElement("div"); drift.className = "wcv-drift"; drift.id="wcv-drift";
     drift.innerHTML = `
@@ -4005,7 +4010,7 @@
     el.classList.add("show");
   }
 
-  // v1.7.7 — frost activation. Edge crystal layer for cold+dry weather.
+  // v1.7.8 — frost activation. Edge crystal layer for cold+dry weather.
   function _wcvSetFrost(opts){
     const el = document.getElementById("wcv-frost");
     if(!el) return;
@@ -4315,7 +4320,7 @@
     document.body.dataset.season = _seasonNow();
   }
 
-  /* ----------- INK SKIN renderer (v1.7.7) ----------- */
+  /* ----------- INK SKIN renderer (v1.7.8) ----------- */
   function _ipvPickSky(cond, isNight, sunElev){
     const base = "/garden/static/sky/ink/";
     const partly = (cond === "partlycloudy");
@@ -4340,7 +4345,7 @@
     }
   }
 
-  // v1.7.7: JPG-baked sun anchor table. Only JPGs with a real baked-in sun get rays,
+  // v1.7.8: JPG-baked sun anchor table. Only JPGs with a real baked-in sun get rays,
   // and the rays MUST emanate from the sun's actual position in the JPG (not astronomical).
   // sky-02 == sky-06 (identical): sun crown at ~(54%, 32%) of image, occluded on lower-right
   // by cloud → visible crown arc is upper half (180°→360° in SVG math = top of disc).
@@ -4372,7 +4377,7 @@
 
     const sunEl = document.getElementById("wcv-sun");
     const ringEl = document.getElementById("wcv-rays-ring");
-    // v1.7.7: NO SUN MOTION in ink. The JPG handles its own sun if any.
+    // v1.7.8: NO SUN MOTION in ink. The JPG handles its own sun if any.
     // Drawing rays in code can never align to the JPG-baked crown precisely; abandoned.
     sunEl.classList.remove("show");
     ringEl.classList.remove("show");
@@ -4490,7 +4495,7 @@
     } catch(e){
       console.error("backdrop render failed:", e);
       const f = document.querySelector(".footer");
-      if(f) f.textContent = "v1.7.7 \u00b7 bg err: " + (e.message || e);
+      if(f) f.textContent = "v1.7.8 \u00b7 bg err: " + (e.message || e);
     }
   }
 
