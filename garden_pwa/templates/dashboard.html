@@ -10,7 +10,7 @@
 <link rel="manifest" href="/garden/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/garden/static/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/garden/static/icon-192.png">
-<title>Masha's Garden · v1.7.1</title>
+<title>Masha's Garden · v1.7.2</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
   html,body{height:100%;width:100%}
@@ -1199,7 +1199,7 @@
 
 
   /* ============================================================
-     v1.7.1 — local timelapse cache (no more re-downloads)
+     v1.7.2 — local timelapse cache (no more re-downloads)
      Activated only under body[data-ui-skin="pencil"].
      Hides original emoji and renders pencil-sketched SVG icon.
      ============================================================ */
@@ -2028,7 +2028,7 @@
 
   /* End of pencil skin block ============================================ */
   /* =====================================================================
-     INK SKIN v1.7.1 — pen-and-ink / scratchboard aesthetic
+     INK SKIN v1.7.2 — pen-and-ink / scratchboard aesthetic
      Strictly B/W. Light = black ink lines on warm off-white paper.
      Night    = INVERTED — white scratches on pitch-black.
      Per skin contract (home-assistant skill v2.4 rule 9): visual only.
@@ -3163,8 +3163,8 @@
      ============================================================ */
   const SKIN_DEFAULTS = { bg:"realistic", ui:"realistic" };
   const SKIN_AVAILABLE = {
-    bg: ["realistic","watercolor","pencil"],
-    ui: ["realistic","watercolor","pencil"],
+    bg: ["realistic","watercolor","pencil","ink"],
+    ui: ["realistic","watercolor","pencil","ink"],
   };
   function _skinGet(){
     try{
@@ -3678,7 +3678,7 @@
     document.body.dataset.season = _seasonNow();
   }
 
-  /* ----------- INK SKIN renderer (v1.7.1) ----------- */
+  /* ----------- INK SKIN renderer (v1.7.2) ----------- */
   function _ipvPickSky(cond, isNight, sunElev){
     const base = "/garden/static/sky/ink/";
     const partly = (cond === "partlycloudy");
