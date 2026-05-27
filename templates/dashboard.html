@@ -10,7 +10,7 @@
 <link rel="manifest" href="/garden/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/garden/static/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/garden/static/icon-192.png">
-<title>Masha's Garden · v1.7.9</title>
+<title>Masha's Garden · v1.7.10</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
   html,body{height:100%;width:100%}
@@ -2730,13 +2730,18 @@
     backdrop-filter: blur(var(--card-blur));
     -webkit-backdrop-filter: blur(var(--card-blur));
   }
-  /* Hydrawise zones strip */
-  body[data-bg-skin="realistic"] .hydrawise-zones {
+  /* Hydrawise zones strip — class on element is .zones (id=zones-block), not .hydrawise-zones */
+  body[data-bg-skin="realistic"] .hydrawise-zones,
+  body[data-bg-skin="realistic"] .zones,
+  body[data-bg-skin="realistic"] #zones-block {
     background: var(--card-bg) !important;
     color: var(--card-text) !important;
     border: 1px solid var(--card-border) !important;
-    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate));
-    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate));
+    border-radius: var(--card-radius) !important;
+    box-shadow: var(--card-shadow) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    padding: 12px 14px !important;
   }
   /* History modal text — re-uses .hist-* classes from v1.7.7 */
   body[data-bg-skin="realistic"] .hist-temp,
@@ -2794,6 +2799,406 @@
       transparent var(--pct, 0%)) !important;
   }
 
+
+
+  /* ============================================================
+   * v1.7.10 — UNIVERSAL GLASS COVERAGE
+   * Every classed surface gets the photo-derived glass treatment.
+   * Pavel rejected v1.7.9 because these were missed.
+   * Selectors below are EVERY remaining surface in dashboard.html.
+   * ============================================================ */
+
+  /* --- REAL/FORECAST big tiles --- */
+  body[data-bg-skin="realistic"] .now-card,
+  body[data-bg-skin="realistic"] .now-card.now-real,
+  body[data-bg-skin="realistic"] .now-card.now-fc {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--card-text) !important;
+    border-radius: var(--card-radius) !important;
+    box-shadow: var(--card-shadow) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+  }
+  body[data-bg-skin="realistic"] .now-card .lbl,
+  body[data-bg-skin="realistic"] .now-card .meta,
+  body[data-bg-skin="realistic"] .now-card .meta .rain-off {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .now-card .big,
+  body[data-bg-skin="realistic"] .now-card .ico {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .now-card .meta .rain-on {
+    color: var(--card-accent) !important;
+  }
+
+  /* --- LAST WATERED / VALVE / BATTERY row items --- */
+  body[data-bg-skin="realistic"] .item {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--card-text) !important;
+    border-radius: var(--card-radius) !important;
+    box-shadow: var(--card-shadow) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    padding: 10px 12px;
+  }
+  body[data-bg-skin="realistic"] .item .label {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .item .v {
+    color: var(--card-text) !important;
+    font-weight: 700;
+  }
+
+  /* --- FORECAST 3-day strip --- */
+  body[data-bg-skin="realistic"] .forecast .fc {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--card-text) !important;
+    border-radius: var(--card-radius) !important;
+    box-shadow: var(--card-shadow) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+  }
+  body[data-bg-skin="realistic"] .forecast .fc .day,
+  body[data-bg-skin="realistic"] .forecast .fc .rain {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .forecast .fc .ico,
+  body[data-bg-skin="realistic"] .forecast .fc .hilo {
+    color: var(--card-text) !important;
+  }
+
+  /* --- HYDRAWISE zone rows (wrapper already styled; rows themselves were transparent) --- */
+  body[data-bg-skin="realistic"] .zones .head {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .zones .zone {
+    border-bottom: 1px solid var(--card-border) !important;
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .zones .zone:last-child {
+    border-bottom: none !important;
+  }
+  body[data-bg-skin="realistic"] .zones .zone.veg {
+    background: rgba(255,255,255,0.06) !important;
+    border-radius: 10px !important;
+  }
+  body[data-bg-skin="realistic"] .zones .zone .nm {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .zones .zone .st {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .zones .zone .st.scheduled { color: #b6efb6 !important; }
+  body[data-bg-skin="realistic"] .zones .zone .st.suspended { color: #f0b7ad !important; }
+  body[data-bg-skin="realistic"] .zones .zone .st.watering  { color: #9ed3ff !important; }
+
+  /* --- HP10 cam-meta strip --- */
+  body[data-bg-skin="realistic"] .cam-meta,
+  body[data-bg-skin="realistic"] .cam-meta .age {
+    color: var(--card-text-soft) !important;
+  }
+
+  /* ============================================================
+   * MODAL SURFACES — chart, camera, weather, history, wind/rain, sun
+   * Pavel's screenshot showed ALL five as opaque dark with no glass.
+   * The modal-bg backdrop stays dim; the inner .modal becomes glass.
+   * ============================================================ */
+  body[data-bg-skin="realistic"] .modal-bg {
+    background: rgba(0,0,0,0.55) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+  }
+  body[data-bg-skin="realistic"] .modal-bg .modal,
+  body[data-bg-skin="realistic"] #wx-modal .modal,
+  body[data-bg-skin="realistic"] #wx-hist-modal .modal,
+  body[data-bg-skin="realistic"] #wr-modal .modal,
+  body[data-bg-skin="realistic"] #cam-modal .modal,
+  body[data-bg-skin="realistic"] .modal {
+    background: var(--card-bg) !important;
+    color: var(--card-text) !important;
+    border: 1px solid var(--card-border) !important;
+    box-shadow: var(--card-shadow) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .top .ttl,
+  body[data-bg-skin="realistic"] .modal .ttl,
+  body[data-bg-skin="realistic"] .modal-h .ttl {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .sub,
+  body[data-bg-skin="realistic"] .modal .m-sub,
+  body[data-bg-skin="realistic"] .modal .head,
+  body[data-bg-skin="realistic"] .modal-h .sub,
+  body[data-bg-skin="realistic"] .modal-h .head {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .top .x {
+    background: rgba(255,255,255,0.10) !important;
+    color: var(--card-text) !important;
+    border: 1px solid var(--card-border) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .grab {
+    background: rgba(255,255,255,0.25) !important;
+  }
+  /* Chart-modal pills + chart wrap + stat boxes */
+  body[data-bg-skin="realistic"] .modal .pills button {
+    background: rgba(255,255,255,0.06) !important;
+    color: var(--card-text-soft) !important;
+    border: 1px solid var(--card-border) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .pills button.on {
+    background: rgba(255,255,255,0.16) !important;
+    color: var(--card-text) !important;
+    border-color: var(--card-accent) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .chart-wrap {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid var(--card-border) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .stat {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid var(--card-border) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .stat .lab {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .stat .val {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .crosshair-readout {
+    background: var(--card-bg) !important;
+    color: var(--card-text) !important;
+    border: 1px solid var(--card-border) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .stream-box {
+    border: 1px solid var(--card-border) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .stream-msg {
+    color: var(--card-text-soft) !important;
+  }
+
+  /* ============================================================
+   * SUN & GARDEN MODAL — biggest visual gap in v1.7.9 (image-103)
+   * Every sun-section / sun-now-circle / sun-stat-row / sun-today-big
+   * / sun-tomorrow needs glass + card text.
+   * ============================================================ */
+  body[data-bg-skin="realistic"] .sun-section {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--card-text) !important;
+    border-radius: var(--card-radius) !important;
+    box-shadow: var(--card-shadow) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+  }
+  body[data-bg-skin="realistic"] .sun-section h3 {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .sun-now-circle .ring::before {
+    background: var(--card-bg) !important;
+    backdrop-filter: blur(var(--card-blur)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) !important;
+  }
+  body[data-bg-skin="realistic"] .sun-now-circle .ring span {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .sun-now-circle .meta {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .sun-stat-row {
+    border-top: 1px solid var(--card-border) !important;
+  }
+  body[data-bg-skin="realistic"] .sun-stat-row .lab {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .sun-stat-row .val {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .sun-today-big {
+    color: var(--card-accent) !important;
+  }
+  body[data-bg-skin="realistic"] .sun-tomorrow {
+    background: rgba(255,255,255,0.06) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--card-text) !important;
+  }
+  /* Week bars + crop cards in sun modal */
+  body[data-bg-skin="realistic"] .week-bar .day,
+  body[data-bg-skin="realistic"] .week-bar .pct {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .week-bar.today .day,
+  body[data-bg-skin="realistic"] .week-bar.today .pct {
+    color: var(--card-accent) !important;
+  }
+  body[data-bg-skin="realistic"] .crop-card {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .crop-card .name,
+  body[data-bg-skin="realistic"] .crop-card .cstat .val {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .crop-card .cstat,
+  body[data-bg-skin="realistic"] .crop-card .gh-tag {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid var(--card-border) !important;
+  }
+  body[data-bg-skin="realistic"] .crop-card .cstat .lab,
+  body[data-bg-skin="realistic"] .crop-card .verdict,
+  body[data-bg-skin="realistic"] .coming-soon {
+    color: var(--card-text-soft) !important;
+  }
+
+  /* ============================================================
+   * v1.7.10 BUG FIXES
+   * ============================================================ */
+  /* Stop watering button: text was disabled-grey on dark glass = invisible */
+  body[data-bg-skin="realistic"] .btn.stop.disabled,
+  body[data-bg-skin="realistic"] .btn.stop {
+    color: var(--card-text) !important;
+    opacity: 0.85;
+  }
+  body[data-bg-skin="realistic"] .btn.stop.disabled {
+    opacity: 0.55;
+  }
+  /* SOIL ✓ checkmark overflow — z-badge was floating off the right edge.
+     The soil-zone-row is justify-content:space-between with no max-width on the
+     badge column. Constrain badge column and prevent overflow on the row itself. */
+  body[data-bg-skin="realistic"] .soil-zone-row {
+    overflow: hidden;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  body[data-bg-skin="realistic"] .soil-zone-row .z-badge {
+    flex: 0 0 auto;
+    max-width: 100%;
+    text-align: right;
+  }
+  /* Belt-and-suspenders: never let the soil tile itself spill children outside */
+  body[data-bg-skin="realistic"] .tile {
+    overflow: hidden;
+  }
+
+
+
+  /* ============================================================
+   * v1.7.10 — FULL-SCREEN modals (#wx-modal, #wx-hist-modal, #wr-modal, #cam-modal)
+   * Base CSS at line ~111 hardcodes rgba(0,0,0,0.94) with !important.
+   * Override here so realistic skin gets photo-derived backdrop.
+   * Specificity: body[attr] + id > id alone. !important required for parity.
+   * ============================================================ */
+  body[data-bg-skin="realistic"] #wx-modal,
+  body[data-bg-skin="realistic"] #wx-hist-modal,
+  body[data-bg-skin="realistic"] #wr-modal,
+  body[data-bg-skin="realistic"] #cam-modal {
+    background: linear-gradient(180deg,
+      rgba(0,0,0,0.35) 0%,
+      var(--card-bg) 100%) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    color: var(--card-text) !important;
+  }
+  /* Sticky header bar inside full-screen modals */
+  body[data-bg-skin="realistic"] #wx-modal .top,
+  body[data-bg-skin="realistic"] #wx-hist-modal .top,
+  body[data-bg-skin="realistic"] #wr-modal .top,
+  body[data-bg-skin="realistic"] #cam-modal .top {
+    background: var(--card-bg) !important;
+    border-bottom: 1px solid var(--card-border) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] #wx-modal .top h2,
+  body[data-bg-skin="realistic"] #wx-hist-modal .top h2,
+  body[data-bg-skin="realistic"] #wr-modal .top h2,
+  body[data-bg-skin="realistic"] #cam-modal .top h2 {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] #wx-modal .close,
+  body[data-bg-skin="realistic"] #wx-hist-modal .close,
+  body[data-bg-skin="realistic"] #wr-modal .close,
+  body[data-bg-skin="realistic"] #cam-modal .close {
+    background: rgba(255,255,255,0.12) !important;
+    color: var(--card-text) !important;
+    border: 1px solid var(--card-border) !important;
+  }
+  /* Weather modal day rows */
+  body[data-bg-skin="realistic"] .wx-day {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--card-text) !important;
+    border-radius: var(--card-radius) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+  }
+  body[data-bg-skin="realistic"] .wx-day .nm,
+  body[data-bg-skin="realistic"] .wx-day .hilo {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .wx-day .desc,
+  body[data-bg-skin="realistic"] .wx-day .rain {
+    color: var(--card-text-soft) !important;
+  }
+  /* Weather "now" panel inside #wx-modal: .it rows */
+  body[data-bg-skin="realistic"] #wx-modal .it,
+  body[data-bg-skin="realistic"] #wx-hist-modal .it,
+  body[data-bg-skin="realistic"] #wr-modal .it,
+  body[data-bg-skin="realistic"] #cam-modal .it {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] #wx-modal .it .lab,
+  body[data-bg-skin="realistic"] #wx-hist-modal .it .lab,
+  body[data-bg-skin="realistic"] #wr-modal .it .lab {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] #wx-modal .it .vl,
+  body[data-bg-skin="realistic"] #wx-hist-modal .it .vl,
+  body[data-bg-skin="realistic"] #wr-modal .it .vl {
+    color: var(--card-text) !important;
+  }
+
+
+  /* ============================================================
+   * v1.7.10 BUG FIXES PASS 2 — observations from sim render
+   * ============================================================ */
+  /* Zones wrapper: ensure visible card frame around the whole list */
+  body[data-bg-skin="realistic"] .zones {
+    padding: 12px 14px !important;
+    margin-top: 14px !important;
+    border-radius: var(--card-radius) !important;
+  }
+  /* Stop watering button: keep the red gradient (don't tint to glass),
+     but ensure text is bright and contrast holds.  The earlier override
+     was too aggressive — restore the red identity so users SEE it as
+     a stop button, just with readable text. */
+  body[data-bg-skin="realistic"] .btn.stop {
+    background: linear-gradient(135deg, rgba(229,57,53,0.85), rgba(183,28,28,0.85)) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255,255,255,0.25) !important;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.45) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    opacity: 1;
+  }
+  body[data-bg-skin="realistic"] .btn.stop.disabled {
+    background: linear-gradient(135deg, rgba(229,57,53,0.45), rgba(183,28,28,0.45)) !important;
+    color: #ffffff !important;
+    opacity: 0.85;
+  }
+  body[data-bg-skin="realistic"] .btn.start {
+    color: #ffffff !important;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.45) !important;
+  }
 
   @keyframes rg-rain-fall {
     0%   { transform: translateY(-30%); }
@@ -3564,7 +3969,7 @@
     <div class="line"><span class="lab">Rain</span><span class="val" id="h24-rain">—</span></div>
   </div>
 
-  <div class="footer small">v1.7.9 · Pull down to refresh · <span id="updated">--</span></div>
+  <div class="footer small">v1.7.10 · Pull down to refresh · <span id="updated">--</span></div>
 </div>
 
 <!-- ===== zoom modal ===== -->
