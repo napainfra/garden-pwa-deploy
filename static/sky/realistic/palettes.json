@@ -130,5 +130,17 @@
     "text_soft": "rgba(243,246,251,0.72)",
     "shadow": "0 10px 36px rgba(0,0,0,0.42)",
     "border": "rgba(255,255,255,0.16)"
+  },
+  "bg-summer-night-partlycloudy.jpg": {
+    "sky_avg": "#0e1a29",
+    "canopy_avg": "#1b1804",
+    "ground_avg": "#221a09",
+    "accent": "#f5e8b8",
+    "sky_lum": 0.095,
+    "tint": "rgba(14,26,41,0.50)",
+    "text": "#f3f6fb",
+    "text_soft": "rgba(243,246,251,0.72)",
+    "shadow": "0 10px 36px rgba(0,0,0,0.42)",
+    "border": "rgba(255,255,255,0.16)"
   }
 }

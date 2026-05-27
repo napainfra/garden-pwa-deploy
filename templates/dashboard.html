@@ -10,7 +10,7 @@
 <link rel="manifest" href="/garden/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/garden/static/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/garden/static/icon-192.png">
-<title>Masha's Garden · v1.7.10</title>
+<title>Masha's Garden · v1.7.11</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
   html,body{height:100%;width:100%}
@@ -2508,6 +2508,13 @@
     transform: translate3d(0,0,0);
     will-change: transform;
   }
+  /* v1.7.11: rg-photo/shadow/motion are ONLY for realistic skin.
+     Hide entirely when any other skin is active so the realistic photo
+     does not bleed through ink/pencil/watercolor renders. JS also tears
+     these down in _rgTeardownLayers() — defense in depth. */
+  body:not([data-bg-skin="realistic"]) .rg-photo,
+  body:not([data-bg-skin="realistic"]) .rg-shadow,
+  body:not([data-bg-skin="realistic"]) .rg-motion { display: none !important; }
   .rg-photo  {
     background-size: cover;
     background-position: center center;
@@ -3969,7 +3976,7 @@
     <div class="line"><span class="lab">Rain</span><span class="val" id="h24-rain">—</span></div>
   </div>
 
-  <div class="footer small">v1.7.10 · Pull down to refresh · <span id="updated">--</span></div>
+  <div class="footer small">v1.7.11 · Pull down to refresh · <span id="updated">--</span></div>
 </div>
 
 <!-- ===== zoom modal ===== -->
@@ -4794,6 +4801,7 @@
 
   function renderWxWatercolor(cond, daypart, opts){
     opts = opts || {};
+    _rgTeardownLayers(); // v1.7.11: kill realistic photo stack
     const wx = document.getElementById("wx");
     if(!wx) return;
     _wcvEnsureStack(wx);
@@ -4963,6 +4971,7 @@
   }
   function renderWxPencil(cond, daypart, opts){
     opts = opts || {};
+    _rgTeardownLayers(); // v1.7.11: kill realistic photo stack
     const wx = document.getElementById("wx");
     if(!wx) return;
     _wcvEnsureStack(wx);
@@ -5122,6 +5131,7 @@
     return SKY_SUN_ANCHORS[file] || null;
   }
   function renderWxInk(cond, daypart, opts){
+    _rgTeardownLayers(); // v1.7.11: kill realistic photo stack
     opts = opts || {};
     const wx = document.getElementById("wx");
     if(!wx) return;
@@ -5271,7 +5281,8 @@
       "rainy": "rainy", "pouring": "rainy", "lightning-rainy": "rainy",
       "snowy": "snowy", "snowy-rainy": "snowy",
       "windy": "windy", "windy-variant": "windy",
-      "fog": "overcast", "cloudy": "overcast", "partlycloudy": "clear",
+      "fog": "overcast", "cloudy": "overcast",
+      "partlycloudy": "partlycloudy",
       "sunny": "clear", "clear-night": "clear", "hail": "rainy",
       "lightning": "clear",
     };
@@ -5285,6 +5296,16 @@
     for (const s of ["autumn","summer","spring","winter"]) {
       const w = `bg-${s}-${daypart}-${tag}.jpg`;
       if (has(w)) return w;
+    }
+
+    // 2b. partlycloudy with no match in any season → fall back to clear
+    if (tag === "partlycloudy") {
+      const wClear = `bg-${season}-${daypart}-clear.jpg`;
+      if (has(wClear)) return wClear;
+      for (const s of ["summer","autumn","spring","winter"]) {
+        const w = `bg-${s}-${daypart}-clear.jpg`;
+        if (has(w)) return w;
+      }
     }
 
     // 3. fall back to overcast variant if condition is rainy/snowy and we have overcast
@@ -5318,6 +5339,17 @@
     root.setProperty("--photo-shadow", p.shadow);
     root.setProperty("--photo-border", p.border);
     root.setProperty("--photo-sky-lum", String(p.sky_lum));
+  }
+
+  // v1.7.11: symmetric teardown. Non-realistic skins call this on every render
+  // to guarantee the realistic photo stack is gone (CSS hides them too, defense
+  // in depth). Cheap: getElementById + remove(), idempotent.
+  function _rgTeardownLayers() {
+    ["rg-photo","rg-shadow","rg-motion"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    });
+    __rg_currentPhoto = null;
   }
 
   function _rgEnsureLayers() {
@@ -5597,7 +5629,7 @@
     } catch(e){
       console.error("backdrop render failed:", e);
       const f = document.querySelector(".footer");
-      if(f) f.textContent = "v1.7.9 \u00b7 bg err: " + (e.message || e);
+      if(f) f.textContent = "v1.7.11 \u00b7 bg err: " + (e.message || e);
     }
   }
 
