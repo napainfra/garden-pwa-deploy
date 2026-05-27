@@ -10,7 +10,7 @@
 <link rel="manifest" href="/garden/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/garden/static/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/garden/static/icon-192.png">
-<title>Masha's Garden · v1.7.8</title>
+<title>Masha's Garden · v1.7.14</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
   html,body{height:100%;width:100%}
@@ -1500,7 +1500,7 @@
   body[data-bg-skin="pencil"][data-cond="windy"] .wcv-drift,
   body[data-bg-skin="pencil"][data-cond="windy-variant"] .wcv-drift{opacity:.6}
 
-  /* ===== INK BACKDROP v1.7.8 — ALL MOTION IN INK MEDIUM ===== */
+  /* ===== INK BACKDROP v1.7.9 — ALL MOTION IN INK MEDIUM ===== */
   /* Sun: PNG hidden; ray-ring renders the full ink sunburst (center disc + radiating lines) */
   body[data-bg-skin="ink"] .wcv-sun{
     display:none !important;
@@ -1519,6 +1519,10 @@
     mix-blend-mode:screen !important;
   }
   body[data-bg-skin="ink"] .wcv-moon-halo{ display:none !important; }
+  /* v1.7.12: Ink JPGs have baked-in crescent. Hide ALL wcv-moon overlay on ink permanently. */
+  body[data-bg-skin="ink"] #wcv-moon,
+  body[data-bg-skin="ink"] .wcv-moon,
+  body[data-bg-skin="ink"] #wcv-moon-halo{ display:none !important; }
   /* Rain: ink brush slash, not a colored gradient bar */
   body[data-bg-skin="ink"] .wcv-rain .wcv-drop{
     background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 60' preserveAspectRatio='none'><path d='M14 2 Q11 15 8 30 Q6 45 3 58' stroke='%231a1a1a' stroke-width='1.6' fill='none' stroke-linecap='round' opacity='0.85'/></svg>") center/100% 100% no-repeat !important;
@@ -1539,7 +1543,7 @@
   body[data-bg-skin="ink"][data-daypart="night"] .wcv-snow .wcv-flake{
     background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><g stroke='%23f5f1e6' stroke-width='1.3' fill='none' stroke-linecap='round'><line x1='15' y1='3' x2='15' y2='27'/><line x1='3' y1='15' x2='27' y2='15'/><line x1='6' y1='6' x2='24' y2='24'/><line x1='24' y1='6' x2='6' y2='24'/><circle cx='15' cy='15' r='2' fill='%23f5f1e6'/></g></svg>") center/contain no-repeat !important;
   }
-  /* v1.7.8: Wind — calligraphy S-curve SVG, parent blend neutralized so child blends actually hit the sky */
+  /* v1.7.9: Wind — calligraphy S-curve SVG, parent blend neutralized so child blends actually hit the sky */
   body[data-bg-skin="ink"] .wcv-wind{
     mix-blend-mode: normal !important;
     isolation: auto !important;
@@ -2091,7 +2095,7 @@
 
   /* End of pencil skin block ============================================ */
   /* =====================================================================
-     INK SKIN v1.7.8 — pen-and-ink / scratchboard aesthetic
+     INK SKIN v1.7.9 — pen-and-ink / scratchboard aesthetic
      Strictly B/W. Light = black ink lines on warm off-white paper.
      Night    = INVERTED — white scratches on pitch-black.
      Per skin contract (home-assistant skill v2.4 rule 9): visual only.
@@ -2262,7 +2266,7 @@
   }
   body[data-ui-skin="ink"] .soil-zone-row .z-name{ font-weight: 600; }
   
-  /* v1.7.8: history modal — class-based so each skin can override consistently */
+  /* v1.7.9: history modal — class-based so each skin can override consistently */
   .hist-wrap{padding:0 4px}
   .hist-srcs{font-size:11px;color:#8aa1c2;margin-bottom:14px;line-height:1.6}
   .hist-head{display:grid;grid-template-columns:54px 1fr 1fr 1fr 1fr;gap:6px;
@@ -2358,7 +2362,7 @@
   }
 
   
-  /* v1.7.8: wr-modal (wind/rain) reuses .hist-* + adds wrh-* tile/row classes */
+  /* v1.7.9: wr-modal (wind/rain) reuses .hist-* + adds wrh-* tile/row classes */
   .wrh-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
   .wrh-tile{padding:14px;border-radius:10px;border:1px solid rgba(99,179,237,.18);
     background:rgba(99,179,237,.08)}
@@ -2452,7 +2456,776 @@
     border-left: 2px solid #f5f1e6 !important;
   }
 
-  /* v1.7.8: comprehensive ink modal consistency — every text descendant must be ink, not inherited */
+
+  /* ============================================================
+   * v1.7.9 — REALISTIC GLASS SKIN
+   * Photo-backed background + frosted-glass card system.
+   * Unified --card-* variables: every skin sets these; markup is identical.
+   * Realistic skin overrides --photo-* at runtime from palettes.json.
+   * ============================================================ */
+
+  /* ---- realistic skin base ---- */
+  body[data-bg-skin="realistic"] {
+    /* runtime-set photo vars (defaults are fallbacks) */
+    --photo-tint:        rgba(20,30,45,0.45);
+    --photo-text:        #f3f6fb;
+    --photo-text-soft:   rgba(243,246,251,0.72);
+    --photo-accent:      #ffffff;
+    --photo-shadow:      0 8px 28px rgba(0,0,0,0.32);
+    --photo-border:      rgba(255,255,255,0.16);
+    --photo-sky-lum:     0.5;
+
+    /* unified card system */
+    --card-bg:           var(--photo-tint);
+    --card-text:         var(--photo-text);
+    --card-text-soft:    var(--photo-text-soft);
+    --card-accent:       var(--photo-accent);
+    --card-shadow:       var(--photo-shadow);
+    --card-border:       var(--photo-border);
+    --card-blur:         18px;
+    --card-saturate:     140%;
+    --card-radius:       14px;
+  }
+
+  /* ---- realistic photo backdrop layers ---- */
+  body[data-bg-skin="realistic"] .wx { display: block !important; }
+  body[data-bg-skin="realistic"] .wx > svg,
+  body[data-bg-skin="realistic"] .wx > .sky-grad,
+  body[data-bg-skin="realistic"] .wx > .paper,
+  body[data-bg-skin="realistic"] .wx > .aq-flash,
+  body[data-bg-skin="realistic"] .wx > .wcv-clouds,
+  body[data-bg-skin="realistic"] .wx > .wcv-sun,
+  body[data-bg-skin="realistic"] .wx > .wcv-moon,
+  body[data-bg-skin="realistic"] .wx > .wcv-rain,
+  body[data-bg-skin="realistic"] .wx > .wcv-snow,
+  body[data-bg-skin="realistic"] .wx > .wcv-fog,
+  body[data-bg-skin="realistic"] .wx > .wcv-wind,
+  body[data-bg-skin="realistic"] .wx > .wcv-stars { display: none !important; }
+
+  .rg-photo,
+  .rg-shadow,
+  .rg-motion {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    transform: translate3d(0,0,0);
+    will-change: transform;
+  }
+  /* v1.7.11: rg-photo/shadow/motion are ONLY for realistic skin.
+     Hide entirely when any other skin is active so the realistic photo
+     does not bleed through ink/pencil/watercolor renders. JS also tears
+     these down in _rgTeardownLayers() — defense in depth. */
+  body:not([data-bg-skin="realistic"]) .rg-photo,
+  body:not([data-bg-skin="realistic"]) .rg-shadow,
+  body:not([data-bg-skin="realistic"]) .rg-motion { display: none !important; }
+  .rg-photo  {
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    z-index: 0;
+    transition: background-image 700ms ease;
+  }
+  .rg-shadow {
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-blend-mode: multiply;
+    opacity: 0.35;
+    z-index: 1;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+    /* mask is applied inline via JS using tree silhouette pseudo-mask;
+       v1 is a soft vertical gradient that emphasizes the canopy band */
+    -webkit-mask-image: linear-gradient(to bottom,
+      transparent 0%, transparent 30%,
+      black 35%, black 70%,
+      transparent 78%, transparent 100%);
+            mask-image: linear-gradient(to bottom,
+      transparent 0%, transparent 30%,
+      black 35%, black 70%,
+      transparent 78%, transparent 100%);
+  }
+  .rg-motion { z-index: 2; }
+
+  /* ---- moon disc (anchored, with halo bloom) ---- */
+  .rg-moon {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .rg-moon::before {
+    /* halo bloom — pulses 8s */
+    content: "";
+    position: absolute;
+    inset: -200%;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+      rgba(255,245,210,0.30) 0%,
+      rgba(255,245,210,0.18) 22%,
+      rgba(255,245,210,0.06) 50%,
+      transparent 70%);
+    animation: rg-moon-pulse 8s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes rg-moon-pulse {
+    0%, 100% { opacity: 0.55; transform: scale(0.96); }
+    50%      { opacity: 1.00; transform: scale(1.04); }
+  }
+
+  /* ---- stars (anchored at JPG positions, twinkle) ---- */
+  .rg-star {
+    position: absolute;
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: #fffce0;
+    box-shadow: 0 0 4px rgba(255,250,220,0.85);
+    animation: rg-star-twinkle var(--rg-star-dur, 4s) ease-in-out infinite;
+    animation-delay: var(--rg-star-delay, 0s);
+    pointer-events: none;
+  }
+  @keyframes rg-star-twinkle {
+    0%, 100% { opacity: 0.55; transform: scale(0.9); }
+    50%      { opacity: 1.00; transform: scale(1.2); }
+  }
+
+  /* ---- sun bloom (anchored, day photos) ---- */
+  .rg-sun-bloom {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+      rgba(255,240,200,0.45) 0%,
+      rgba(255,220,150,0.25) 30%,
+      rgba(255,200,100,0.10) 60%,
+      transparent 80%);
+    animation: rg-sun-pulse 8s ease-in-out infinite;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+  @keyframes rg-sun-pulse {
+    0%, 100% { opacity: 0.65; transform: scale(0.96); }
+    50%      { opacity: 1.00; transform: scale(1.05); }
+  }
+
+  /* ---- foreground rain streaks (lower 30% only — sky has rain in JPG) ---- */
+  body[data-bg-skin="realistic"][data-cond="rainy"]   .rg-motion .rg-rain,
+  body[data-bg-skin="realistic"][data-cond="pouring"] .rg-motion .rg-rain,
+  body[data-bg-skin="realistic"][data-cond="lightning-rainy"] .rg-motion .rg-rain {
+    display: block;
+  }
+  .rg-rain { display: none; position: absolute; left: 0; right: 0; bottom: 0; height: 30%; pointer-events: none; }
+  .rg-rain svg { width: 100%; height: 100%; display: block; }
+
+  /* ---- snow flakes (upper 40% only on snow days) ---- */
+  body[data-bg-skin="realistic"][data-cond="snowy"]       .rg-motion .rg-snow,
+  body[data-bg-skin="realistic"][data-cond="snowy-rainy"] .rg-motion .rg-snow {
+    display: block;
+  }
+  .rg-snow { display: none; position: absolute; inset: 0 0 60% 0; pointer-events: none; }
+  .rg-flake {
+    position: absolute;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.85);
+    box-shadow: 0 0 4px rgba(255,255,255,0.6);
+    animation: rg-flake-fall var(--rg-fall-dur, 8s) linear infinite;
+    animation-delay: var(--rg-fall-delay, 0s);
+  }
+  @keyframes rg-flake-fall {
+    0%   { transform: translate(0, -10px); opacity: 0; }
+    10%  { opacity: 0.85; }
+    90%  { opacity: 0.85; }
+    100% { transform: translate(var(--rg-fall-dx, 20px), 100vh); opacity: 0; }
+  }
+
+  /* ---- falling leaves (autumn rainy day) ---- */
+  body[data-bg-skin="realistic"][data-season="autumn"][data-cond="rainy"] .rg-motion .rg-leaves {
+    display: block;
+  }
+  .rg-leaves { display: none; position: absolute; inset: 0 0 30% 0; pointer-events: none; }
+
+  /* ---- greenhouse polygon hot-zone (invisible click target) ---- */
+  .rg-greenhouse-hit {
+    position: absolute;
+    cursor: pointer;
+    pointer-events: auto;
+    z-index: 3;
+    /* faintly visible on hover for desktop, none on touch */
+    background: transparent;
+    transition: background 200ms ease;
+  }
+  @media (hover: hover) {
+    .rg-greenhouse-hit:hover {
+      background: rgba(255,255,255,0.06);
+      outline: 1px solid rgba(255,255,255,0.20);
+    }
+  }
+
+  /* ============================================================
+   * UNIFIED CARD SYSTEM — applies on REALISTIC skin only for v1.7.9.
+   * Other skins keep existing chrome (migrate in v1.8.0).
+   * ============================================================ */
+  body[data-bg-skin="realistic"] .tile,
+  body[data-bg-skin="realistic"] .row,
+  body[data-bg-skin="realistic"] .hp10-card,
+  body[data-bg-skin="realistic"] .modal-card,
+  body[data-bg-skin="realistic"] .sheet {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--card-text) !important;
+    border-radius: var(--card-radius) !important;
+    box-shadow: var(--card-shadow) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    position: relative;
+    z-index: 4;
+  }
+  /* Text descendants */
+  body[data-bg-skin="realistic"] .tile *,
+  body[data-bg-skin="realistic"] .row *,
+  body[data-bg-skin="realistic"] .hp10-card *,
+  body[data-bg-skin="realistic"] .modal-card *,
+  body[data-bg-skin="realistic"] .sheet * {
+    color: inherit;
+  }
+  body[data-bg-skin="realistic"] .tile .label,
+  body[data-bg-skin="realistic"] .row .label,
+  body[data-bg-skin="realistic"] .tap-hint,
+  body[data-bg-skin="realistic"] .modal-card .label {
+    color: var(--card-text-soft) !important;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  body[data-bg-skin="realistic"] .tile .value,
+  body[data-bg-skin="realistic"] .modal-card .value {
+    color: var(--card-text) !important;
+    font-weight: 700;
+  }
+  body[data-bg-skin="realistic"] .tile .sub {
+    color: var(--card-text-soft) !important;
+  }
+  /* Status pill */
+  body[data-bg-skin="realistic"] .pill {
+    background: var(--card-bg) !important;
+    color: var(--card-text) !important;
+    border: 1px solid var(--card-border) !important;
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+  }
+  /* H1 / app title */
+  body[data-bg-skin="realistic"] h1 {
+    color: var(--card-text) !important;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  }
+  /* Action buttons */
+  body[data-bg-skin="realistic"] .btn.start,
+  body[data-bg-skin="realistic"] .btn.stop {
+    background: var(--card-bg) !important;
+    color: var(--card-text) !important;
+    border: 1px solid var(--card-border) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate));
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate));
+  }
+  /* Stars */
+  body[data-bg-skin="realistic"] .stars { color: var(--card-accent) !important; }
+  /* Footer */
+  body[data-bg-skin="realistic"] .footer {
+    color: var(--card-text-soft) !important;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.30);
+  }
+  /* Skin gear icon — readable over any photo */
+  body[data-bg-skin="realistic"] .skin-gear {
+    background: var(--card-bg) !important;
+    color: var(--card-text) !important;
+    border: 1px solid var(--card-border) !important;
+    backdrop-filter: blur(var(--card-blur));
+    -webkit-backdrop-filter: blur(var(--card-blur));
+  }
+  /* Hydrawise zones strip — class on element is .zones (id=zones-block), not .hydrawise-zones */
+  body[data-bg-skin="realistic"] .hydrawise-zones,
+  body[data-bg-skin="realistic"] .zones,
+  body[data-bg-skin="realistic"] #zones-block {
+    background: var(--card-bg) !important;
+    color: var(--card-text) !important;
+    border: 1px solid var(--card-border) !important;
+    border-radius: var(--card-radius) !important;
+    box-shadow: var(--card-shadow) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    padding: 12px 14px !important;
+  }
+  /* History modal text — re-uses .hist-* classes from v1.7.7 */
+  body[data-bg-skin="realistic"] .hist-temp,
+  body[data-bg-skin="realistic"] .hist-hum,
+  body[data-bg-skin="realistic"] .hist-solar,
+  body[data-bg-skin="realistic"] .hist-rain,
+  body[data-bg-skin="realistic"] .hist-day,
+  body[data-bg-skin="realistic"] .hist-srcs,
+  body[data-bg-skin="realistic"] .hist-foot,
+  body[data-bg-skin="realistic"] .hist-head {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .hist-empty,
+  body[data-bg-skin="realistic"] .hist-srcs {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .hist-bar {
+    background: linear-gradient(to right,
+      rgba(255,255,255,0.18) var(--pct, 0%),
+      transparent var(--pct, 0%)) !important;
+  }
+  body[data-bg-skin="realistic"] .hist-row.is-today {
+    border-left: 2px solid var(--card-accent) !important;
+    background: rgba(255,255,255,0.08) !important;
+  }
+  body[data-bg-skin="realistic"] .hist-foot {
+    border-left: 3px solid var(--card-accent) !important;
+    background: rgba(255,255,255,0.06) !important;
+  }
+  /* wr-modal also gets unified treatment */
+  body[data-bg-skin="realistic"] .wrh-tile,
+  body[data-bg-skin="realistic"] .wrh-tile-wind {
+    background: rgba(255,255,255,0.08) !important;
+    border: 1px solid var(--card-border) !important;
+  }
+  body[data-bg-skin="realistic"] .wrh-tile-lbl,
+  body[data-bg-skin="realistic"] .wrh-tile-unit,
+  body[data-bg-skin="realistic"] .wrh-tile-sub,
+  body[data-bg-skin="realistic"] .wrh-num,
+  body[data-bg-skin="realistic"] .wrh-pct,
+  body[data-bg-skin="realistic"] .wrh-head,
+  body[data-bg-skin="realistic"] .wrh-head .r {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .wrh-tile-val {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .wrh-row.is-today {
+    background: rgba(255,255,255,0.08) !important;
+    border-left: 2px solid var(--card-accent) !important;
+  }
+  body[data-bg-skin="realistic"] .hist-bar-wind {
+    background: linear-gradient(to left,
+      rgba(255,255,255,0.18) var(--pct, 0%),
+      transparent var(--pct, 0%)) !important;
+  }
+
+
+
+  /* ============================================================
+   * v1.7.10 — UNIVERSAL GLASS COVERAGE
+   * Every classed surface gets the photo-derived glass treatment.
+   * Pavel rejected v1.7.9 because these were missed.
+   * Selectors below are EVERY remaining surface in dashboard.html.
+   * ============================================================ */
+
+  /* --- REAL/FORECAST big tiles --- */
+  body[data-bg-skin="realistic"] .now-card,
+  body[data-bg-skin="realistic"] .now-card.now-real,
+  body[data-bg-skin="realistic"] .now-card.now-fc {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--card-text) !important;
+    border-radius: var(--card-radius) !important;
+    box-shadow: var(--card-shadow) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+  }
+  body[data-bg-skin="realistic"] .now-card .lbl,
+  body[data-bg-skin="realistic"] .now-card .meta,
+  body[data-bg-skin="realistic"] .now-card .meta .rain-off {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .now-card .big,
+  body[data-bg-skin="realistic"] .now-card .ico {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .now-card .meta .rain-on {
+    color: var(--card-accent) !important;
+  }
+
+  /* --- LAST WATERED / VALVE / BATTERY row items --- */
+  body[data-bg-skin="realistic"] .item {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--card-text) !important;
+    border-radius: var(--card-radius) !important;
+    box-shadow: var(--card-shadow) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    padding: 10px 12px;
+  }
+  body[data-bg-skin="realistic"] .item .label {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .item .v {
+    color: var(--card-text) !important;
+    font-weight: 700;
+  }
+
+  /* --- FORECAST 3-day strip --- */
+  body[data-bg-skin="realistic"] .forecast .fc {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--card-text) !important;
+    border-radius: var(--card-radius) !important;
+    box-shadow: var(--card-shadow) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+  }
+  body[data-bg-skin="realistic"] .forecast .fc .day,
+  body[data-bg-skin="realistic"] .forecast .fc .rain {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .forecast .fc .ico,
+  body[data-bg-skin="realistic"] .forecast .fc .hilo {
+    color: var(--card-text) !important;
+  }
+
+  /* --- HYDRAWISE zone rows (wrapper already styled; rows themselves were transparent) --- */
+  body[data-bg-skin="realistic"] .zones .head {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .zones .zone {
+    border-bottom: 1px solid var(--card-border) !important;
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .zones .zone:last-child {
+    border-bottom: none !important;
+  }
+  body[data-bg-skin="realistic"] .zones .zone.veg {
+    background: rgba(255,255,255,0.06) !important;
+    border-radius: 10px !important;
+  }
+  body[data-bg-skin="realistic"] .zones .zone .nm {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .zones .zone .st {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .zones .zone .st.scheduled { color: #b6efb6 !important; }
+  body[data-bg-skin="realistic"] .zones .zone .st.suspended { color: #f0b7ad !important; }
+  body[data-bg-skin="realistic"] .zones .zone .st.watering  { color: #9ed3ff !important; }
+
+  /* --- HP10 cam-meta strip --- */
+  body[data-bg-skin="realistic"] .cam-meta,
+  body[data-bg-skin="realistic"] .cam-meta .age {
+    color: var(--card-text-soft) !important;
+  }
+
+  /* ============================================================
+   * MODAL SURFACES — chart, camera, weather, history, wind/rain, sun
+   * Pavel's screenshot showed ALL five as opaque dark with no glass.
+   * The modal-bg backdrop stays dim; the inner .modal becomes glass.
+   * ============================================================ */
+  body[data-bg-skin="realistic"] .modal-bg {
+    background: rgba(0,0,0,0.55) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+  }
+  body[data-bg-skin="realistic"] .modal-bg .modal,
+  body[data-bg-skin="realistic"] #wx-modal .modal,
+  body[data-bg-skin="realistic"] #wx-hist-modal .modal,
+  body[data-bg-skin="realistic"] #wr-modal .modal,
+  body[data-bg-skin="realistic"] #cam-modal .modal,
+  body[data-bg-skin="realistic"] .modal {
+    background: var(--card-bg) !important;
+    color: var(--card-text) !important;
+    border: 1px solid var(--card-border) !important;
+    box-shadow: var(--card-shadow) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .top .ttl,
+  body[data-bg-skin="realistic"] .modal .ttl,
+  body[data-bg-skin="realistic"] .modal-h .ttl {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .sub,
+  body[data-bg-skin="realistic"] .modal .m-sub,
+  body[data-bg-skin="realistic"] .modal .head,
+  body[data-bg-skin="realistic"] .modal-h .sub,
+  body[data-bg-skin="realistic"] .modal-h .head {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .top .x {
+    background: rgba(255,255,255,0.10) !important;
+    color: var(--card-text) !important;
+    border: 1px solid var(--card-border) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .grab {
+    background: rgba(255,255,255,0.25) !important;
+  }
+  /* Chart-modal pills + chart wrap + stat boxes */
+  body[data-bg-skin="realistic"] .modal .pills button {
+    background: rgba(255,255,255,0.06) !important;
+    color: var(--card-text-soft) !important;
+    border: 1px solid var(--card-border) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .pills button.on {
+    background: rgba(255,255,255,0.16) !important;
+    color: var(--card-text) !important;
+    border-color: var(--card-accent) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .chart-wrap {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid var(--card-border) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .stat {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid var(--card-border) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .stat .lab {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .stat .val {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .crosshair-readout {
+    background: var(--card-bg) !important;
+    color: var(--card-text) !important;
+    border: 1px solid var(--card-border) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .stream-box {
+    border: 1px solid var(--card-border) !important;
+  }
+  body[data-bg-skin="realistic"] .modal .stream-msg {
+    color: var(--card-text-soft) !important;
+  }
+
+  /* ============================================================
+   * SUN & GARDEN MODAL — biggest visual gap in v1.7.9 (image-103)
+   * Every sun-section / sun-now-circle / sun-stat-row / sun-today-big
+   * / sun-tomorrow needs glass + card text.
+   * ============================================================ */
+  body[data-bg-skin="realistic"] .sun-section {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--card-text) !important;
+    border-radius: var(--card-radius) !important;
+    box-shadow: var(--card-shadow) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+  }
+  body[data-bg-skin="realistic"] .sun-section h3 {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .sun-now-circle .ring::before {
+    background: var(--card-bg) !important;
+    backdrop-filter: blur(var(--card-blur)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) !important;
+  }
+  body[data-bg-skin="realistic"] .sun-now-circle .ring span {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .sun-now-circle .meta {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .sun-stat-row {
+    border-top: 1px solid var(--card-border) !important;
+  }
+  body[data-bg-skin="realistic"] .sun-stat-row .lab {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .sun-stat-row .val {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .sun-today-big {
+    color: var(--card-accent) !important;
+  }
+  body[data-bg-skin="realistic"] .sun-tomorrow {
+    background: rgba(255,255,255,0.06) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--card-text) !important;
+  }
+  /* Week bars + crop cards in sun modal */
+  body[data-bg-skin="realistic"] .week-bar .day,
+  body[data-bg-skin="realistic"] .week-bar .pct {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] .week-bar.today .day,
+  body[data-bg-skin="realistic"] .week-bar.today .pct {
+    color: var(--card-accent) !important;
+  }
+  body[data-bg-skin="realistic"] .crop-card {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .crop-card .name,
+  body[data-bg-skin="realistic"] .crop-card .cstat .val {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .crop-card .cstat,
+  body[data-bg-skin="realistic"] .crop-card .gh-tag {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid var(--card-border) !important;
+  }
+  body[data-bg-skin="realistic"] .crop-card .cstat .lab,
+  body[data-bg-skin="realistic"] .crop-card .verdict,
+  body[data-bg-skin="realistic"] .coming-soon {
+    color: var(--card-text-soft) !important;
+  }
+
+  /* ============================================================
+   * v1.7.10 BUG FIXES
+   * ============================================================ */
+  /* Stop watering button: text was disabled-grey on dark glass = invisible */
+  body[data-bg-skin="realistic"] .btn.stop.disabled,
+  body[data-bg-skin="realistic"] .btn.stop {
+    color: var(--card-text) !important;
+    opacity: 0.85;
+  }
+  body[data-bg-skin="realistic"] .btn.stop.disabled {
+    opacity: 0.55;
+  }
+  /* SOIL ✓ checkmark overflow — z-badge was floating off the right edge.
+     The soil-zone-row is justify-content:space-between with no max-width on the
+     badge column. Constrain badge column and prevent overflow on the row itself. */
+  body[data-bg-skin="realistic"] .soil-zone-row {
+    overflow: hidden;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  body[data-bg-skin="realistic"] .soil-zone-row .z-badge {
+    flex: 0 0 auto;
+    max-width: 100%;
+    text-align: right;
+  }
+  /* Belt-and-suspenders: never let the soil tile itself spill children outside */
+  body[data-bg-skin="realistic"] .tile {
+    overflow: hidden;
+  }
+
+
+
+  /* ============================================================
+   * v1.7.10 — FULL-SCREEN modals (#wx-modal, #wx-hist-modal, #wr-modal, #cam-modal)
+   * Base CSS at line ~111 hardcodes rgba(0,0,0,0.94) with !important.
+   * Override here so realistic skin gets photo-derived backdrop.
+   * Specificity: body[attr] + id > id alone. !important required for parity.
+   * ============================================================ */
+  body[data-bg-skin="realistic"] #wx-modal,
+  body[data-bg-skin="realistic"] #wx-hist-modal,
+  body[data-bg-skin="realistic"] #wr-modal,
+  body[data-bg-skin="realistic"] #cam-modal {
+    background: linear-gradient(180deg,
+      rgba(0,0,0,0.35) 0%,
+      var(--card-bg) 100%) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    color: var(--card-text) !important;
+  }
+  /* Sticky header bar inside full-screen modals */
+  body[data-bg-skin="realistic"] #wx-modal .top,
+  body[data-bg-skin="realistic"] #wx-hist-modal .top,
+  body[data-bg-skin="realistic"] #wr-modal .top,
+  body[data-bg-skin="realistic"] #cam-modal .top {
+    background: var(--card-bg) !important;
+    border-bottom: 1px solid var(--card-border) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] #wx-modal .top h2,
+  body[data-bg-skin="realistic"] #wx-hist-modal .top h2,
+  body[data-bg-skin="realistic"] #wr-modal .top h2,
+  body[data-bg-skin="realistic"] #cam-modal .top h2 {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] #wx-modal .close,
+  body[data-bg-skin="realistic"] #wx-hist-modal .close,
+  body[data-bg-skin="realistic"] #wr-modal .close,
+  body[data-bg-skin="realistic"] #cam-modal .close {
+    background: rgba(255,255,255,0.12) !important;
+    color: var(--card-text) !important;
+    border: 1px solid var(--card-border) !important;
+  }
+  /* Weather modal day rows */
+  body[data-bg-skin="realistic"] .wx-day {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--card-text) !important;
+    border-radius: var(--card-radius) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+  }
+  body[data-bg-skin="realistic"] .wx-day .nm,
+  body[data-bg-skin="realistic"] .wx-day .hilo {
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] .wx-day .desc,
+  body[data-bg-skin="realistic"] .wx-day .rain {
+    color: var(--card-text-soft) !important;
+  }
+  /* Weather "now" panel inside #wx-modal: .it rows */
+  body[data-bg-skin="realistic"] #wx-modal .it,
+  body[data-bg-skin="realistic"] #wx-hist-modal .it,
+  body[data-bg-skin="realistic"] #wr-modal .it,
+  body[data-bg-skin="realistic"] #cam-modal .it {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--card-text) !important;
+  }
+  body[data-bg-skin="realistic"] #wx-modal .it .lab,
+  body[data-bg-skin="realistic"] #wx-hist-modal .it .lab,
+  body[data-bg-skin="realistic"] #wr-modal .it .lab {
+    color: var(--card-text-soft) !important;
+  }
+  body[data-bg-skin="realistic"] #wx-modal .it .vl,
+  body[data-bg-skin="realistic"] #wx-hist-modal .it .vl,
+  body[data-bg-skin="realistic"] #wr-modal .it .vl {
+    color: var(--card-text) !important;
+  }
+
+
+  /* ============================================================
+   * v1.7.10 BUG FIXES PASS 2 — observations from sim render
+   * ============================================================ */
+  /* Zones wrapper: ensure visible card frame around the whole list */
+  body[data-bg-skin="realistic"] .zones {
+    padding: 12px 14px !important;
+    margin-top: 14px !important;
+    border-radius: var(--card-radius) !important;
+  }
+  /* Stop watering button: keep the red gradient (don't tint to glass),
+     but ensure text is bright and contrast holds.  The earlier override
+     was too aggressive — restore the red identity so users SEE it as
+     a stop button, just with readable text. */
+  body[data-bg-skin="realistic"] .btn.stop {
+    background: linear-gradient(135deg, rgba(229,57,53,0.85), rgba(183,28,28,0.85)) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255,255,255,0.25) !important;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.45) !important;
+    backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--card-blur)) saturate(var(--card-saturate)) !important;
+    opacity: 1;
+  }
+  body[data-bg-skin="realistic"] .btn.stop.disabled {
+    background: linear-gradient(135deg, rgba(229,57,53,0.45), rgba(183,28,28,0.45)) !important;
+    color: #ffffff !important;
+    opacity: 0.85;
+  }
+  body[data-bg-skin="realistic"] .btn.start {
+    color: #ffffff !important;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.45) !important;
+  }
+
+  @keyframes rg-rain-fall {
+    0%   { transform: translateY(-30%); }
+    100% { transform: translateY(30%); }
+  }
+
+  /* ---- prefers-reduced-motion: kill all animations ---- */
+  @media (prefers-reduced-motion: reduce) {
+    .rg-photo, .rg-shadow, .rg-motion,
+    .rg-moon::before, .rg-star, .rg-sun-bloom, .rg-flake {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+
+  /* v1.7.9: comprehensive ink modal consistency — every text descendant must be ink, not inherited */
   body[data-ui-skin="ink"] .now-card .big,
   body[data-ui-skin="ink"] .now-real .big,
   body[data-ui-skin="ink"] .now-fc .big{
@@ -2729,7 +3502,7 @@
 
 
   /* =========================================================================
-     v1.7.8 — FROST LAYER (universal motion)
+     v1.7.9 — FROST LAYER (universal motion)
      Trigger: temp_c <= 0  AND  rain_rate_mm_h == 0
      Style:   edge crystals on viewport corners + frame edges
      Skin-aware via [data-bg-skin="..."] overrides below.
@@ -2789,7 +3562,7 @@
   }
 
   /* =========================================================================
-     v1.7.8 — INK MODAL BLOCK (Sun & Garden, Weather, Past-7-days, Rain, Cam, HP10, Skin-picker)
+     v1.7.9 — INK MODAL BLOCK (Sun & Garden, Weather, Past-7-days, Rain, Cam, HP10, Skin-picker)
      Mirrors the watercolor modal block at lines 1093+ but uses ink palette.
      ========================================================================= */
   body[data-ui-skin="ink"] .modal-bg{
@@ -3207,7 +3980,7 @@
     <div class="line"><span class="lab">Rain</span><span class="val" id="h24-rain">—</span></div>
   </div>
 
-  <div class="footer small">v1.7.8 · Pull down to refresh · <span id="updated">--</span></div>
+  <div class="footer small">v1.7.14 · Pull down to refresh · <span id="updated">--</span></div>
 </div>
 
 <!-- ===== zoom modal ===== -->
@@ -3742,7 +4515,7 @@
     if (isNight && (cond === "clear-night" || cond === "sunny" || cond === "partlycloudy")) {
       _startMeteors();
     }
-    // v1.7.8: ensure frost layer exists on realistic skin (innerHTML wiped it)
+    // v1.7.9: ensure frost layer exists on realistic skin (innerHTML wiped it)
     if (!wx.querySelector("#wcv-frost")) {
       wx.insertAdjacentHTML("beforeend", '<div class="wcv-frost" id="wcv-frost"></div>');
     }
@@ -3752,7 +4525,13 @@
     const cond = (d.weather_forecast && d.weather_forecast.condition)
               || (d.weather_now && d.weather_now.condition)
               || "partlycloudy";
-    const daypart = d.sun_above ? "day" : "night";
+    // v1.7.14: morning daypart (5–10am), aligned with applyBackdropSkinAware
+    const _h = new Date().getHours();
+    const _forceNight = (_h >= 21 || _h < 5);
+    let daypart;
+    if (_forceNight || !d.sun_above) daypart = "night";
+    else if (_h >= 5 && _h < 10)     daypart = "morning";
+    else                              daypart = "day";
     document.body.dataset.cond = cond;
     document.body.dataset.daypart = daypart;
     // Sensor inputs for live, condition-aware rendering.
@@ -3771,7 +4550,7 @@
       console.error("renderWx failed:", e);
       // Visible breadcrumb in footer so we can spot a backdrop fault without DevTools
       const f = document.querySelector(".footer");
-      if (f) f.textContent = "v1.7.8 \u00b7 bg err: " + (e.message || e);
+      if (f) f.textContent = "v1.7.9 \u00b7 bg err: " + (e.message || e);
     }
   }
   /* ============================================================
@@ -3942,7 +4721,7 @@
     const raysRing = document.createElement("div"); raysRing.className = "wcv-rays-ring"; raysRing.id="wcv-rays-ring";
     const moonHalo = document.createElement("div"); moonHalo.className = "wcv-moon-halo"; moonHalo.id="wcv-moon-halo";
     const wind  = document.createElement("div"); wind.className  = "wcv-wind";  wind.id="wcv-wind";
-    // v1.7.8 frost layer — edge crystals when cold AND not raining
+    // v1.7.9 frost layer — edge crystals when cold AND not raining
     const frost = document.createElement("div"); frost.className = "wcv-frost"; frost.id="wcv-frost";
     const drift = document.createElement("div"); drift.className = "wcv-drift"; drift.id="wcv-drift";
     drift.innerHTML = `
@@ -4010,7 +4789,7 @@
     el.classList.add("show");
   }
 
-  // v1.7.8 — frost activation. Edge crystal layer for cold+dry weather.
+  // v1.7.9 — frost activation. Edge crystal layer for cold+dry weather.
   function _wcvSetFrost(opts){
     const el = document.getElementById("wcv-frost");
     if(!el) return;
@@ -4032,6 +4811,7 @@
 
   function renderWxWatercolor(cond, daypart, opts){
     opts = opts || {};
+    _rgTeardownLayers(); // v1.7.11: kill realistic photo stack
     const wx = document.getElementById("wx");
     if(!wx) return;
     _wcvEnsureStack(wx);
@@ -4080,12 +4860,9 @@
       const pos = _wcvMoonPosition();
       document.body.style.setProperty("--moon-x", pos.x);
       document.body.style.setProperty("--moon-y", pos.y);
-      // Use the phase-specific tile if a moon_phase is provided, else the cropped disc
-      if(opts.moon_phase != null){
-        moonEl.style.backgroundImage = `url("${_wcvPickMoon(opts.moon_phase)}")`;
-      } else {
-        moonEl.style.backgroundImage = `url("/garden/static/sky/watercolor/moon-disc.png")`;
-      }
+      // v1.7.12: phase-specific JPG tiles render rectangular bounding box (no alpha).
+      // Always use the transparent PNG disc until phase tiles get alpha channels.
+      moonEl.style.backgroundImage = `url("/garden/static/sky/watercolor/moon-disc.png")`;
       moonEl.classList.add("show");
       haloEl.classList.add("show");
     } else {
@@ -4201,6 +4978,7 @@
   }
   function renderWxPencil(cond, daypart, opts){
     opts = opts || {};
+    _rgTeardownLayers(); // v1.7.11: kill realistic photo stack
     const wx = document.getElementById("wx");
     if(!wx) return;
     _wcvEnsureStack(wx);
@@ -4320,7 +5098,7 @@
     document.body.dataset.season = _seasonNow();
   }
 
-  /* ----------- INK SKIN renderer (v1.7.8) ----------- */
+  /* ----------- INK SKIN renderer (v1.7.9) ----------- */
   function _ipvPickSky(cond, isNight, sunElev){
     const base = "/garden/static/sky/ink/";
     const partly = (cond === "partlycloudy");
@@ -4345,7 +5123,7 @@
     }
   }
 
-  // v1.7.8: JPG-baked sun anchor table. Only JPGs with a real baked-in sun get rays,
+  // v1.7.9: JPG-baked sun anchor table. Only JPGs with a real baked-in sun get rays,
   // and the rays MUST emanate from the sun's actual position in the JPG (not astronomical).
   // sky-02 == sky-06 (identical): sun crown at ~(54%, 32%) of image, occluded on lower-right
   // by cloud → visible crown arc is upper half (180°→360° in SVG math = top of disc).
@@ -4360,6 +5138,7 @@
     return SKY_SUN_ANCHORS[file] || null;
   }
   function renderWxInk(cond, daypart, opts){
+    _rgTeardownLayers(); // v1.7.11: kill realistic photo stack
     opts = opts || {};
     const wx = document.getElementById("wx");
     if(!wx) return;
@@ -4377,26 +5156,17 @@
 
     const sunEl = document.getElementById("wcv-sun");
     const ringEl = document.getElementById("wcv-rays-ring");
-    // v1.7.8: NO SUN MOTION in ink. The JPG handles its own sun if any.
+    // v1.7.9: NO SUN MOTION in ink. The JPG handles its own sun if any.
     // Drawing rays in code can never align to the JPG-baked crown precisely; abandoned.
     sunEl.classList.remove("show");
     ringEl.classList.remove("show");
 
+    // v1.7.12: Ink JPGs already have a hand-drawn crescent baked in upper-right.
+    // Overlaying a phase moon-disc never aligns. PERMANENTLY DISABLE moon overlay on ink.
     const moonEl = document.getElementById("wcv-moon");
     const haloEl = document.getElementById("wcv-moon-halo");
-    const showMoon = isNight && (isClearNight || cond === "partlycloudy" || cond === "clear-night");
-    if(showMoon){
-      const pos = _wcvMoonPosition();
-      document.body.style.setProperty("--moon-x", pos.x);
-      document.body.style.setProperty("--moon-y", pos.y);
-      // Night uses white-scratch moon; CSS rule handles the swap via [data-daypart="night"]
-      moonEl.style.backgroundImage = `url("/garden/static/sky/ink/moon-disc-night.png")`;
-      moonEl.classList.add("show");
-      haloEl.classList.add("show");
-    } else {
-      moonEl.classList.remove("show");
-      haloEl.classList.remove("show");
-    }
+    moonEl.classList.remove("show");
+    haloEl.classList.remove("show");
 
     const starsEl = document.getElementById("wcv-stars");
     if(isClearNight){
@@ -4463,12 +5233,393 @@
 
   /* ----------- Skin-aware backdrop dispatch ----------- */
   // We don't replace the original renderWx; we just gate it by skin.
+
+  // ============================================================
+  // v1.7.9 — REALISTIC GLASS SKIN (photo-backed)
+  // ============================================================
+  let __rg_palettes = null;
+  let __rg_anchors  = null;
+  let __rg_currentPhoto = null;
+  let __rg_parallaxBound = false;
+  let __rg_parallaxState = { tx: 0, ty: 0, sx: 0, sy: 0 };
+
+  async function _rgLoadAssets() {
+    if (__rg_palettes && __rg_anchors) return;
+    try {
+      const [pres, ares] = await Promise.all([
+        fetch("/garden/static/sky/realistic/palettes.json", {credentials:"same-origin"}),
+        fetch("/garden/static/sky/realistic/anchors.json",  {credentials:"same-origin"})
+      ]);
+      __rg_palettes = await pres.json();
+      __rg_anchors  = await ares.json();
+    } catch(e) {
+      console.warn("[rg] failed to load palettes/anchors:", e);
+      __rg_palettes = {}; __rg_anchors = {};
+    }
+  }
+
+  function _rgSeasonOf(date) {
+    const m = (date || new Date()).getMonth();
+    if (m===11 || m<=1) return "winter";
+    if (m<=4) return "spring";
+    if (m<=7) return "summer";
+    return "autumn";
+  }
+
+  // Resolver matrix: pick best photo for (season, daypart, condition).
+  // Strategy: exact season+daypart+condition → cross-season same condition+daypart →
+  //           same season+daypart clear → any clear+daypart.
+  function _rgPickPhoto(season, daypart, cond) {
+    if (!__rg_palettes) return null;
+    const all = Object.keys(__rg_palettes);
+    const has = (n) => all.includes(n);
+
+    // Map weather conditions to photo condition tags
+    const condMap = {
+      "rainy": "rainy", "pouring": "rainy", "lightning-rainy": "rainy",
+      "snowy": "snowy", "snowy-rainy": "snowy",
+      "windy": "windy", "windy-variant": "windy",
+      "fog": "overcast", "cloudy": "overcast",
+      "partlycloudy": "partlycloudy",
+      "sunny": "clear", "clear-night": "clear", "hail": "rainy",
+      "lightning": "clear",
+    };
+    const tag = condMap[cond] || "clear";
+
+    // 1. exact match
+    let want = `bg-${season}-${daypart}-${tag}.jpg`;
+    if (has(want)) return want;
+
+    // 1b. v1.7.14: morning falls back to day for the same season+cond before cross-season
+    if (daypart === "morning") {
+      const wDay = `bg-${season}-day-${tag}.jpg`;
+      if (has(wDay)) return wDay;
+    }
+
+    // 2. cross-season same condition (e.g. rainy summer day → autumn-day-rainy)
+    for (const s of ["autumn","summer","spring","winter"]) {
+      const w = `bg-${s}-${daypart}-${tag}.jpg`;
+      if (has(w)) return w;
+    }
+    // 2a. v1.7.14: morning still no match cross-season — try day across seasons
+    if (daypart === "morning") {
+      for (const s of ["summer","autumn","spring","winter"]) {
+        const w = `bg-${s}-day-${tag}.jpg`;
+        if (has(w)) return w;
+      }
+    }
+
+    // 2b. partlycloudy with no match in any season → fall back to clear
+    if (tag === "partlycloudy") {
+      const wClear = `bg-${season}-${daypart}-clear.jpg`;
+      if (has(wClear)) return wClear;
+      for (const s of ["summer","autumn","spring","winter"]) {
+        const w = `bg-${s}-${daypart}-clear.jpg`;
+        if (has(w)) return w;
+      }
+    }
+
+    // 3. fall back to overcast variant if condition is rainy/snowy and we have overcast
+    if (tag === "rainy" || tag === "snowy") {
+      for (const s of ["winter","autumn","summer","spring"]) {
+        const w = `bg-${s}-${daypart}-overcast.jpg`;
+        if (has(w)) return w;
+      }
+    }
+
+    // 4. same season+daypart, clear
+    want = `bg-${season}-${daypart}-clear.jpg`;
+    if (has(want)) return want;
+
+    // 5. any clear+daypart
+    for (const s of ["summer","autumn","spring","winter"]) {
+      const w = `bg-${s}-${daypart}-clear.jpg`;
+      if (has(w)) return w;
+    }
+    return all[0] || null;
+  }
+
+  function _rgApplyPalette(photoName) {
+    const p = (__rg_palettes || {})[photoName];
+    if (!p) return;
+    const root = document.body.style;
+    root.setProperty("--photo-tint", p.tint);
+    root.setProperty("--photo-text", p.text);
+    root.setProperty("--photo-text-soft", p.text_soft);
+    root.setProperty("--photo-accent", p.accent);
+    root.setProperty("--photo-shadow", p.shadow);
+    root.setProperty("--photo-border", p.border);
+    root.setProperty("--photo-sky-lum", String(p.sky_lum));
+  }
+
+  // v1.7.11: symmetric teardown. Non-realistic skins call this on every render
+  // to guarantee the realistic photo stack is gone (CSS hides them too, defense
+  // in depth). Cheap: getElementById + remove(), idempotent.
+  function _rgTeardownLayers() {
+    ["rg-photo","rg-shadow","rg-motion"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    });
+    __rg_currentPhoto = null;
+  }
+
+  function _rgEnsureLayers() {
+    let photo = document.getElementById("rg-photo");
+    if (!photo) {
+      photo = document.createElement("div");
+      photo.id = "rg-photo"; photo.className = "rg-photo";
+      document.body.insertBefore(photo, document.body.firstChild);
+    }
+    let shadow = document.getElementById("rg-shadow");
+    if (!shadow) {
+      shadow = document.createElement("div");
+      shadow.id = "rg-shadow"; shadow.className = "rg-shadow";
+      document.body.insertBefore(shadow, photo.nextSibling);
+    }
+    let motion = document.getElementById("rg-motion");
+    if (!motion) {
+      motion = document.createElement("div");
+      motion.id = "rg-motion"; motion.className = "rg-motion";
+      document.body.insertBefore(motion, shadow.nextSibling);
+    }
+    return { photo, shadow, motion };
+  }
+
+  function _rgClearMotion(motion) {
+    motion.innerHTML = "";
+  }
+
+  function _rgAddMoon(motion, moonAnchor) {
+    if (!moonAnchor) return;
+    const el = document.createElement("div");
+    el.className = "rg-moon";
+    // size = relative to viewport min dim
+    const minD = Math.min(window.innerWidth, window.innerHeight);
+    const px = Math.max(8, moonAnchor.r * minD);
+    el.style.width = px + "px";
+    el.style.height = px + "px";
+    el.style.left = (moonAnchor.x * 100) + "%";
+    el.style.top  = (moonAnchor.y * 100) + "%";
+    el.style.transform = "translate(-50%, -50%)";
+    motion.appendChild(el);
+  }
+
+  function _rgAddStars(motion, starAnchors) {
+    if (!starAnchors || !starAnchors.length) return;
+    starAnchors.forEach((s, i) => {
+      const el = document.createElement("div");
+      el.className = "rg-star";
+      el.style.left = (s.x * 100) + "%";
+      el.style.top  = (s.y * 100) + "%";
+      el.style.setProperty("--rg-star-dur",   (3 + Math.random() * 3).toFixed(2) + "s");
+      el.style.setProperty("--rg-star-delay", (Math.random() * 4).toFixed(2) + "s");
+      motion.appendChild(el);
+    });
+  }
+
+  function _rgAddSunBloom(motion, sunAnchor) {
+    if (!sunAnchor) return;
+    const el = document.createElement("div");
+    el.className = "rg-sun-bloom";
+    const minD = Math.min(window.innerWidth, window.innerHeight);
+    const px = Math.max(80, sunAnchor.r * minD * 6); // 6× anchor radius for the glow
+    el.style.width = px + "px";
+    el.style.height = px + "px";
+    el.style.left = (sunAnchor.x * 100) + "%";
+    el.style.top  = (sunAnchor.y * 100) + "%";
+    el.style.transform = "translate(-50%, -50%)";
+    motion.appendChild(el);
+  }
+
+  function _rgAddRain(motion, intensity) {
+    // intensity 0..1
+    intensity = Math.max(0, Math.min(1, intensity || 0.5));
+    const wrap = document.createElement("div"); wrap.className = "rg-rain";
+    // Build dense SVG of diagonal lines
+    const drops = 50 + Math.floor(intensity * 80);
+    const lines = [];
+    for (let i = 0; i < drops; i++) {
+      const x = Math.random() * 100;
+      const y = Math.random() * 100;
+      const len = 18 + Math.random() * 22;
+      const op = 0.4 + Math.random() * 0.4;
+      lines.push(`<line x1="${x}%" y1="${y}%" x2="${x + 6}%" y2="${y + len}%" stroke="rgba(220,235,255,${op})" stroke-width="1.4" />`);
+    }
+    wrap.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 100 100">${lines.join("")}</svg>`;
+    // Animate the SVG by translating it
+    wrap.querySelector("svg").style.animation = "rg-rain-fall 0.6s linear infinite";
+    motion.appendChild(wrap);
+  }
+
+  function _rgAddSnow(motion, intensity) {
+    intensity = Math.max(0, Math.min(1, intensity || 0.5));
+    const wrap = document.createElement("div"); wrap.className = "rg-snow";
+    const flakes = 12 + Math.floor(intensity * 24);
+    for (let i = 0; i < flakes; i++) {
+      const f = document.createElement("div");
+      f.className = "rg-flake";
+      f.style.left = (Math.random() * 100) + "%";
+      f.style.setProperty("--rg-fall-dur",   (8 + Math.random() * 6).toFixed(2) + "s");
+      f.style.setProperty("--rg-fall-delay", (Math.random() * 8).toFixed(2) + "s");
+      f.style.setProperty("--rg-fall-dx",    ((Math.random() - 0.5) * 80).toFixed(0) + "px");
+      const sz = 4 + Math.random() * 4;
+      f.style.width = sz + "px";
+      f.style.height = sz + "px";
+      wrap.appendChild(f);
+    }
+    motion.appendChild(wrap);
+  }
+
+  function _rgAddGreenhouseHit(motion, polygon) {
+    if (!polygon || !polygon.length) return;
+    // Compute bounding box of polygon
+    const xs = polygon.map(p => p[0]); const ys = polygon.map(p => p[1]);
+    const x1 = Math.min(...xs), x2 = Math.max(...xs);
+    const y1 = Math.min(...ys), y2 = Math.max(...ys);
+    const el = document.createElement("div");
+    el.className = "rg-greenhouse-hit";
+    el.style.left   = (x1 * 100) + "%";
+    el.style.top    = (y1 * 100) + "%";
+    el.style.width  = ((x2 - x1) * 100) + "%";
+    el.style.height = ((y2 - y1) * 100) + "%";
+    el.title = "Garden beds";
+    el.addEventListener("click", () => {
+      // Open soil/garden modal — fall back to hist modal if no soil modal exists
+      if (typeof openChart === "function") openChart();
+      else {
+        const m = document.getElementById("wx-hist-modal");
+        if (m) m.classList.add("open");
+        if (typeof loadWxHistory === "function") loadWxHistory();
+      }
+    });
+    motion.appendChild(el);
+  }
+
+  // ---- Parallax driver: tilt + scroll ----
+  function _rgBindParallax() {
+    if (__rg_parallaxBound) return;
+    __rg_parallaxBound = true;
+    const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) return;
+
+    // tilt (deviceorientation) + pointermove fallback
+    function applyTilt(beta, gamma) {
+      // beta = front-back tilt (-180..180), gamma = left-right (-90..90)
+      const ty = Math.max(-1, Math.min(1, (beta || 0) / 30));
+      const tx = Math.max(-1, Math.min(1, (gamma || 0) / 30));
+      __rg_parallaxState.tx = tx;
+      __rg_parallaxState.ty = ty;
+      _rgUpdateParallax();
+    }
+    let lastOrientTs = 0;
+    window.addEventListener("deviceorientation", (e) => {
+      const now = Date.now(); if (now - lastOrientTs < 33) return; // 30fps cap
+      lastOrientTs = now;
+      applyTilt(e.beta, e.gamma);
+    }, { passive: true });
+    // pointermove fallback for desktop / when device orientation unavailable
+    window.addEventListener("pointermove", (e) => {
+      if (lastOrientTs && Date.now() - lastOrientTs < 5000) return; // device orient active
+      const w = window.innerWidth, h = window.innerHeight;
+      const tx = (e.clientX / w - 0.5) * 2;
+      const ty = (e.clientY / h - 0.5) * 2;
+      __rg_parallaxState.tx = tx; __rg_parallaxState.ty = ty;
+      _rgUpdateParallax();
+    }, { passive: true });
+    // scroll
+    window.addEventListener("scroll", () => {
+      __rg_parallaxState.sy = window.scrollY * 0.4;
+      _rgUpdateParallax();
+    }, { passive: true });
+  }
+
+  function _rgUpdateParallax() {
+    const photo = document.getElementById("rg-photo");
+    const shadow = document.getElementById("rg-shadow");
+    const motion = document.getElementById("rg-motion");
+    if (!photo) return;
+    const { tx, ty, sy } = __rg_parallaxState;
+    const photoX = tx * 6;
+    const photoY = ty * 4 - sy * 0.05;
+    const shadowX = tx * 9;
+    const shadowY = ty * 6 - sy * 0.10;
+    const motionX = tx * 14;
+    const motionY = ty * 10 - sy * 0.18;
+    photo.style.transform  = `translate3d(${photoX.toFixed(2)}px, ${photoY.toFixed(2)}px, 0) scale(1.05)`;
+    if (shadow) shadow.style.transform = `translate3d(${shadowX.toFixed(2)}px, ${shadowY.toFixed(2)}px, 0) scale(1.05)`;
+    if (motion) motion.style.transform = `translate3d(${motionX.toFixed(2)}px, ${motionY.toFixed(2)}px, 0)`;
+  }
+
+  // Greenhouse plastic state — read from server payload if present,
+  // default ON for v1.7.9. Sets data-greenhouse on body for future CSS hooks.
+  function _rgApplyGreenhouseState(d) {
+    const wrapped = (d && d.greenhouse_plastic !== undefined)
+                    ? !!d.greenhouse_plastic
+                    : true;
+    document.body.dataset.greenhouse = wrapped ? "wrapped" : "open";
+  }
+
+  // ---- Main entry ----
+  async function renderWxRealistic(cond, daypart, opts) {
+    await _rgLoadAssets();
+    const season = _rgSeasonOf(new Date());
+    const photoName = _rgPickPhoto(season, daypart, cond);
+    if (!photoName) {
+      console.warn("[rg] no photo for", season, daypart, cond);
+      // Fall back to original SVG renderer
+      try { renderWx(cond, daypart, opts); } catch(e){}
+      return;
+    }
+    document.body.dataset.season = season;
+
+    const { photo, shadow, motion } = _rgEnsureLayers();
+    if (__rg_currentPhoto !== photoName) {
+      const url = `/garden/static/sky/realistic/${photoName}`;
+      photo.style.backgroundImage  = `url("${url}")`;
+      shadow.style.backgroundImage = `url("${url}")`;
+      __rg_currentPhoto = photoName;
+    }
+    _rgApplyPalette(photoName);
+
+    // Motion overlays — clear and rebuild
+    _rgClearMotion(motion);
+    const a = (__rg_anchors || {})[photoName] || {};
+
+    // Stars + moon for night
+    if (daypart === "night") {
+      _rgAddStars(motion, a.stars || []);
+      _rgAddMoon(motion, a.moon);
+    } else {
+      _rgAddSunBloom(motion, a.sun);
+    }
+
+    // Condition-specific motion
+    const isRainy   = (cond === "rainy" || cond === "pouring" || cond === "lightning-rainy");
+    const isSnowy   = (cond === "snowy" || cond === "snowy-rainy");
+    if (isRainy && !a.rain_in_jpg)   _rgAddRain(motion,  Math.max(0.3, (opts && opts.rain_rate_mm_h ? opts.rain_rate_mm_h / 5 : 0.5)));
+    if (isRainy &&  a.rain_in_jpg)   _rgAddRain(motion,  0.3); // foreground only, lower intensity
+    if (isSnowy)                     _rgAddSnow(motion,  0.6);
+
+    // Greenhouse hot-zone
+    _rgAddGreenhouseHit(motion, (a.greenhouse && a.greenhouse.polygon));
+
+    _rgBindParallax();
+  }
+
   function applyBackdropSkinAware(d){
     window.__lastBackdropState = d; // save for skin-change re-render
     const cond = (d.weather_forecast && d.weather_forecast.condition)
               || (d.weather_now && d.weather_now.condition)
               || "partlycloudy";
-    const daypart = d.sun_above ? "day" : "night";
+    // v1.7.12: sun_above can be stale or trail real sunset by hours.
+    // Local-hour sanity: between 21:00 and 05:59, force night regardless of API state.
+    // v1.7.14: 05:00–09:59 = morning (golden-hour photo set); 10:00–20:59 = day.
+    const _h = new Date().getHours();
+    const _forceNight = (_h >= 21 || _h < 5);
+    let daypart;
+    if (_forceNight || !d.sun_above) daypart = "night";
+    else if (_h >= 5 && _h < 10)     daypart = "morning";
+    else                              daypart = "day";
     document.body.dataset.cond = cond;
     document.body.dataset.daypart = daypart;
     const wr = d.weather_real || {};
@@ -4489,13 +5640,15 @@
       } else if(skin === "ink") {
         renderWxInk(cond, daypart, opts);
       } else {
-        // realistic — call original
-        renderWx(cond, daypart, opts);
+        // realistic — photo-backed glass renderer (v1.7.9)
+        renderWxRealistic(cond, daypart, opts);
       }
+      // v1.7.9: greenhouse plastic state from server payload (default ON)
+      _rgApplyGreenhouseState(d);
     } catch(e){
       console.error("backdrop render failed:", e);
       const f = document.querySelector(".footer");
-      if(f) f.textContent = "v1.7.8 \u00b7 bg err: " + (e.message || e);
+      if(f) f.textContent = "v1.7.14 \u00b7 bg err: " + (e.message || e);
     }
   }
 
