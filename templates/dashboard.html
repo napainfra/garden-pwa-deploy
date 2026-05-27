@@ -10,7 +10,7 @@
 <link rel="manifest" href="/garden/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/garden/static/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/garden/static/icon-192.png">
-<title>Masha's Garden · v1.7.13</title>
+<title>Masha's Garden · v1.7.14</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
   html,body{height:100%;width:100%}
@@ -3980,7 +3980,7 @@
     <div class="line"><span class="lab">Rain</span><span class="val" id="h24-rain">—</span></div>
   </div>
 
-  <div class="footer small">v1.7.13 · Pull down to refresh · <span id="updated">--</span></div>
+  <div class="footer small">v1.7.14 · Pull down to refresh · <span id="updated">--</span></div>
 </div>
 
 <!-- ===== zoom modal ===== -->
@@ -4525,7 +4525,13 @@
     const cond = (d.weather_forecast && d.weather_forecast.condition)
               || (d.weather_now && d.weather_now.condition)
               || "partlycloudy";
-    const daypart = d.sun_above ? "day" : "night";
+    // v1.7.14: morning daypart (5–10am), aligned with applyBackdropSkinAware
+    const _h = new Date().getHours();
+    const _forceNight = (_h >= 21 || _h < 5);
+    let daypart;
+    if (_forceNight || !d.sun_above) daypart = "night";
+    else if (_h >= 5 && _h < 10)     daypart = "morning";
+    else                              daypart = "day";
     document.body.dataset.cond = cond;
     document.body.dataset.daypart = daypart;
     // Sensor inputs for live, condition-aware rendering.
@@ -5284,10 +5290,23 @@
     let want = `bg-${season}-${daypart}-${tag}.jpg`;
     if (has(want)) return want;
 
+    // 1b. v1.7.14: morning falls back to day for the same season+cond before cross-season
+    if (daypart === "morning") {
+      const wDay = `bg-${season}-day-${tag}.jpg`;
+      if (has(wDay)) return wDay;
+    }
+
     // 2. cross-season same condition (e.g. rainy summer day → autumn-day-rainy)
     for (const s of ["autumn","summer","spring","winter"]) {
       const w = `bg-${s}-${daypart}-${tag}.jpg`;
       if (has(w)) return w;
+    }
+    // 2a. v1.7.14: morning still no match cross-season — try day across seasons
+    if (daypart === "morning") {
+      for (const s of ["summer","autumn","spring","winter"]) {
+        const w = `bg-${s}-day-${tag}.jpg`;
+        if (has(w)) return w;
+      }
     }
 
     // 2b. partlycloudy with no match in any season → fall back to clear
@@ -5594,10 +5613,13 @@
               || "partlycloudy";
     // v1.7.12: sun_above can be stale or trail real sunset by hours.
     // Local-hour sanity: between 21:00 and 05:59, force night regardless of API state.
-    // This fixes pencil/realistic painting daytime skies at 21:36.
+    // v1.7.14: 05:00–09:59 = morning (golden-hour photo set); 10:00–20:59 = day.
     const _h = new Date().getHours();
-    const _forceNight = (_h >= 21 || _h < 6);
-    const daypart = (d.sun_above && !_forceNight) ? "day" : "night";
+    const _forceNight = (_h >= 21 || _h < 5);
+    let daypart;
+    if (_forceNight || !d.sun_above) daypart = "night";
+    else if (_h >= 5 && _h < 10)     daypart = "morning";
+    else                              daypart = "day";
     document.body.dataset.cond = cond;
     document.body.dataset.daypart = daypart;
     const wr = d.weather_real || {};
@@ -5626,7 +5648,7 @@
     } catch(e){
       console.error("backdrop render failed:", e);
       const f = document.querySelector(".footer");
-      if(f) f.textContent = "v1.7.13 \u00b7 bg err: " + (e.message || e);
+      if(f) f.textContent = "v1.7.14 \u00b7 bg err: " + (e.message || e);
     }
   }
 

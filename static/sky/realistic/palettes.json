@@ -142,5 +142,29 @@
     "text_soft": "rgba(243,246,251,0.72)",
     "shadow": "0 10px 36px rgba(0,0,0,0.42)",
     "border": "rgba(255,255,255,0.16)"
+  },
+  "bg-summer-morning-clear.jpg": {
+    "sky_avg": "#888878",
+    "canopy_avg": "#584810",
+    "ground_avg": "#383010",
+    "accent": "#383010",
+    "sky_lum": 0.529,
+    "tint": "rgba(136,136,120,0.42)",
+    "text": "#f3f6fb",
+    "text_soft": "rgba(243,246,251,0.72)",
+    "shadow": "0 8px 28px rgba(0,0,0,0.28)",
+    "border": "rgba(255,255,255,0.16)"
+  },
+  "bg-summer-morning-partlycloudy.jpg": {
+    "sky_avg": "#809080",
+    "canopy_avg": "#405018",
+    "ground_avg": "#405020",
+    "accent": "#405020",
+    "sky_lum": 0.547,
+    "tint": "rgba(128,144,128,0.42)",
+    "text": "#f3f6fb",
+    "text_soft": "rgba(243,246,251,0.72)",
+    "shadow": "0 8px 28px rgba(0,0,0,0.28)",
+    "border": "rgba(255,255,255,0.16)"
   }
 }
