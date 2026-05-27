@@ -10,7 +10,7 @@
 <link rel="manifest" href="/garden/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/garden/static/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/garden/static/icon-192.png">
-<title>Masha's Garden · v1.7.11</title>
+<title>Masha's Garden · v1.7.12</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
   html,body{height:100%;width:100%}
@@ -1519,6 +1519,10 @@
     mix-blend-mode:screen !important;
   }
   body[data-bg-skin="ink"] .wcv-moon-halo{ display:none !important; }
+  /* v1.7.12: Ink JPGs have baked-in crescent. Hide ALL wcv-moon overlay on ink permanently. */
+  body[data-bg-skin="ink"] #wcv-moon,
+  body[data-bg-skin="ink"] .wcv-moon,
+  body[data-bg-skin="ink"] #wcv-moon-halo{ display:none !important; }
   /* Rain: ink brush slash, not a colored gradient bar */
   body[data-bg-skin="ink"] .wcv-rain .wcv-drop{
     background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 60' preserveAspectRatio='none'><path d='M14 2 Q11 15 8 30 Q6 45 3 58' stroke='%231a1a1a' stroke-width='1.6' fill='none' stroke-linecap='round' opacity='0.85'/></svg>") center/100% 100% no-repeat !important;
@@ -3976,7 +3980,7 @@
     <div class="line"><span class="lab">Rain</span><span class="val" id="h24-rain">—</span></div>
   </div>
 
-  <div class="footer small">v1.7.11 · Pull down to refresh · <span id="updated">--</span></div>
+  <div class="footer small">v1.7.12 · Pull down to refresh · <span id="updated">--</span></div>
 </div>
 
 <!-- ===== zoom modal ===== -->
@@ -4850,12 +4854,9 @@
       const pos = _wcvMoonPosition();
       document.body.style.setProperty("--moon-x", pos.x);
       document.body.style.setProperty("--moon-y", pos.y);
-      // Use the phase-specific tile if a moon_phase is provided, else the cropped disc
-      if(opts.moon_phase != null){
-        moonEl.style.backgroundImage = `url("${_wcvPickMoon(opts.moon_phase)}")`;
-      } else {
-        moonEl.style.backgroundImage = `url("/garden/static/sky/watercolor/moon-disc.png")`;
-      }
+      // v1.7.12: phase-specific JPG tiles render rectangular bounding box (no alpha).
+      // Always use the transparent PNG disc until phase tiles get alpha channels.
+      moonEl.style.backgroundImage = `url("/garden/static/sky/watercolor/moon-disc.png")`;
       moonEl.classList.add("show");
       haloEl.classList.add("show");
     } else {
@@ -5154,21 +5155,12 @@
     sunEl.classList.remove("show");
     ringEl.classList.remove("show");
 
+    // v1.7.12: Ink JPGs already have a hand-drawn crescent baked in upper-right.
+    // Overlaying a phase moon-disc never aligns. PERMANENTLY DISABLE moon overlay on ink.
     const moonEl = document.getElementById("wcv-moon");
     const haloEl = document.getElementById("wcv-moon-halo");
-    const showMoon = isNight && (isClearNight || cond === "partlycloudy" || cond === "clear-night");
-    if(showMoon){
-      const pos = _wcvMoonPosition();
-      document.body.style.setProperty("--moon-x", pos.x);
-      document.body.style.setProperty("--moon-y", pos.y);
-      // Night uses white-scratch moon; CSS rule handles the swap via [data-daypart="night"]
-      moonEl.style.backgroundImage = `url("/garden/static/sky/ink/moon-disc-night.png")`;
-      moonEl.classList.add("show");
-      haloEl.classList.add("show");
-    } else {
-      moonEl.classList.remove("show");
-      haloEl.classList.remove("show");
-    }
+    moonEl.classList.remove("show");
+    haloEl.classList.remove("show");
 
     const starsEl = document.getElementById("wcv-stars");
     if(isClearNight){
@@ -5600,7 +5592,12 @@
     const cond = (d.weather_forecast && d.weather_forecast.condition)
               || (d.weather_now && d.weather_now.condition)
               || "partlycloudy";
-    const daypart = d.sun_above ? "day" : "night";
+    // v1.7.12: sun_above can be stale or trail real sunset by hours.
+    // Local-hour sanity: between 21:00 and 05:59, force night regardless of API state.
+    // This fixes pencil/realistic painting daytime skies at 21:36.
+    const _h = new Date().getHours();
+    const _forceNight = (_h >= 21 || _h < 6);
+    const daypart = (d.sun_above && !_forceNight) ? "day" : "night";
     document.body.dataset.cond = cond;
     document.body.dataset.daypart = daypart;
     const wr = d.weather_real || {};
@@ -5629,7 +5626,7 @@
     } catch(e){
       console.error("backdrop render failed:", e);
       const f = document.querySelector(".footer");
-      if(f) f.textContent = "v1.7.11 \u00b7 bg err: " + (e.message || e);
+      if(f) f.textContent = "v1.7.12 \u00b7 bg err: " + (e.message || e);
     }
   }
 
