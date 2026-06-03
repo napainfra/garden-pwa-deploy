@@ -1667,6 +1667,96 @@ def api_timelapse_list(request: Request):
     }
 
 
+# ===== v1.7.15: Long-range timelapses (weekly / 30-day / 90-day) =====
+# Renders produced by the garden_timelapse HA package live in
+# /media/garden_timelapse/renders/ with naming:
+#   weekly_<start>_<end>.mp4 | 30d_<start>_<end>.mp4 | 90d_<start>_<end>.mp4
+#
+# The library endpoint lists what's ready; range.mp4 streams a chosen file.
+RENDERS_DIR = "/media/garden_timelapse/renders"
+_ANCHOR_DATE = "2026-05-27"   # first day of timelapse program (Tuesday)
+_RENDER_RE = __import__("re").compile(r"^(weekly|30d|90d)_(\d{4}-\d{2}-\d{2})_(\d{4}-\d{2}-\d{2})\.mp4$")
+
+def _scan_renders():
+    """Scan RENDERS_DIR and return sorted list of {kind, start, end, filename, size_mb}."""
+    out = []
+    try:
+        for fn in os.listdir(RENDERS_DIR):
+            m = _RENDER_RE.match(fn)
+            if not m:
+                continue
+            kind, start, end = m.group(1), m.group(2), m.group(3)
+            try:
+                size_mb = round(os.path.getsize(os.path.join(RENDERS_DIR, fn)) / (1024*1024), 1)
+            except OSError:
+                size_mb = 0
+            out.append({"kind": kind, "start": start, "end": end, "filename": fn, "size_mb": size_mb})
+    except FileNotFoundError:
+        pass
+    # Newest first by end date
+    out.sort(key=lambda r: (r["end"], r["start"]), reverse=True)
+    return out
+
+
+@app.get("/api/timelapse/library")
+def api_timelapse_library(request: Request):
+    """v1.7.15: List long-range renders + placeholder dates for not-yet-ready ones.
+
+    Response:
+      {
+        "renders": [{kind, start, end, filename, size_mb}, ...],
+        "placeholders": [
+          {kind: "30d", ready: false, next_render: "2026-06-25", first_period: "..."},
+          {kind: "90d", ready: false, next_render: "2026-08-24", first_period: "..."}
+        ],
+        "anchor": "2026-05-27"
+      }
+    """
+    if not is_authed(request):
+        raise HTTPException(401)
+    renders = _scan_renders()
+    have_kinds = {r["kind"] for r in renders}
+    today = dt.datetime.now(LOCAL_TZ).date()
+    anchor = dt.date.fromisoformat(_ANCHOR_DATE)
+    placeholders = []
+    for kind, period in (("30d", 30), ("90d", 90)):
+        if kind in have_kinds:
+            continue
+        # First render fires when (today - anchor) >= period at 23:00
+        first_render = anchor + dt.timedelta(days=period)
+        placeholders.append({
+            "kind": kind,
+            "ready": False,
+            "next_render": first_render.isoformat(),
+            "period_days": period,
+            "days_until": max(0, (first_render - today).days),
+        })
+    return {
+        "renders": renders,
+        "placeholders": placeholders,
+        "anchor": _ANCHOR_DATE,
+        "today": today.isoformat(),
+    }
+
+
+@app.get("/api/timelapse/range.mp4")
+def api_timelapse_range(request: Request, f: str = ""):
+    """v1.7.15: Serve a long-range mp4 by filename.
+    Filename is validated against the kind_start_end.mp4 pattern to prevent traversal."""
+    if not is_authed(request):
+        raise HTTPException(401)
+    if not f or not _RENDER_RE.match(f):
+        raise HTTPException(400, detail="bad filename")
+    path = os.path.join(RENDERS_DIR, f)
+    if not os.path.isfile(path):
+        raise HTTPException(404, detail="not rendered yet")
+    return FileResponse(
+        path,
+        media_type="video/mp4",
+        headers={"Cache-Control": "public, max-age=86400", "Accept-Ranges": "bytes"},
+    )
+
+
 @app.get("/api/history_7d")
 def api_history_7d(request: Request):
     """v1.3.2: 7-day daily-aggregated history for the REAL weather tile tap-through.

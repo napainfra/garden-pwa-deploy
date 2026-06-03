@@ -511,7 +511,11 @@ def api_state(request: Request):
         "last_watered_age": humanize_age(last_watered_iso),
         "last_watered_local": fmt_local(last_watered_iso),
         "last_watered_source": last_watered_source,
-        "rain_outdoor_now": rain.get("state") == "on",
+        # rain_outdoor_now: derived from Ecowitt rain_rate when present (computed in
+        # renderWindRainSoil's sun_summary path); here we use the Hydrawise binary
+        # as the simple signal. UI also has the live Ecowitt rate via sun_summary.
+        "rain_outdoor_now": (rain.get("state") == "on") or ((e_rain_r or 0) > 0.0),
+        "rain_sensor_hydrawise": rain.get("state") == "on",
         "solar_panel_w": round(panel_w_now, 0),
         "solar_pct": round(panel_pct, 0),
         "solar_kwh_today": round(panel_kwh_today, 2),
@@ -1431,11 +1435,127 @@ def _list_timelapse_dates():
     return out
 
 
+# v1.6.4: local timelapse cache on the HA VM (/data/ is persistent across addon
+# restarts via supervisor). Each rendered Ecowitt mp4 is downloaded once and
+# served as a static file thereafter, so re-opening the camera modal is instant
+# and we don't re-fetch ~50-150MB per tap.
+TL_CACHE_DIR = os.environ.get("TL_CACHE_DIR", "/data/timelapse_cache")
+TL_CACHE_KEEP_DAYS = 30   # match ECOWITT_PROBE_DAYS
+_TL_DL_LOCKS = {}         # date -> threading.Lock (prevents concurrent re-downloads of the same day)
+_TL_DL_LOCKS_GUARD = threading.Lock()
+
+def _tl_cache_path(date_iso: str) -> str:
+    return os.path.join(TL_CACHE_DIR, f"{date_iso}.mp4")
+
+def _tl_cache_has(date_iso: str) -> bool:
+    p = _tl_cache_path(date_iso)
+    try:
+        return os.path.isfile(p) and os.path.getsize(p) > 1024
+    except OSError:
+        return False
+
+def _tl_cache_lock(date_iso: str):
+    with _TL_DL_LOCKS_GUARD:
+        lock = _TL_DL_LOCKS.get(date_iso)
+        if lock is None:
+            lock = threading.Lock()
+            _TL_DL_LOCKS[date_iso] = lock
+        return lock
+
+def _tl_download_to_cache(date_iso: str, url: str) -> bool:
+    """Download Ecowitt mp4 to /data/timelapse_cache/<date>.mp4 atomically.
+    Returns True on success. Safe to call concurrently — uses a per-date lock."""
+    try:
+        os.makedirs(TL_CACHE_DIR, exist_ok=True)
+    except OSError as e:
+        print(f"[timelapse] cannot mkdir {TL_CACHE_DIR}: {e}", flush=True)
+        return False
+    lock = _tl_cache_lock(date_iso)
+    with lock:
+        # double-check inside lock — another thread may have completed it
+        if _tl_cache_has(date_iso):
+            return True
+        dest = _tl_cache_path(date_iso)
+        tmp  = dest + ".tmp"
+        try:
+            req = ur.Request(url, headers={"User-Agent": "garden-pwa/1.6.4"})
+            with ur.urlopen(req, timeout=60) as resp, open(tmp, "wb") as f:
+                while True:
+                    chunk = resp.read(65536)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+            if os.path.getsize(tmp) < 1024:
+                os.unlink(tmp)
+                print(f"[timelapse] download for {date_iso} too small, discarded", flush=True)
+                return False
+            os.replace(tmp, dest)
+            print(f"[timelapse] cached {date_iso} ({os.path.getsize(dest)} bytes)", flush=True)
+            _tl_prune_cache()
+            return True
+        except Exception as e:
+            print(f"[timelapse] download failed for {date_iso}: {e}", flush=True)
+            try: os.unlink(tmp)
+            except OSError: pass
+            return False
+
+def _tl_prune_cache():
+    """Keep the newest TL_CACHE_KEEP_DAYS files; delete older."""
+    try:
+        files = []
+        for name in os.listdir(TL_CACHE_DIR):
+            if not name.endswith(".mp4"):
+                continue
+            stem = name[:-4]
+            if not _DATE_RE.match(stem):
+                continue
+            files.append(stem)
+        files.sort(reverse=True)  # newest first by ISO date
+        for stale in files[TL_CACHE_KEEP_DAYS:]:
+            try:
+                os.unlink(_tl_cache_path(stale))
+                print(f"[timelapse] pruned {stale}", flush=True)
+            except OSError:
+                pass
+    except OSError:
+        pass
+
+def _tl_cached_dates() -> list:
+    try:
+        out = []
+        for name in os.listdir(TL_CACHE_DIR):
+            if name.endswith(".mp4"):
+                stem = name[:-4]
+                if _DATE_RE.match(stem):
+                    out.append(stem)
+        out.sort()
+        return out
+    except OSError:
+        return []
+
+def _tl_serve_cached(date_iso: str):
+    """FileResponse for a cached mp4 with strong client-side caching headers.
+    Safari will then keep the bytes in its disk cache so even re-opens after
+    addon restart are instant."""
+    path = _tl_cache_path(date_iso)
+    return FileResponse(
+        path,
+        media_type="video/mp4",
+        headers={
+            # Daily videos never change once rendered — safe to cache forever.
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "ETag": f'"tl-{date_iso}"',
+            "X-Timelapse-Source": "local-cache",
+        },
+    )
+
+
 @app.get("/api/timelapse/today.mp4")
 def api_timelapse_today(request: Request, date: str = ""):
-    """Redirect to the Ecowitt-hosted mp4 for the requested date.
-    No date → today if available, else most recent. 404 JSON when nothing.
-    v1.4.0: fully delegated to Ecowitt cloud (no local rendering)."""
+    """Serve the timelapse mp4 for the requested date. Local cache first; on miss,
+    download from Ecowitt cloud once and cache to /data/timelapse_cache/.
+    No date → today if available, else most recent.
+    v1.6.4: local file cache (was: 302 redirect on every open)."""
     if not is_authed(request):
         raise HTTPException(401)
     if not (ECOWITT_AUTHORIZE and ECOWITT_DEVICE_ID):
@@ -1444,29 +1564,42 @@ def api_timelapse_today(request: Request, date: str = ""):
             content={"error": "Ecowitt share not configured",
                      "hint": "Set ecowitt_authorize and ecowitt_device_id in addon config"},
         )
-    target = None
-    if date and _DATE_RE.match(date):
-        status, url = _ecowitt_fetch_video_info(date)
-        if status == "ok":
-            return RedirectResponse(url, status_code=302)
-        if status == "making":
+
+    def _serve_or_fetch(d_iso: str):
+        # Cache hit
+        if _tl_cache_has(d_iso):
+            return _tl_serve_cached(d_iso)
+        # Cache miss → look up Ecowitt URL, download to cache, then serve
+        st, url = _ecowitt_fetch_video_info(d_iso)
+        if st == "ok" and url and _tl_download_to_cache(d_iso, url):
+            return _tl_serve_cached(d_iso)
+        if st == "making":
             return JSONResponse(status_code=404,
-                content={"error": f"Video for {date} is still rendering on Ecowitt cloud", "making": True})
-        return JSONResponse(status_code=404, content={"error": f"No timelapse for {date}"})
-    # No date: pick today if ready, else most recent
+                content={"error": f"Video for {d_iso} is still rendering on Ecowitt cloud", "making": True})
+        # Last-resort fallback: 302 to Ecowitt so the user still sees something
+        if st == "ok" and url:
+            return RedirectResponse(url, status_code=302)
+        return JSONResponse(status_code=404, content={"error": f"No timelapse for {d_iso}"})
+
+    if date and _DATE_RE.match(date):
+        return _serve_or_fetch(date)
+
+    # No date provided: pick today if Ecowitt has it, else most recent (cached or remote)
     today_local = dt.datetime.now(LOCAL_TZ).strftime("%Y-%m-%d")
-    s_today, u_today = _ecowitt_fetch_video_info(today_local)
+    if _tl_cache_has(today_local):
+        return _tl_serve_cached(today_local)
+    s_today, _u_today = _ecowitt_fetch_video_info(today_local)
     if s_today == "ok":
-        return RedirectResponse(u_today, status_code=302)
+        return _serve_or_fetch(today_local)
+    # Fall back to most recent rendered date
+    cached = _tl_cached_dates()
+    if cached:
+        return _tl_serve_cached(cached[-1])
     dates = _list_timelapse_dates()
     if not dates:
         return JSONResponse(status_code=404,
             content={"error": "No timelapse available yet", "hint": "Ecowitt renders daily — check back tomorrow"})
-    latest = dates[-1]
-    _s, url = _ecowitt_fetch_video_info(latest)
-    if url:
-        return RedirectResponse(url, status_code=302)
-    return JSONResponse(status_code=404, content={"error": "Latest video URL is missing"})
+    return _serve_or_fetch(dates[-1])
 
 
 @app.get("/api/timelapse/status")
@@ -1490,18 +1623,22 @@ def api_timelapse_status(request: Request, date: str = ""):
         }
     status, _url = _ecowitt_fetch_video_info(queried)
     dates = _list_timelapse_dates()
+    cached_dates = _tl_cached_dates()
     return {
         "today_date": today_local,
         "queried_date": queried,
         "configured": True,
         "queried_status": status,                # "ok" | "making" | "none" | "err"
-        "mp4_exists": (status == "ok"),
-        "mp4_today_exists": today_local in dates,
+        "mp4_exists": (status == "ok") or (queried in cached_dates),
+        "mp4_today_exists": (today_local in dates) or (today_local in cached_dates),
+        "queried_cached": queried in cached_dates,   # v1.6.4: served from local disk?
+        "cached_dates": cached_dates,                # v1.6.4: list of locally cached dates
+        "cached_count": len(cached_dates),
         "latest_date": dates[-1] if dates else None,
         "available_dates": dates,
         "snapshot_count": 0,                     # Ecowitt path — N/A
-        "render_schedule": "Ecowitt cloud (daily)",
-        "hint": "Timelapse rendered nightly on Ecowitt servers",
+        "render_schedule": "Ecowitt cloud (daily) → local cache",
+        "hint": "Timelapse rendered nightly on Ecowitt, cached on HA VM after first view",
     }
 
 
@@ -1528,6 +1665,96 @@ def api_timelapse_list(request: Request):
         "count":     len(dates),
         "configured": True,
     }
+
+
+# ===== v1.7.15: Long-range timelapses (weekly / 30-day / 90-day) =====
+# Renders produced by the garden_timelapse HA package live in
+# /media/garden_timelapse/renders/ with naming:
+#   weekly_<start>_<end>.mp4 | 30d_<start>_<end>.mp4 | 90d_<start>_<end>.mp4
+#
+# The library endpoint lists what's ready; range.mp4 streams a chosen file.
+RENDERS_DIR = "/media/garden_timelapse/renders"
+_ANCHOR_DATE = "2026-05-27"   # first day of timelapse program (Tuesday)
+_RENDER_RE = __import__("re").compile(r"^(weekly|30d|90d)_(\d{4}-\d{2}-\d{2})_(\d{4}-\d{2}-\d{2})\.mp4$")
+
+def _scan_renders():
+    """Scan RENDERS_DIR and return sorted list of {kind, start, end, filename, size_mb}."""
+    out = []
+    try:
+        for fn in os.listdir(RENDERS_DIR):
+            m = _RENDER_RE.match(fn)
+            if not m:
+                continue
+            kind, start, end = m.group(1), m.group(2), m.group(3)
+            try:
+                size_mb = round(os.path.getsize(os.path.join(RENDERS_DIR, fn)) / (1024*1024), 1)
+            except OSError:
+                size_mb = 0
+            out.append({"kind": kind, "start": start, "end": end, "filename": fn, "size_mb": size_mb})
+    except FileNotFoundError:
+        pass
+    # Newest first by end date
+    out.sort(key=lambda r: (r["end"], r["start"]), reverse=True)
+    return out
+
+
+@app.get("/api/timelapse/library")
+def api_timelapse_library(request: Request):
+    """v1.7.15: List long-range renders + placeholder dates for not-yet-ready ones.
+
+    Response:
+      {
+        "renders": [{kind, start, end, filename, size_mb}, ...],
+        "placeholders": [
+          {kind: "30d", ready: false, next_render: "2026-06-25", first_period: "..."},
+          {kind: "90d", ready: false, next_render: "2026-08-24", first_period: "..."}
+        ],
+        "anchor": "2026-05-27"
+      }
+    """
+    if not is_authed(request):
+        raise HTTPException(401)
+    renders = _scan_renders()
+    have_kinds = {r["kind"] for r in renders}
+    today = dt.datetime.now(LOCAL_TZ).date()
+    anchor = dt.date.fromisoformat(_ANCHOR_DATE)
+    placeholders = []
+    for kind, period in (("30d", 30), ("90d", 90)):
+        if kind in have_kinds:
+            continue
+        # First render fires when (today - anchor) >= period at 23:00
+        first_render = anchor + dt.timedelta(days=period)
+        placeholders.append({
+            "kind": kind,
+            "ready": False,
+            "next_render": first_render.isoformat(),
+            "period_days": period,
+            "days_until": max(0, (first_render - today).days),
+        })
+    return {
+        "renders": renders,
+        "placeholders": placeholders,
+        "anchor": _ANCHOR_DATE,
+        "today": today.isoformat(),
+    }
+
+
+@app.get("/api/timelapse/range.mp4")
+def api_timelapse_range(request: Request, f: str = ""):
+    """v1.7.15: Serve a long-range mp4 by filename.
+    Filename is validated against the kind_start_end.mp4 pattern to prevent traversal."""
+    if not is_authed(request):
+        raise HTTPException(401)
+    if not f or not _RENDER_RE.match(f):
+        raise HTTPException(400, detail="bad filename")
+    path = os.path.join(RENDERS_DIR, f)
+    if not os.path.isfile(path):
+        raise HTTPException(404, detail="not rendered yet")
+    return FileResponse(
+        path,
+        media_type="video/mp4",
+        headers={"Cache-Control": "public, max-age=86400", "Accept-Ranges": "bytes"},
+    )
 
 
 @app.get("/api/history_7d")

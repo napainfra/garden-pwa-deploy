@@ -10,7 +10,7 @@
 <link rel="manifest" href="/garden/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/garden/static/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/garden/static/icon-192.png">
-<title>Masha's Garden · v1.7.14</title>
+<title>Masha's Garden · v1.7.15</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
   html,body{height:100%;width:100%}
@@ -427,6 +427,20 @@
   #hp10-modal .close:active{background:rgba(255,255,255,.24);transform:scale(.94)}
   #hp10-modal .body{flex:1;overflow-y:auto;padding:16px 18px 32px;display:flex;flex-direction:column;gap:14px}
   #hp10-modal .full-img{width:100%;border-radius:14px;display:block}
+  /* v1.7.15: Latest videos list */
+  .tl-library{margin-top:6px;border-top:1px solid rgba(255,255,255,.08);padding-top:14px;display:flex;flex-direction:column;gap:8px}
+  .tl-library-head{font-size:13px;font-weight:600;color:#cfe2f7;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+  .tl-library-list{display:flex;flex-direction:column;gap:8px}
+  .tl-library-msg{padding:14px;text-align:center;font-size:12px;color:#8aa1c2;background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.08);border-radius:12px}
+  .tl-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;cursor:pointer;transition:background .15s}
+  .tl-row.placeholder{cursor:default;opacity:.6;background:rgba(255,255,255,.02);border-style:dashed}
+  .tl-row:not(.placeholder):active{background:rgba(99,179,237,.18);transform:scale(.99)}
+  .tl-row .icon{font-size:22px;flex:0 0 auto}
+  .tl-row .meta{flex:1;min-width:0}
+  .tl-row .ttl{font-size:14px;font-weight:600;color:#e6eef8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tl-row .sub{font-size:11px;color:#8aa1c2;margin-top:2px}
+  .tl-row .play{font-size:18px;color:#bcdcff;flex:0 0 auto;padding-left:6px}
+  .tl-row.placeholder .play{color:#5a6677}
   .timelapse-btn{width:100%;border:0;background:linear-gradient(135deg,rgba(99,179,237,.25),rgba(99,179,237,.1));
     border:1px solid rgba(99,179,237,.35);color:#bcdcff;font-size:16px;font-weight:600;
     padding:16px;border-radius:14px;cursor:pointer;display:flex;align-items:center;
@@ -3852,6 +3866,14 @@
       <div id="hp10-timelapse-wrap">
         <video controls playsinline id="hp10-video"></video>
       </div>
+
+      <!-- v1.7.15: Latest long-range videos (weekly / 30d / 90d) -->
+      <div class="tl-library" id="tl-library">
+        <div class="tl-library-head">⚝ Latest videos</div>
+        <div class="tl-library-list" id="tl-library-list">
+          <div class="tl-library-msg">Loading…</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -6758,6 +6780,8 @@
     if (mimg) mimg.src = "/garden/api/cam/garden.jpg?t=" + t;
     // v1.3.9: kick off date-aware timelapse picker (replaces single "Today's timelapse" button)
     tlInit();
+    // v1.7.15: load long-range library
+    tlLibraryLoad();
   }
 
   function closeHp10Modal() {
@@ -6933,6 +6957,96 @@
 
   // Back-compat shim — some old call-sites may still trigger this name.
   async function loadTimelapse() { return tlInit(); }
+
+  // ===== v1.7.15: Latest videos (weekly / 30-day / 90-day) =====
+  function _tlFmtRange(start, end) {
+    // "2026-05-27","2026-06-02" → "May 27 – Jun 2"
+    try {
+      const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      const [y1,m1,d1] = start.split("-").map(Number);
+      const [y2,m2,d2] = end.split("-").map(Number);
+      const left  = `${months[m1-1]} ${d1}`;
+      const right = (m1 === m2 && y1 === y2) ? `${d2}` : `${months[m2-1]} ${d2}`;
+      const yr = (y1 === y2) ? (y1 !== new Date().getFullYear() ? `, ${y1}` : "") : `, ${y1}–${y2}`;
+      return `${left} – ${right}${yr}`;
+    } catch (e) { return `${start} – ${end}`; }
+  }
+
+  function _tlFmtSoon(iso) {
+    try {
+      const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      const [y,m,d] = iso.split("-").map(Number);
+      return `${months[m-1]} ${d}`;
+    } catch (e) { return iso; }
+  }
+
+  const _TL_KIND_META = {
+    "weekly": { icon: "📆", label: "Week" },
+    "30d":    { icon: "🌿", label: "30 days" },
+    "90d":    { icon: "🍂", label: "90 days" },
+  };
+
+  async function tlLibraryLoad() {
+    const list = $("tl-library-list");
+    if (!list) return;
+    list.innerHTML = '<div class="tl-library-msg">Loading…</div>';
+    try {
+      const r = await fetch("/garden/api/timelapse/library?t=" + Date.now(), {credentials:"same-origin"});
+      if (!r.ok) throw new Error("library failed");
+      const s = await r.json();
+      const rows = [];
+      // Real renders first (newest first — server already sorted by end desc)
+      for (const v of (s.renders || [])) {
+        const meta = _TL_KIND_META[v.kind] || { icon: "🎬", label: v.kind };
+        rows.push(`
+          <div class="tl-row" onclick="tlPlayLongRange('${v.filename}','${meta.icon} ${meta.label} \u00b7 ${_tlFmtRange(v.start,v.end).replace(/'/g,"\\'")}')">
+            <div class="icon">${meta.icon}</div>
+            <div class="meta">
+              <div class="ttl">${meta.label} · ${_tlFmtRange(v.start, v.end)}</div>
+              <div class="sub">${v.size_mb} MB</div>
+            </div>
+            <div class="play">▶</div>
+          </div>`);
+      }
+      // Placeholders for not-yet-ready kinds
+      for (const p of (s.placeholders || [])) {
+        const meta = _TL_KIND_META[p.kind] || { icon: "⏳", label: p.kind };
+        const subtxt = p.days_until > 0
+          ? `starts ${_tlFmtSoon(p.next_render)} · ${p.days_until} day${p.days_until===1?"":"s"} away`
+          : `rendering tonight…`;
+        rows.push(`
+          <div class="tl-row placeholder">
+            <div class="icon">${meta.icon}</div>
+            <div class="meta">
+              <div class="ttl">${meta.label}</div>
+              <div class="sub">${subtxt}</div>
+            </div>
+            <div class="play">···</div>
+          </div>`);
+      }
+      if (!rows.length) {
+        list.innerHTML = '<div class="tl-library-msg">No long-range videos yet.<br>First weekly renders Monday 22:30.</div>';
+        return;
+      }
+      list.innerHTML = rows.join("");
+    } catch (e) {
+      list.innerHTML = '<div class="tl-library-msg">Could not load video list.</div>';
+    }
+  }
+
+  function tlPlayLongRange(filename, title) {
+    // Reuse the main player. Pause the daily, swap src to the long-range mp4.
+    const wrap = $("hp10-timelapse-wrap");
+    if (!wrap) return;
+    wrap.style.display = "block";
+    wrap.innerHTML = `<video controls playsinline autoplay id="hp10-video"></video>
+      <div style="font-size:11px;color:#8aa1c2;margin-top:6px;text-align:center">${title}</div>`;
+    const vid = $("hp10-video");
+    vid.src = "/garden/api/timelapse/range.mp4?f=" + encodeURIComponent(filename);
+    vid.play().catch(()=>{});
+    // Scroll the player into view inside the modal body
+    try { wrap.scrollIntoView({ behavior:"smooth", block:"center" }); } catch(e) {}
+  }
 
   // v1.3.2: REAL history modal (past 7 days from Ecowitt + Enphase)
   function openWxHistoryModal() {
