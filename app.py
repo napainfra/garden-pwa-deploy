@@ -45,8 +45,13 @@ COOKIE_TTL  = 365 * 24 * 3600  # 1 year
 FREEZE_AT = float(os.environ.get("FREEZE_AT", "1.0"))
 
 # Entity IDs (must match HA)
-E_MOIST  = "sensor.veg_soil_moisture"
-E_TEMP   = "sensor.veg_soil_temperature"
+# v1.7.16 (2026-07-03): switched E_MOIST and E_TEMP off the ghost 'sensor.veg_soil_*' mirror
+# helpers (which no longer exist in HA — probably deleted with an old templates.yaml)
+# and onto the real Ecowitt channel-1 sensors that the rest of the app has been using.
+# Prior behavior: temp.get('state') returned None -> float(None or 0) = 0.0 -> freeze_alert
+# fired at +32C outside. Now: hardened None/unknown/unavailable handling below at line ~339.
+E_MOIST  = "sensor.hp2564bu_pro_v2_1_1_soil_moisture_1"
+E_TEMP   = "sensor.hp2564bu_pro_v2_1_1_soil_temperature_1"
 E_BAT    = "sensor.veg_soil_battery"
 E_VALVE  = "valve.veg_garden"
 E_WATER  = "binary_sensor.veg_garden_watering"
@@ -335,8 +340,21 @@ def api_state(request: Request):
     elif last_watered_iso:
         last_watered_source = "scheduled cycle"
 
-    moist_v = float(moist.get("state") or 0)
-    temp_v  = float(temp.get("state") or 0)
+    # v1.7.16: harden None/unknown/unavailable handling.
+    # Previously `float(state or 0)` coerced missing sensors to 0.0, which triggered
+    # freeze_alert (temp <= 1.0) year-round when the mirror sensor was missing.
+    def _safe_float(x):
+        try:
+            if x is None: return None
+            s = str(x).strip().lower()
+            if s in ("", "unknown", "unavailable", "none", "null"): return None
+            return float(s)
+        except (TypeError, ValueError):
+            return None
+    moist_raw = _safe_float(moist.get("state"))
+    temp_raw  = _safe_float(temp.get("state"))
+    moist_v = moist_raw if moist_raw is not None else 0.0
+    temp_v  = temp_raw  if temp_raw  is not None else None
     is_watering = watering.get("state") == "on"
     valve_state = valve.get("state","unknown")
 
@@ -355,8 +373,9 @@ def api_state(request: Request):
         status_text = "Thirsty 🥺"
         status_kind = "thirsty"
 
-    # Freeze warning
-    freeze_alert = temp_v <= FREEZE_AT
+    # Freeze warning — only fire when we have a real soil temperature reading.
+    # A missing/unknown sensor MUST NOT trigger a freeze warning (v1.7.16 fix).
+    freeze_alert = (temp_v is not None) and (temp_v <= FREEZE_AT)
 
     # Weather
     w_attrs = weather.get("attributes", {}) or {}
@@ -498,7 +517,7 @@ def api_state(request: Request):
         "outdoor_temp_c": e_out_t,
         "outdoor_humidity": e_out_h,
         "moisture": round(moist_v, 1),
-        "temperature": round(temp_v, 1),
+        "temperature": round(temp_v, 1) if temp_v is not None else None,
         "battery": int(float(bat.get("state") or 0)),
         "valve": valve_state,
         "is_watering": is_watering,
