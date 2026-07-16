@@ -250,6 +250,7 @@ def api_state(request: Request):
     bat   = get_state(E_BAT) or {}
     valve = get_state(E_VALVE) or {}
     watering = get_state(E_WATER) or {}
+    manual_sw = get_state(E_MANUAL) or {}
     remain = get_state(E_REMAIN) or {}
     rain   = get_state(E_RAIN) or {}
     weather= get_state(E_WEATHER) or {}
@@ -355,8 +356,15 @@ def api_state(request: Request):
     temp_raw  = _safe_float(temp.get("state"))
     moist_v = moist_raw if moist_raw is not None else 0.0
     temp_v  = temp_raw  if temp_raw  is not None else None
-    is_watering = watering.get("state") == "on"
-    valve_state = valve.get("state","unknown")
+    # v1.7.17 fix: Hydrawise cloud sometimes lags 2h+ syncing manual-switch
+    # flips back to the valve/binary_sensor entities. Trust the switch as
+    # the authoritative signal for UX (Start disabled / Stop enabled).
+    manual_on = manual_sw.get("state") == "on"
+    is_watering = manual_on or watering.get("state") == "on"
+    if manual_on and valve.get("state") != "open":
+        valve_state = "open"
+    else:
+        valve_state = valve.get("state","unknown")
 
     # Status pill
     if is_watering:
