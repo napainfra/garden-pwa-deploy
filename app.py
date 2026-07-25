@@ -669,6 +669,11 @@ def api_history(request: Request, hours: int = 24):
     temp24  = _series_window(E_TEMP,  hours, sample_n)
     solar24 = _series_window(E_SOLAR_PANEL, hours, sample_n)
 
+    # v1.7.18: per-plant moisture (Tomato / Cucumber / Front-yard)
+    tomato24    = _series_window(E_SOIL_M_TOMATO,   hours, sample_n)
+    cucumber24  = _series_window(E_SOIL_M_CUCUMBER, hours, sample_n)
+    frontyard24 = _series_window("sensor.veg_soil_sensor_soil_moisture", hours, sample_n)
+
     # Watering events in window
     def _utc_z(t): return t.strftime("%Y-%m-%dT%H:%M:%SZ")
     now_utc = dt.datetime.now(dt.timezone.utc)
@@ -720,6 +725,10 @@ def api_history(request: Request, hours: int = 24):
     return {
         "hours": hours,
         "moisture": {**moist24, "trend": trend(moist24)},
+        # v1.7.18: per-plant moisture series
+        "moisture_tomato":    {**tomato24,    "trend": trend(tomato24)},
+        "moisture_cucumber":  {**cucumber24,  "trend": trend(cucumber24)},
+        "moisture_frontyard": {**frontyard24, "trend": trend(frontyard24)},
         "temperature": {**temp24, "trend": trend(temp24)},
         "solar": {**solar24, "trend": trend(solar24)},
         "watering": {
@@ -730,6 +739,164 @@ def api_history(request: Request, hours: int = 24):
         "rain_last_24h": bool(last_rain_iso),
         "rain_last_iso": last_rain_iso,
         "rain_last_age": humanize_age(last_rain_iso) if last_rain_iso else None,
+    }
+
+# v1.7.18: watering stats endpoint — 7d bars split auto vs manual + today totals
+@app.get("/api/watering_stats")
+def api_watering_stats(request: Request):
+    """Returns 7d daily watering minutes split by trigger (auto vs manual)
+    plus today's cumulative counters. Data comes from HA logbook on
+    switch.veg_garden_manual_watering — 'context' user_id distinguishes
+    who flipped the switch:
+      - if the automation.veg_garden_soil_moisture_drip fired it -> AUTO
+      - anything else (UI tap, script call, physical) -> MANUAL
+    """
+    if not is_authed(request):
+        raise HTTPException(401)
+
+    now_utc = dt.datetime.now(dt.timezone.utc)
+    # 7d + buffer to catch open cycles
+    since_utc = now_utc - dt.timedelta(days=7, hours=1)
+    since = since_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+    end   = (now_utc + dt.timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # Fetch logbook for the switch AND for the automation, so we can attribute cycles
+    lb_switch = ha("GET", f"/logbook/{since}?entity={E_MANUAL}&end_time={end}") or []
+    lb_auto   = ha("GET", f"/logbook/{since}?entity=automation.veg_garden_soil_moisture_drip&end_time={end}") or []
+    if not isinstance(lb_switch, list): lb_switch = []
+    if not isinstance(lb_auto, list):   lb_auto   = []
+
+    # Build list of automation trigger timestamps (UTC datetimes)
+    auto_fires = []
+    for ev in lb_auto:
+        t = _parse_dt(ev.get("when"))
+        if t is not None:
+            auto_fires.append(t)
+    auto_fires.sort()
+
+    def nearest_auto_within(t, window_seconds=90):
+        """Was there an automation trigger within `window_seconds` before t?"""
+        if not auto_fires: return False
+        # simple linear scan (list is short: at most ~50 events in 7d)
+        for at in auto_fires:
+            delta = (t - at).total_seconds()
+            if 0 <= delta <= window_seconds:
+                return True
+        return False
+
+    # Walk switch on/off pairs; attribute each ON to auto or manual
+    # Buckets per local (America/Toronto) date. HA logbook 'when' is UTC ISO.
+    import zoneinfo
+    try:
+        TZ = zoneinfo.ZoneInfo("America/Toronto")
+    except Exception:
+        TZ = dt.timezone.utc
+
+    from collections import defaultdict
+    daily = defaultdict(lambda: {"auto_min": 0.0, "manual_min": 0.0,
+                                  "auto_cycles": 0, "manual_cycles": 0})
+    open_at = None
+    open_kind = None
+
+    for ev in lb_switch:
+        st = ev.get("state")
+        t = _parse_dt(ev.get("when"))
+        if t is None: continue
+        if st == "on":
+            open_at = t
+            open_kind = "auto" if nearest_auto_within(t) else "manual"
+        elif st == "off" and open_at is not None:
+            minutes = (t - open_at).total_seconds() / 60.0
+            if minutes > 0.05:
+                day = open_at.astimezone(TZ).date().isoformat()
+                if open_kind == "auto":
+                    daily[day]["auto_min"] += minutes
+                    daily[day]["auto_cycles"] += 1
+                else:
+                    daily[day]["manual_min"] += minutes
+                    daily[day]["manual_cycles"] += 1
+            open_at = None
+            open_kind = None
+
+    # If still open, count to now
+    if open_at is not None:
+        minutes = (now_utc - open_at).total_seconds() / 60.0
+        day = open_at.astimezone(TZ).date().isoformat()
+        if open_kind == "auto":
+            daily[day]["auto_min"] += minutes
+            daily[day]["auto_cycles"] += 1
+        else:
+            daily[day]["manual_min"] += minutes
+            daily[day]["manual_cycles"] += 1
+
+    # Emit last 7 days (today at end, ordered oldest->newest)
+    today_local = now_utc.astimezone(TZ).date()
+    days = []
+    for i in range(6, -1, -1):
+        d = (today_local - dt.timedelta(days=i)).isoformat()
+        b = daily.get(d, {"auto_min": 0.0, "manual_min": 0.0,
+                           "auto_cycles": 0, "manual_cycles": 0})
+        days.append({
+            "date": d,
+            "auto_min":       round(b["auto_min"], 1),
+            "manual_min":     round(b["manual_min"], 1),
+            "auto_cycles":    b["auto_cycles"],
+            "manual_cycles":  b["manual_cycles"],
+            "total_min":      round(b["auto_min"] + b["manual_min"], 1),
+        })
+
+    today = days[-1]
+
+    # Today from HA counter (may lag/reset differently — expose both)
+    ha_today = get_state("sensor.veg_garden_daily_active_watering_time") or {}
+    try:
+        ha_today_min = round(float(ha_today.get("state", 0)) / 60.0, 1)
+    except (TypeError, ValueError):
+        ha_today_min = None
+
+    # Last N cycles (for the "recent watering" list under the bars)
+    recent = []
+    open_at = None
+    open_kind = None
+    for ev in lb_switch:
+        st = ev.get("state")
+        t = _parse_dt(ev.get("when"))
+        if t is None: continue
+        if st == "on":
+            open_at = t
+            open_kind = "auto" if nearest_auto_within(t) else "manual"
+        elif st == "off" and open_at is not None:
+            minutes = (t - open_at).total_seconds() / 60.0
+            if minutes > 0.05:
+                recent.append({
+                    "start":   open_at.isoformat().replace("+00:00", "Z"),
+                    "minutes": round(minutes, 1),
+                    "kind":    open_kind,
+                })
+            open_at = None
+    recent = recent[-10:][::-1]  # 10 most recent, newest first
+
+    # Automation state
+    auto_state = get_state("automation.veg_garden_soil_moisture_drip") or {}
+    auto_on = auto_state.get("state") == "on"
+    auto_attrs = auto_state.get("attributes") or {}
+    last_triggered = auto_attrs.get("last_triggered")
+
+    return {
+        "days": days,
+        "today": today,
+        "ha_today_min": ha_today_min,
+        "recent": recent,
+        "auto_enabled": auto_on,
+        "auto_last_triggered": last_triggered,
+        "auto_last_triggered_age": humanize_age(last_triggered) if last_triggered else None,
+        "totals_7d": {
+            "auto_min":      round(sum(d["auto_min"]      for d in days), 1),
+            "manual_min":    round(sum(d["manual_min"]    for d in days), 1),
+            "auto_cycles":   sum(d["auto_cycles"]   for d in days),
+            "manual_cycles": sum(d["manual_cycles"] for d in days),
+            "total_min":     round(sum(d["total_min"]     for d in days), 1),
+        },
     }
 
 # ===== camera (RTSP livestream + HA-native HLS) =====

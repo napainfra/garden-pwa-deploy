@@ -3834,6 +3834,25 @@
     <button class="btn stop disabled" id="btn-stop" onclick="doStop()"><span class="pix pix-stop">🛑</span> Stop watering</button>
   </div>
 
+  <!-- v1.7.18: Watering Stats card — 7d auto-vs-manual bars + today totals -->
+  <div class="tile ws-card" id="ws-card" style="margin-top:14px;padding:14px 12px">
+    <div class="ws-head" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="label" style="display:flex;align-items:center;gap:6px">
+        <span class="pix">📊</span> Watering stats
+      </div>
+      <div id="ws-auto-badge" style="font-size:11px;padding:2px 8px;border-radius:10px;background:rgba(91,217,126,.15);color:#5bd97e">auto on</div>
+    </div>
+    <div id="ws-today" style="font-size:13px;color:#a7b3c2;margin-bottom:10px">Loading…</div>
+    <svg id="ws-bars" viewBox="0 0 400 130" preserveAspectRatio="none"
+         style="width:100%;height:130px;display:block"></svg>
+    <div style="display:flex;gap:12px;margin-top:6px;font-size:10.5px;color:#8a96a3;justify-content:center">
+      <span><span style="display:inline-block;width:9px;height:9px;background:#5bd97e;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Auto (drip)</span>
+      <span><span style="display:inline-block;width:9px;height:9px;background:#80c8ff;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Manual / UI</span>
+    </div>
+    <div id="ws-recent" style="margin-top:10px;font-size:11.5px;color:#a7b3c2;line-height:1.55"></div>
+    <div id="ws-auto-line" style="margin-top:8px;font-size:11px;color:#8a96a3"></div>
+  </div>
+
   <!-- HP10 garden camera tile (NEW v1.3.0) - replaces removed Eufy cam-card -->
   <div class="hp10-card" id="hp10-card" onclick="openHp10Modal()">
     <img id="hp10-img" class="hp10-img" alt="Garden view (HP10)"
@@ -5839,6 +5858,120 @@
     }
     svgEl.innerHTML = html;
   }
+  // v1.7.18: watering stats card renderer
+  async function loadWateringStats(){
+    try{
+      const r = await fetch("/garden/api/watering_stats",{credentials:"same-origin"});
+      if(!r.ok) return;
+      const data = await r.json();
+      // Today summary
+      const today = data.today || {};
+      const totMin = today.total_min || 0;
+      const autoMin = today.auto_min || 0;
+      const manMin = today.manual_min || 0;
+      const haToday = data.ha_today_min;
+      let todayLine = "";
+      if(totMin > 0){
+        const parts = [];
+        if(autoMin > 0) parts.push(`🌱 auto ${autoMin.toFixed(0)} min (${today.auto_cycles})`);
+        if(manMin > 0) parts.push(`👋 manual ${manMin.toFixed(0)} min (${today.manual_cycles})`);
+        todayLine = `<b>Today:</b> ${totMin.toFixed(0)} min total · ${parts.join(" · ")}`;
+      } else {
+        todayLine = `<b>Today:</b> no watering yet`;
+      }
+      if(haToday != null && Math.abs(haToday - totMin) > 3){
+        todayLine += ` <span style="opacity:.6">(HA counter: ${haToday.toFixed(0)} min)</span>`;
+      }
+      $("ws-today").innerHTML = todayLine;
+
+      // Auto badge
+      const badge = $("ws-auto-badge");
+      if(data.auto_enabled){
+        badge.style.background = "rgba(91,217,126,.15)";
+        badge.style.color = "#5bd97e";
+        badge.textContent = "auto\u00a0on";
+      } else {
+        badge.style.background = "rgba(255,138,91,.15)";
+        badge.style.color = "#ff8a5b";
+        badge.textContent = "auto\u00a0off";
+      }
+
+      // Last fired line
+      const line = $("ws-auto-line");
+      if(data.auto_last_triggered_age){
+        line.textContent = `Auto drip last fired ${data.auto_last_triggered_age} ago`;
+      } else {
+        line.textContent = "";
+      }
+
+      // Bars
+      const days = data.days || [];
+      const svg = $("ws-bars");
+      const W=400, H=130, padL=22, padR=8, padT=8, padB=22;
+      const plotW = W - padL - padR;
+      const plotH = H - padT - padB;
+      const barW = plotW / days.length;
+      let maxV = 0;
+      days.forEach(d => { if(d.total_min > maxV) maxV = d.total_min; });
+      if(maxV < 20) maxV = 20;  // baseline scale so tiny days show
+      // round up to nice number
+      const niceMax = Math.ceil(maxV / 10) * 10;
+      const scale = plotH / niceMax;
+
+      let html = "";
+      // gridlines + y labels
+      for(let i=0; i<=4; i++){
+        const y = padT + (plotH * i/4);
+        const v = niceMax - (niceMax * i/4);
+        html += `<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="rgba(255,255,255,.05)" stroke-width=".5"/>`;
+        html += `<text x="${padL-3}" y="${y+3}" font-size="8" fill="#5e6a78" text-anchor="end">${v.toFixed(0)}m</text>`;
+      }
+      // bars
+      days.forEach((d, i) => {
+        const x = padL + i*barW + 3;
+        const bw = barW - 6;
+        const autoH = (d.auto_min || 0) * scale;
+        const manH  = (d.manual_min || 0) * scale;
+        const autoY = padT + plotH - autoH;
+        const manY  = autoY - manH;
+        if(autoH > 0)
+          html += `<rect x="${x}" y="${autoY}" width="${bw}" height="${autoH}" fill="#5bd97e" opacity=".85" rx="1.5"/>`;
+        if(manH > 0)
+          html += `<rect x="${x}" y="${manY}" width="${bw}" height="${manH}" fill="#80c8ff" opacity=".85" rx="1.5"/>`;
+        // day label (last char of weekday: M T W T F S S based on JS Date)
+        try {
+          const dObj = new Date(d.date + "T12:00:00");
+          const label = dObj.toLocaleDateString([], {weekday: "short"}).slice(0,3);
+          const isToday = i === days.length - 1;
+          html += `<text x="${x + bw/2}" y="${H-8}" font-size="9" fill="${isToday?'#e3ecf5':'#8a96a3'}" text-anchor="middle" font-weight="${isToday?'700':'400'}">${label}</text>`;
+          // total on top of stack if > 0
+          if(d.total_min > 0){
+            html += `<text x="${x + bw/2}" y="${manY - 3}" font-size="8" fill="#a7b3c2" text-anchor="middle">${d.total_min.toFixed(0)}</text>`;
+          }
+        } catch(e){}
+      });
+      svg.innerHTML = html;
+
+      // Recent cycles list (top 5)
+      const recent = (data.recent || []).slice(0, 5);
+      if(recent.length){
+        const rows = recent.map(r => {
+          const d = new Date(r.start);
+          const when = d.toLocaleDateString([], {month:"short", day:"numeric"}) + " " +
+                       d.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+          const icon = r.kind === "auto" ? "🌱" : "👋";
+          const kindColor = r.kind === "auto" ? "#5bd97e" : "#80c8ff";
+          return `<div style="display:flex;justify-content:space-between"><span>${icon} <span style="color:${kindColor}">${r.kind}</span> · ${when}</span><span>${r.minutes.toFixed(0)} min</span></div>`;
+        }).join("");
+        $("ws-recent").innerHTML = `<div style="color:#6d7885;font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Recent cycles</div>${rows}`;
+      } else {
+        $("ws-recent").innerHTML = `<div style="color:#6d7885;font-size:11px">No watering in the last 7 days</div>`;
+      }
+    } catch(e){
+      console.warn("watering_stats fail", e);
+    }
+  }
+
   async function loadHistory(){
     try{
       const r = await fetch("/garden/api/history",{credentials:"same-origin"});
@@ -5903,17 +6036,110 @@
   }
   function drawModal(){
     if(!_modalData || !_modalMetric) return;
+    const label = _modalHours === 24 ? "Last 24 hours" : _modalHours === 48 ? "Last 48 hours" : "Last 7 days";
+
+    // v1.7.18: moisture modal renders 3 sensor lines (Tomato / Cucumber / Front-yard)
+    if(_modalMetric === "moisture"){
+      const t = _modalData.moisture_tomato    || {};
+      const c = _modalData.moisture_cucumber  || {};
+      const f = _modalData.moisture_frontyard || {};
+      // stats block reflects cucumber (drip trigger sensor)
+      $("m-min").textContent = c.min != null ? c.min + "%" : "—";
+      $("m-max").textContent = c.max != null ? c.max + "%" : "—";
+      $("m-now").textContent = c.last != null ? c.last + "%" : "—";
+      const totalCount = (t.count||0) + (c.count||0) + (f.count||0);
+      $("m-sub").textContent = `${label} • 🍅 ${t.last!=null?t.last+"%":"—"} · 🥒 ${c.last!=null?c.last+"%":"—"} · 🌿 ${f.last!=null?f.last+"%":"—"} · ${totalCount} readings`;
+      drawMultiChart([
+        {series: t.series || [], color: "#ff8a5b", label: "🍅 Tomato"},
+        {series: c.series || [], color: "#5bd97e", label: "🥒 Cucumber (drip)"},
+        {series: f.series || [], color: "#80c8ff", label: "🌿 Front-yard"},
+      ], "moisture");
+      return;
+    }
+
     const series = (_modalData[_modalMetric] && _modalData[_modalMetric].series) || [];
     const m = _modalData[_modalMetric] || {};
-    const unit = _modalMetric === "moisture" ? "%"
-               : _modalMetric === "temperature" ? "°"
-               : "W";
+    const unit = _modalMetric === "temperature" ? "°" : "W";
     $("m-min").textContent = m.min != null ? m.min + unit : "—";
     $("m-max").textContent = m.max != null ? m.max + unit : "—";
     $("m-now").textContent = m.last != null ? m.last + unit : "—";
-    const label = _modalHours === 24 ? "Last 24 hours" : _modalHours === 48 ? "Last 48 hours" : "Last 7 days";
     $("m-sub").textContent = `${label} • ${m.count || 0} readings`;
     drawBigChart(series, _modalMetric);
+  }
+
+  // v1.7.18: multi-line chart for per-plant moisture
+  function drawMultiChart(lines, metric){
+    const svg = $("big-chart");
+    const w=400, h=240, padL=34, padR=14, padT=14, padB=44;
+    const plotW=w-padL-padR, plotH=h-padT-padB;
+    const nonEmpty = lines.filter(L => L.series && L.series.length >= 2);
+    if(nonEmpty.length === 0){
+      svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#5e6a78" font-size="13">Not enough data</text>';
+      return;
+    }
+    // shared time + value range across all series
+    let tMin = Infinity, tMax = -Infinity, lo = Infinity, hi = -Infinity;
+    nonEmpty.forEach(L => {
+      L.series.forEach(p => {
+        if(p[0] < tMin) tMin = p[0];
+        if(p[0] > tMax) tMax = p[0];
+        if(p[1] < lo) lo = p[1];
+        if(p[1] > hi) hi = p[1];
+      });
+    });
+    const tSpan = Math.max(1, tMax - tMin);
+    if(hi-lo < 10){ const c=(hi+lo)/2; lo=c-5; hi=c+5; }
+    // Pad range a touch
+    const pad = (hi-lo)*0.08;
+    lo -= pad; hi += pad;
+    if(lo < 0) lo = 0;
+    if(hi > 100) hi = 100;
+    const span = hi-lo;
+    const X = t => padL + ((t - tMin)/tSpan) * plotW;
+    const Y = v => padT + plotH - ((v - lo)/span) * plotH;
+    let html = "";
+    // grid + y labels
+    for(let i=0;i<=4;i++){
+      const y = padT + (plotH * i/4);
+      const v = hi - (span * i/4);
+      html += `<line x1="${padL}" y1="${y}" x2="${w-padR}" y2="${y}" stroke="rgba(255,255,255,.05)" stroke-width=".5"/>`;
+      html += `<text x="${padL-4}" y="${y+3}" font-size="9" fill="#5e6a78" text-anchor="end">${v.toFixed(0)}%</text>`;
+    }
+    // x labels
+    const t0 = new Date(tMin), tn = new Date(tMax);
+    const fmt = (d) => {
+      if(_modalHours >= 168) return d.toLocaleDateString([], {month:"short", day:"numeric"});
+      if(_modalHours >= 48)  return d.toLocaleDateString([], {weekday:"short"}) + " " + d.toLocaleTimeString([], {hour:"numeric"});
+      return d.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+    };
+    html += `<text x="${padL}" y="${h-24}" font-size="9" fill="#8a96a3">${fmt(t0)}</text>`;
+    html += `<text x="${w-padR}" y="${h-24}" font-size="9" fill="#8a96a3" text-anchor="end">${fmt(tn)}</text>`;
+    if(_modalHours >= 48){
+      const tMid = new Date((tMin+tMax)/2);
+      html += `<text x="${(padL+w-padR)/2}" y="${h-24}" font-size="9" fill="#8a96a3" text-anchor="middle">${fmt(tMid)}</text>`;
+    }
+    // draw each line
+    nonEmpty.forEach(L => {
+      let path = `M ${X(L.series[0][0]).toFixed(1)},${Y(L.series[0][1]).toFixed(1)}`;
+      for(let i=1;i<L.series.length;i++){
+        path += ` L ${X(L.series[i][0]).toFixed(1)},${Y(L.series[i][1]).toFixed(1)}`;
+      }
+      html += `<path d="${path}" fill="none" stroke="${L.color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`;
+      // last-value dot
+      const lp = L.series[L.series.length-1];
+      html += `<circle cx="${X(lp[0]).toFixed(1)}" cy="${Y(lp[1]).toFixed(1)}" r="3" fill="${L.color}"/>`;
+    });
+    // legend at bottom of svg
+    const legendY = h - 10;
+    let lx = padL;
+    lines.forEach(L => {
+      const empty = !(L.series && L.series.length >= 2);
+      const opacity = empty ? 0.35 : 1;
+      html += `<circle cx="${lx}" cy="${legendY-3}" r="3" fill="${L.color}" opacity="${opacity}"/>`;
+      html += `<text x="${lx+7}" y="${legendY}" font-size="9" fill="#8a96a3" opacity="${opacity}">${L.label}</text>`;
+      lx += (L.label.length * 5.4) + 22;
+    });
+    svg.innerHTML = html;
   }
   function drawBigChart(series, metric){
     const svg = $("big-chart");
@@ -6156,6 +6382,9 @@
 
   setInterval(load, 15000);
   setInterval(loadHistory, 120000);
+  // v1.7.18: watering stats card refresh
+  loadWateringStats();
+  setInterval(loadWateringStats, 120000);
   // Pull to refresh hint: refresh on visibility
   document.addEventListener("visibilitychange",()=>{ if(!document.hidden) load(); });
 
